@@ -7,7 +7,7 @@ import About from './Pages/About/About'
 import Root from './routes/Root';
 import NotFound from './Pages/NotFound/NotFound';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
+//beed
 const router = createBrowserRouter([
   { 
     path: "/",
