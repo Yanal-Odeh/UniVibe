@@ -1,0 +1,294 @@
+// src/Components/Navbar/Navbar.module.scss
+
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.navbarContainer {
+  max-width: 100%; // Full width instead of max-width
+  margin: 0;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between; // Push items to far left and far right
+  align-items: center;
+  height: 80px;
+
+  @media (max-width: 768px) {
+    padding: 0 20px;
+    height: 70px;
+  }
+}
+
+// Logo Styles
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none;
+  color: #0064a4;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.logoBox {
+  background-color: #0064a4;
+  padding: 10px 15px;
+  border-radius: 4px;
+}
+
+.logoText {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.logoSubtext {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #333333;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// Navigation Menu
+.navMenu {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  @media (max-width: 1024px) {
+    gap: 0;
+  }
+}
+
+.navItem {
+  position: relative;
+
+  &:hover .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.navLink {
+  display: block;
+  padding: 28px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  color: #333333;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+
+  &:hover {
+    color: #0064a4;
+    border-bottom-color: #0064a4;
+  }
+
+  &.active {
+    color: #0064a4;
+    border-bottom-color: #0064a4;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 28px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+// Menu Button (Hamburger)
+.menuButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 20px;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #333333;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  border-bottom: 3px solid transparent;
+
+  &:hover {
+    color: #0064a4;
+    border-bottom-color: #0064a4;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 28px 15px;
+    font-size: 0.85rem;
+  }
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 20px;
+
+  span {
+    display: block;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+}
+
+// Dropdown Menu
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 250px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: block;
+  padding: 15px 20px;
+  color: #333333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+
+  &:hover {
+    background-color: #f5f5f5;
+    border-left-color: #0064a4;
+    color: #0064a4;
+    padding-left: 25px;
+  }
+}
+
+// Mobile Menu Overlay
+.mobileMenuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mobileMenuContent {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 350px;
+  max-width: 85vw;
+  height: 100vh;
+  background-color: #ffffff;
+  padding: 30px;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.closeButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333333;
+  cursor: pointer;
+  padding: 10px;
+  line-height: 1;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #0064a4;
+  }
+}
+
+.mobileMenuItem {
+  margin-bottom: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+
+  &:first-child {
+    border-top: none;
+    padding-top: 40px;
+  }
+}
+
+.mobileMenuLink {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333333;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #0064a4;
+  }
+}
+
+.mobileDropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 15px;
+}
+
+.mobileDropdownItem {
+  display: block;
+  padding: 8px 0;
+  color: #666666;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #0064a4;
+  }
+}

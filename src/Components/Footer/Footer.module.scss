@@ -1,0 +1,263 @@
+// src/Components/Footer/Footer.module.scss
+
+.footer {
+  background-image: 
+    url('../../Images/footer-cover-bg-dusk.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+    border-top-left-radius: 9% ; /* Adjust values for desired curve */
+   border-top-right-radius: 9% ; /* Adjust values for desired curve */
+      /* Optional: Add a border to enhance the curve */
+  overflow: hidden;
+  color: #ffffff;
+  padding: 60px 0 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.footerContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 50px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 0 20px 30px;
+    gap: 30px;
+  }
+}
+
+.footerColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.footerHeading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.footerSubheading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: -10px 0 10px 0;
+  color: #e0e0e0;
+}
+
+.contactInfo {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #d0d0d0;
+
+  p {
+    margin: 4px 0;
+  }
+}
+
+.staffDirectoryBtn {
+  background-color: #ffc107;
+  color: #000000;
+  border: none;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #ffca28;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.socialIcons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-3px);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    a {
+      color: #d0d0d0;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      display: inline-block;
+
+      &:hover {
+        color: #ffc107;
+        transform: translateX(5px);
+      }
+    }
+  }
+}
+
+.footerBottom {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 25px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footerBottomContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    padding: 0 20px;
+  }
+}
+
+.footerLinksHorizontal {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+
+  a {
+    color: #d0d0d0;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #ffc107;
+    }
+  }
+
+  .separator {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    justify-content: center;
+  }
+}
+
+.footerMeta {
+  font-size: 0.85rem;
+  color: #b0b0b0;
+  font-style: italic;
+
+  p {
+    margin: 0;
+  }
+}
+
+.footerCopyright {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 30px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.copyrightContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    padding: 0 20px;
+  }
+}
+
+.copyrightText {
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  line-height: 1.6;
+
+  p {
+    margin: 4px 0;
+  }
+}
+
+.universityLogo {
+  text-align: right;
+
+  @media (max-width: 768px) {
+    text-align: center;
+  }
+}
+
+.logoPlaceholder {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+
+  h4 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    color: #ffc107;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  p {
+    margin: 4px 0;
+    font-size: 0.85rem;
+    color: #c0c0c0;
+  }
+}
