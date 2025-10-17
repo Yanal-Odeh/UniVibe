@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styles from './Home.module.scss';
 
 const Home = () => {
@@ -96,12 +97,22 @@ const Home = () => {
               {/* Buttons */}
               <div className={styles.cardButtons}>
                 {card.buttons.map((button, btnIndex) => (
-                  <button
-                    key={btnIndex}
-                    className={button.primary ? styles.btnPrimary : styles.btnSecondary}
-                  >
-                    {button.text}
-                  </button>
+                  button.text === 'Event Calendar' ? (
+                    <Link
+                      key={btnIndex}
+                      to="/calendar"
+                      className={button.primary ? styles.btnPrimary : styles.btnSecondary}
+                    >
+                      {button.text}
+                    </Link>
+                  ) : (
+                    <button
+                      key={btnIndex}
+                      className={button.primary ? styles.btnPrimary : styles.btnSecondary}
+                    >
+                      {button.text}
+                    </button>
+                  )
                 ))}
               </div>
             </div>

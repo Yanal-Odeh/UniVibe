@@ -37,6 +37,10 @@ function Navbar() {
       ]
     },
     {
+      title: 'ABOUT',
+      path: '/about'
+    },
+    {
       title: 'MENU',
       path: '#',
       isMenu: true // Special flag for hamburger menu
