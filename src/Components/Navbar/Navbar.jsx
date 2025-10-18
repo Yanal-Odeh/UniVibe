@@ -37,6 +37,10 @@ function Navbar() {
       ]
     },
     {
+      title: 'COMMUNITIES',
+      path: '/communities'
+    },
+    {
       title: 'ABOUT',
       path: '/about'
     },
@@ -86,7 +90,9 @@ function Navbar() {
                 <>
                   <NavLink 
                     to={item.path} 
-                    className={styles.navLink}
+                    className={({ isActive }) => 
+                      isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+                    }
                   >
                     {item.title}
                   </NavLink>
@@ -95,13 +101,15 @@ function Navbar() {
                   {item.dropdown && (
                     <div className={styles.dropdown}>
                       {item.dropdown.map((subItem, subIndex) => (
-                        <Link 
+                        <NavLink 
                           key={subIndex} 
                           to={subItem.path}
-                          className={styles.dropdownItem}
+                          className={({ isActive }) => 
+                            isActive ? `${styles.dropdownItem} ${styles.active}` : styles.dropdownItem
+                          }
                         >
                           {subItem.name}
-                        </Link>
+                        </NavLink>
                       ))}
                     </div>
                   )}
@@ -125,25 +133,29 @@ function Navbar() {
               {menuItems.map((item, index) => (
                 !item.isMenu && (
                   <div key={index} className={styles.mobileMenuItem}>
-                    <Link 
+                    <NavLink 
                       to={item.path}
-                      className={styles.mobileMenuLink}
+                      className={({ isActive }) => 
+                        isActive ? `${styles.mobileMenuLink} ${styles.active}` : styles.mobileMenuLink
+                      }
                       onClick={toggleMobileMenu}
                     >
                       {item.title}
-                    </Link>
+                    </NavLink>
                     
                     {item.dropdown && (
                       <div className={styles.mobileDropdown}>
                         {item.dropdown.map((subItem, subIndex) => (
-                          <Link 
+                          <NavLink 
                             key={subIndex}
                             to={subItem.path}
-                            className={styles.mobileDropdownItem}
+                            className={({ isActive }) => 
+                              isActive ? `${styles.mobileDropdownItem} ${styles.active}` : styles.mobileDropdownItem
+                            }
                             onClick={toggleMobileMenu}
                           >
                             {subItem.name}
-                          </Link>
+                          </NavLink>
                         ))}
                       </div>
                     )}

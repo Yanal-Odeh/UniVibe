@@ -9,6 +9,11 @@ import Events from './Pages/Events/Events'
 import EventDetails from './Pages/EventDetails/EventDetails'
 import Root from './routes/Root';
 import NotFound from './Pages/NotFound/NotFound';
+import SignIn from './Pages/SignIn/SignIn';
+import Communities from './Pages/Communities/Communities';
+import AdminPanel from './Pages/AdminPanel/AdminPanel';
+import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import { CommunitiesProvider } from './contexts/CommunitiesContext';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 //beed
 const router = createBrowserRouter([
@@ -25,6 +30,11 @@ const router = createBrowserRouter([
         element: <About />
         
       },
+      {
+        path: "/signin",
+        element: <SignIn />
+      },
+      
         {
           path: "/calendar",
           element: <EventCalendar />
@@ -37,7 +47,15 @@ const router = createBrowserRouter([
           path: "/events/:id",
           element: <EventDetails />
         },
-    
+        {
+        path: "/communities",
+        element: <Communities />
+      },
+      {
+        path: "/admin",
+        element: <AdminPanel />
+      },  
+        
       {
         path: "*",
         element: <NotFound />
@@ -50,9 +68,11 @@ const router = createBrowserRouter([
 function App() {
 
   return (
-    <>
-      <RouterProvider router={router} />
-    </>
+    <AdminAuthProvider>
+      <CommunitiesProvider>
+        <RouterProvider router={router} />
+      </CommunitiesProvider>
+    </AdminAuthProvider>
   )
 }
 

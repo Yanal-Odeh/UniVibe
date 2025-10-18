@@ -273,6 +273,7 @@ $tablet: 1024px;
   min-height: 120px;
   padding: 0.5rem;
   position: relative;
+  transition: all 0.3s ease;
 
   &.empty {
     background: $bg-lighter;
@@ -280,6 +281,12 @@ $tablet: 1024px;
 
   &.today {
     background: $primary-light;
+  }
+  
+  &.highlighted {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    box-shadow: 0 0 0 2px #fbbf24 inset;
+    animation: pulse-highlight 2s ease-in-out infinite;
   }
 
   @media (max-width: $tablet) {
@@ -289,6 +296,15 @@ $tablet: 1024px;
   @media (max-width: $mobile) {
     min-height: 80px;
     padding: 0.25rem;
+  }
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #fbbf24 inset;
+  }
+  50% {
+    box-shadow: 0 0 0 3px #f59e0b inset;
   }
 }
 
@@ -323,20 +339,30 @@ $tablet: 1024px;
   color: $white;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.3s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
+  text-decoration: none;
+  
   &:hover {
-    opacity: 0.8;
+    opacity: 0.85;
+    transform: translateY(-1px);
   }
+  
+  &.matchedEvent {
+    animation: glow-event 1.5s ease-in-out infinite;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
 
-  @media (max-width: $tablet) {
-    width: 8px;
-    height: 8px;
-    padding: 0;
-    border-radius: 50%;
+@keyframes glow-event {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.5);
   }
 }
 

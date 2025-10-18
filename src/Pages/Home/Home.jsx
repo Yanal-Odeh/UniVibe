@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Calendar, Users, BookOpen, Coffee, Music, Camera, Sparkles, ArrowRight } from 'lucide-react';
 import styles from './Home.module.scss';
 
 const Home = () => {
@@ -60,14 +61,106 @@ const Home = () => {
     }
   ];
 
+  const features = [
+    {
+      icon: <Users size={40} />,
+      title: "Join Communities",
+      description: "Connect with like-minded students and join vibrant communities",
+      link: "/communities",
+      color: "#667eea"
+    },
+    {
+      icon: <Calendar size={40} />,
+      title: "Upcoming Events",
+      description: "Discover and participate in exciting campus events",
+      link: "/events",
+      color: "#4facfe"
+    },
+    {
+      icon: <BookOpen size={40} />,
+      title: "Study Spaces",
+      description: "Find the perfect spot to study and collaborate",
+      link: "/study",
+      color: "#43e97b"
+    },
+    {
+      icon: <Coffee size={40} />,
+      title: "Dine & Relax",
+      description: "Explore dining options and relaxation areas",
+      link: "/dine",
+      color: "#fa709a"
+    }
+  ];
+
+  const stats = [
+    { number: "6+", label: "Active Communities" },
+    { number: "50+", label: "Events Monthly" },
+    { number: "1000+", label: "Active Students" },
+    { number: "24/7", label: "Access Available" }
+  ];
+
   return (
     <div className={styles.homePage}>
       {/* Hero Section */}
       <div className={styles.hero}>
         <div className={styles.heroOverlay} />
-        <h1 className={styles.heroTitle}>
-          INTERACT. LEARN. ENJOY.
-        </h1>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            INTERACT. LEARN. ENJOY.
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Your hub for campus life, events, and community connections
+          </p>
+          <div className={styles.heroButtons}>
+            <Link to="/events" className={styles.heroBtnPrimary}>
+              Explore Events
+              <ArrowRight size={20} />
+            </Link>
+            <Link to="/communities" className={styles.heroBtnSecondary}>
+              Join Communities
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className={styles.statsSection}>
+        <div className={styles.statsContainer}>
+          {stats.map((stat, index) => (
+            <div key={index} className={styles.statCard}>
+              <h3 className={styles.statNumber}>{stat.number}</h3>
+              <p className={styles.statLabel}>{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className={styles.featuresSection}>
+        <div className={styles.sectionHeader}>
+          <Sparkles className={styles.sectionIcon} />
+          <h2>What We Offer</h2>
+          <p>Everything you need for an amazing campus experience</p>
+        </div>
+        <div className={styles.featuresGrid}>
+          {features.map((feature, index) => (
+            <Link 
+              key={index} 
+              to={feature.link} 
+              className={styles.featureCard}
+              style={{'--card-gradient': feature.color, color: feature.color}}
+            >
+              <div className={styles.featureIcon} style={{background: feature.color}}>
+                {feature.icon}
+              </div>
+              <h3 className={styles.featureTitle}>{feature.title}</h3>
+              <p className={styles.featureDescription}>{feature.description}</p>
+              <span className={styles.featureLink}>
+                Learn More <ArrowRight size={16} />
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Cards Section */}
@@ -117,6 +210,61 @@ const Home = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Community Spotlight */}
+      <div className={styles.communitySection}>
+        <div className={styles.communityContent}>
+          <div className={styles.communityText}>
+            <h2 className={styles.communityTitle}>Join Our Vibrant Communities</h2>
+            <p className={styles.communityDescription}>
+              Connect with students who share your interests. From tech enthusiasts to artists, 
+              athletes to musicians, there's a community for everyone at UniVibe.
+            </p>
+            <div className={styles.communityFeatures}>
+              <div className={styles.communityFeature}>
+                <Music className={styles.communityFeatureIcon} />
+                <span>Music & Arts</span>
+              </div>
+              <div className={styles.communityFeature}>
+                <Users className={styles.communityFeatureIcon} />
+                <span>Sports & Fitness</span>
+              </div>
+              <div className={styles.communityFeature}>
+                <Camera className={styles.communityFeatureIcon} />
+                <span>Photography</span>
+              </div>
+            </div>
+            <Link to="/communities" className={styles.communityButton}>
+              Explore All Communities
+              <ArrowRight size={20} />
+            </Link>
+          </div>
+          <div className={styles.communityVisual}>
+            <div className={styles.communityCard}>🖥️<span>Computer Science</span></div>
+            <div className={styles.communityCard}>🎨<span>Art & Design</span></div>
+            <div className={styles.communityCard}>📚<span>Book Club</span></div>
+            <div className={styles.communityCard}>⚽<span>Sports</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className={styles.ctaSection}>
+        <div className={styles.ctaContent}>
+          <h2 className={styles.ctaTitle}>Ready to Get Started?</h2>
+          <p className={styles.ctaDescription}>
+            Join thousands of students who are already part of the UniVibe community
+          </p>
+          <div className={styles.ctaButtons}>
+            <Link to="/signin" className={styles.ctaBtnPrimary}>
+              Sign In
+            </Link>
+            <Link to="/about" className={styles.ctaBtnSecondary}>
+              Learn More About Us
+            </Link>
+          </div>
         </div>
       </div>
     </div>

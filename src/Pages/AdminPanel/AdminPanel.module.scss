@@ -1,0 +1,833 @@
+@use "sass:color";
+
+// Variables
+$primary-color: #667eea;
+$secondary-color: #764ba2;
+$success-color: #43e97b;
+$danger-color: #fa709a;
+$text-dark: #2d3748;
+$text-light: #718096;
+$bg-light: #f7fafc;
+$border-color: #e2e8f0;
+$shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+// Mixins
+@mixin gradient-bg {
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+}
+
+// Admin Panel
+.adminPanel {
+  display: flex;
+  min-height: 100vh;
+  background: $bg-light;
+}
+
+// Sidebar
+.sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid $border-color;
+  padding: 2rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+
+  .sidebarTitle {
+    font-size: 1.5rem;
+    font-weight: 800;
+    @include gradient-bg;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding: 0 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.adminInfo {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $border-color;
+
+  .adminAvatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    @include gradient-bg;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0 auto 1rem;
+    box-shadow: $shadow;
+  }
+
+  .adminDetails {
+    text-align: center;
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: $text-dark;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      font-size: 0.85rem;
+      color: $text-light;
+      font-weight: 500;
+    }
+  }
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin: 1rem;
+  background: transparent;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  color: $danger-color;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: calc(100% - 2rem);
+
+  &:hover {
+    background: rgba($danger-color, 0.1);
+    border-color: $danger-color;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+
+  .navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: $text-light;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+
+    &:hover:not(.disabled) {
+      background: color.adjust($primary-color, $lightness: 45%);
+      color: $primary-color;
+    }
+
+    &.active {
+      @include gradient-bg;
+      color: white;
+      box-shadow: $shadow;
+    }
+
+    &.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Main Content Area
+.mainContent {
+  flex: 1;
+  padding: 3rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2.5rem;
+    color: $text-dark;
+    font-weight: 800;
+  }
+
+  p {
+    color: $text-light;
+    font-size: 1.1rem;
+  }
+
+  .addCommunityBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    @include gradient-bg;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+}
+
+.adminStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: $shadow;
+
+  .statIcon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .statInfo {
+    h3 {
+      font-size: 2rem;
+      color: $text-dark;
+      font-weight: 700;
+    }
+
+    p {
+      color: $text-light;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.searchBar {
+  position: relative;
+  margin-bottom: 2rem;
+
+  .searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-light;
+  }
+
+  input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid $border-color;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: white;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+.communitiesTable {
+  background: white;
+  border-radius: 12px;
+  box-shadow: $shadow;
+  overflow: hidden;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: $bg-light;
+
+      th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: $text-dark;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border-color;
+        transition: background 0.2s;
+
+        &:hover {
+          background: $bg-light;
+        }
+
+        td {
+          padding: 1.5rem;
+        }
+      }
+    }
+  }
+
+  .communityCell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .tableAvatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    strong {
+      display: block;
+      color: $text-dark;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: $text-light;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+  }
+
+  .actionButtons {
+    display: flex;
+    gap: 0.5rem;
+
+    .actionBtn {
+      padding: 0.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.view {
+        background: rgba(102, 126, 234, 0.1);
+        color: $primary-color;
+
+        &:hover {
+          background: $primary-color;
+          color: white;
+        }
+      }
+
+      &.delete {
+        background: rgba(250, 112, 154, 0.1);
+        color: $danger-color;
+
+        &:hover {
+          background: $danger-color;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Modal
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s;
+  position: relative;
+
+  &.wideModal {
+    max-width: 900px;
+  }
+
+  &.formModal {
+    padding: 2rem;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: $shadow;
+  z-index: 10;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: rotate(90deg);
+    background: $bg-light;
+  }
+}
+
+.modalHeader {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: white;
+
+  .modalAvatar {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+.modalBody {
+  padding: 2rem;
+
+  h3 {
+    font-size: 1.5rem;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+// Members Table
+.membersTable {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.memberRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: $bg-light;
+  border-radius: 12px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: color.adjust($bg-light, $lightness: -3%);
+    box-shadow: $shadow;
+  }
+
+  .memberInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+
+    .memberAvatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $primary-color, $secondary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    div {
+      h4 {
+        color: $text-dark;
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .memberEmail {
+        display: block;
+        color: $text-light;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .memberDate {
+        display: block;
+        color: $text-light;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .memberActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .roleSelect {
+      padding: 0.5rem 1rem;
+      border: 2px solid $border-color;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+      }
+    }
+
+    .removeBtn {
+      padding: 0.5rem;
+      background: rgba(250, 112, 154, 0.1);
+      color: $danger-color;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: $danger-color;
+        color: white;
+      }
+    }
+  }
+}
+
+// Form Styles
+.formGroup {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    color: $text-dark;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid $border-color;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+.emojiSelector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  .emojiBtn {
+    width: 50px;
+    height: 50px;
+    border: 2px solid $border-color;
+    background: white;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+      border-color: $primary-color;
+    }
+
+    &.active {
+      border-color: $primary-color;
+      background: rgba(102, 126, 234, 0.1);
+      transform: scale(1.05);
+    }
+  }
+}
+
+.colorSelector {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  .colorBtn {
+    width: 50px;
+    height: 50px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &.active {
+      border-color: $text-dark;
+      
+      &::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+
+  button {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cancelBtn {
+    background: $bg-light;
+    color: $text-dark;
+
+    &:hover {
+      background: color.adjust($bg-light, $lightness: -5%);
+    }
+  }
+
+  .submitBtn {
+    @include gradient-bg;
+    color: white;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .adminPanel {
+    padding: 2rem 1rem;
+  }
+
+  .adminHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .adminStats {
+    grid-template-columns: 1fr;
+  }
+
+  .communitiesTable {
+    overflow-x: auto;
+
+    table {
+      min-width: 600px;
+    }
+  }
+
+  .memberRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    .memberActions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .modalContent {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .adminPanel {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid $border-color;
+    padding: 1.5rem 0;
+
+    .sidebarTitle {
+      padding: 0 1rem;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+  }
+
+  .adminInfo {
+    padding: 1rem;
+    margin-bottom: 1rem;
+
+    .adminAvatar {
+      width: 50px;
+      height: 50px;
+      font-size: 1rem;
+    }
+
+    .adminDetails h3 {
+      font-size: 0.9rem;
+    }
+
+    .adminDetails p {
+      font-size: 0.8rem;
+    }
+  }
+
+  .logoutBtn {
+    margin: 0.5rem 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  .sidebarNav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0 1rem;
+
+    .navItem {
+      white-space: nowrap;
+    }
+  }
+
+  .mainContent {
+    padding: 2rem 1rem;
+  }
+}
+
+// Scrollbar Styles
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-light;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $primary-color;
+  border-radius: 5px;
+
+  &:hover {
+    background: $secondary-color;
+  }
+}

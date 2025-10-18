@@ -104,6 +104,8 @@
   &.active {
     color: #0064a4;
     border-bottom-color: #0064a4;
+    background-color: rgba(0, 100, 164, 0.05);
+    font-weight: 800;
   }
 
   @media (max-width: 1024px) {
@@ -183,6 +185,14 @@
     background-color: #f5f5f5;
     border-left-color: #0064a4;
     color: #0064a4;
+    padding-left: 25px;
+  }
+
+  &.active {
+    background-color: #e6f2f8;
+    border-left-color: #0064a4;
+    color: #0064a4;
+    font-weight: 600;
     padding-left: 25px;
   }
 }
@@ -266,10 +276,20 @@
   color: #333333;
   text-decoration: none;
   margin-bottom: 10px;
-  transition: color 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 
   &:hover {
     color: #0064a4;
+    background-color: rgba(0, 100, 164, 0.05);
+  }
+
+  &.active {
+    color: #0064a4;
+    background-color: rgba(0, 100, 164, 0.1);
+    font-weight: 800;
+    border-left: 4px solid #0064a4;
   }
 }
 
@@ -282,13 +302,22 @@
 
 .mobileDropdownItem {
   display: block;
-  padding: 8px 0;
+  padding: 8px 12px;
   color: #666666;
   text-decoration: none;
   font-size: 0.95rem;
-  transition: color 0.3s ease;
+  border-radius: 4px;
+  transition: all 0.3s ease;
 
   &:hover {
     color: #0064a4;
+    background-color: rgba(0, 100, 164, 0.05);
+  }
+
+  &.active {
+    color: #0064a4;
+    background-color: rgba(0, 100, 164, 0.1);
+    font-weight: 700;
+    border-left: 3px solid #0064a4;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import events from '../../data/events';
 import { 
@@ -27,6 +27,21 @@ function EventCalendar() {
   // Use shared events data (replace with API call later)
 
   const categories = ['All', 'Technology', 'Cultural', 'Educational', 'Career', 'Sports'];
+
+  // Navigate to the month containing the first matching event when search changes
+  useEffect(() => {
+    if (searchTerm.trim() !== '' && viewMode === 'calendar') {
+      const matchingEvents = events.filter(event => 
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (selectedCategory === 'All' || event.category === selectedCategory)
+      ).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (matchingEvents.length > 0) {
+        const firstMatchDate = new Date(matchingEvents[0].date);
+        setCurrentDate(new Date(firstMatchDate.getFullYear(), firstMatchDate.getMonth(), 1));
+      }
+    }
+  }, [searchTerm, selectedCategory, viewMode]);
 
   // Calendar helper functions
   const getDaysInMonth = (date) => {
@@ -85,16 +100,22 @@ function EventCalendar() {
       const isToday = day === new Date().getDate() && 
                      currentDate.getMonth() === new Date().getMonth() &&
                      currentDate.getFullYear() === new Date().getFullYear();
+      
+      // Check if this day has matching search results
+      const hasMatchingEvent = searchTerm.trim() !== '' && dayEvents.length > 0;
 
       days.push(
-        <div key={day} className={`${styles.calendarDay} ${isToday ? styles.today : ''}`}>
+        <div 
+          key={day} 
+          className={`${styles.calendarDay} ${isToday ? styles.today : ''} ${hasMatchingEvent ? styles.highlighted : ''}`}
+        >
           <div className={styles.dayNumber}>{day}</div>
           <div className={styles.dayEvents}>
             {dayEvents.slice(0, 3).map(event => (
               <Link
                 key={event.id}
                 to={`/events/${event.id}`}
-                className={styles.eventDot}
+                className={`${styles.eventDot} ${searchTerm.trim() !== '' ? styles.matchedEvent : ''}`}
                 style={{ backgroundColor: event.color }}
                 title={event.title}
               >
