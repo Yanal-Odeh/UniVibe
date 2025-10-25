@@ -1,0 +1,245 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.hero {
+  padding: 80px 20px 60px;
+  text-align: center;
+  color: #2d3748;
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 1.25rem;
+    color: #4a5568;
+  }
+}
+
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.intro {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  p {
+    color: #4a5568;
+    font-size: 1.125rem;
+    line-height: 1.8;
+  }
+}
+
+.policySections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.policySection {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  .sectionHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #f7fafc;
+
+    .sectionIcon {
+      font-size: 3rem;
+      flex-shrink: 0;
+    }
+
+    .sectionInfo {
+      flex: 1;
+
+      h2 {
+        font-size: 1.75rem;
+        color: #2d3748;
+        margin-bottom: 8px;
+      }
+
+      p {
+        color: #718096;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  .policiesList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .policyItem {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+
+    &:hover {
+      border-color: #cbd5e0;
+    }
+
+    .policyHeader {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      background: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      text-align: left;
+
+      &:hover {
+        background: #f7fafc;
+      }
+
+      &.active {
+        background: #f7fafc;
+      }
+
+      h3 {
+        font-size: 1.125rem;
+        color: #2d3748;
+        font-weight: 600;
+      }
+
+      .arrow {
+        font-size: 1.5rem;
+        color: #4a5568;
+        font-weight: 300;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    .policyContent {
+      padding: 0 24px 24px;
+      animation: slideDown 0.3s ease;
+
+      p {
+        color: #4a5568;
+        line-height: 1.8;
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer {
+  margin-top: 60px;
+
+  .footerCard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    color: white;
+
+    h3 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 1.125rem;
+      margin-bottom: 28px;
+      opacity: 0.95;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .contactBtn {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 16px 40px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    h1 {
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+
+  .policySection {
+    padding: 24px 20px;
+
+    .sectionHeader {
+      flex-direction: column;
+      gap: 16px;
+
+      .sectionIcon {
+        font-size: 2.5rem;
+      }
+
+      .sectionInfo {
+        h2 {
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
+
+  .footer {
+    .footerCard {
+      padding: 32px 24px;
+
+      h3 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}

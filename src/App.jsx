@@ -7,6 +7,10 @@ import About from './Pages/About/About'
 import EventCalendar from './Pages/EventCalendar/EventCalendar'
 import Events from './Pages/Events/Events'
 import EventDetails from './Pages/EventDetails/EventDetails'
+import InformationCenter from './Pages/InformationCenter/InformationCenter'
+import FormsApplications from './Pages/FormsApplications/FormsApplications'
+import PoliciesGuidelines from './Pages/PoliciesGuidelines/PoliciesGuidelines'
+import VirtualTour from './Pages/VirtualTour/VirtualTour'
 import Root from './routes/Root';
 import NotFound from './Pages/NotFound/NotFound';
 import SignIn from './Pages/SignIn/SignIn';
@@ -46,6 +50,30 @@ const router = createBrowserRouter([
         {
           path: "/events/:id",
           element: <EventDetails />
+        },
+        {
+          path: "/information",
+          element: <InformationCenter />
+        },
+        {
+          path: "/information-center",
+          element: <InformationCenter />
+        },
+        {
+          path: "/forms",
+          element: <FormsApplications />
+        },
+        {
+          path: "/policies",
+          element: <PoliciesGuidelines />
+        },
+        {
+          path: "/tour",
+          element: <VirtualTour />
+        },
+        {
+          path: "/virtual-tour",
+          element: <VirtualTour />
         },
         {
         path: "/communities",

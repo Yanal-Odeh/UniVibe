@@ -1,0 +1,243 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.hero {
+  padding: 80px 20px 60px;
+  text-align: center;
+  color: white;
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 1.25rem;
+    opacity: 0.95;
+  }
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.searchSection {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.searchBar {
+  position: relative;
+  margin-bottom: 24px;
+
+  .searchInput {
+    width: 100%;
+    padding: 16px 50px 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #4facfe;
+    }
+  }
+
+  .searchIcon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.25rem;
+  }
+}
+
+.categories {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  .categoryBtn {
+    padding: 10px 20px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: #4facfe;
+      color: #4facfe;
+    }
+
+    &.active {
+      background: #4facfe;
+      border-color: #4facfe;
+      color: white;
+    }
+  }
+}
+
+.formsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formCard {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  .formIcon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+  }
+
+  .formContent {
+    flex: 1;
+    margin-bottom: 20px;
+
+    h3 {
+      font-size: 1.25rem;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #718096;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .formMeta {
+      display: flex;
+      gap: 12px;
+
+      .format,
+      .size {
+        padding: 4px 12px;
+        background: #f7fafc;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .format {
+        background: #e6f7ff;
+        color: #0066cc;
+      }
+    }
+  }
+
+  .formActions {
+    display: flex;
+    gap: 12px;
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .downloadBtn {
+      background: #4facfe;
+      color: white;
+
+      &:hover {
+        background: #3a92de;
+        transform: translateY(-2px);
+      }
+    }
+
+    .viewBtn {
+      background: #f7fafc;
+      color: #4a5568;
+
+      &:hover {
+        background: #e2e8f0;
+      }
+    }
+  }
+}
+
+.noResults {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 16px;
+
+  p {
+    color: #718096;
+    font-size: 1.125rem;
+  }
+}
+
+.helpSection {
+  .helpBox {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    color: white;
+
+    h3 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 1.125rem;
+      margin-bottom: 24px;
+      opacity: 0.95;
+    }
+
+    .contactBtn {
+      background: white;
+      color: #fa709a;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+}
