@@ -321,3 +321,57 @@
     border-left: 3px solid #0064a4;
   }
 }
+
+/* Auth area (login / signed-in) */
+.authArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.authButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: #333333;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.authButton:hover {
+  background-color: rgba(0, 100, 164, 0.06);
+  color: #0064a4;
+}
+
+.authButton svg {
+  display: inline-block;
+  vertical-align: middle;
+  color: inherit; /* lucide-react icons use currentColor */
+}
+
+.signedIn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoutButton {
+  background: none;
+  border: 1px solid #e0e0e0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666666;
+}
+
+.logoutButton:hover {
+  border-color: #0064a4;
+  color: #0064a4;
+}

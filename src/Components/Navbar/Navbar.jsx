@@ -1,10 +1,14 @@
 // src/Components/Navbar/Navbar.jsx
 import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.scss';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { User } from 'lucide-react';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { currentAdmin, isAuthenticated, logout } = useAdminAuth();
+  const navigate = useNavigate();
 
   // Edit these menu items as needed
   const menuItems = [
@@ -165,6 +169,37 @@ function Navbar() {
             </div>
           </div>
         )}
+        {/* Auth area (login icon or signed-in name) */}
+        <div className={styles.authArea}>
+          {!isAuthenticated ? (
+            <button
+              className={styles.authButton}
+              onClick={() => navigate('/signin')}
+              aria-label="Sign in"
+              title="Sign in"
+            >
+              <User size={18} />
+            </button>
+          ) : (
+            <div className={styles.signedIn}>
+              <button
+                className={styles.authButton}
+                onClick={() => navigate('/admin-panel')}
+                title={`Signed in as ${currentAdmin?.name}`}
+              >
+                <User size={14} />
+                {currentAdmin?.name || 'Admin'}
+              </button>
+              <button
+                className={styles.logoutButton}
+                onClick={() => { logout(); navigate('/'); }}
+                title="Sign out"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

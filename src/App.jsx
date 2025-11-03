@@ -14,6 +14,7 @@ import VirtualTour from './Pages/VirtualTour/VirtualTour'
 import Root from './routes/Root';
 import NotFound from './Pages/NotFound/NotFound';
 import SignIn from './Pages/SignIn/SignIn';
+import SignUp from './Pages/SignUp/SignUp';
 import Communities from './Pages/Communities/Communities';
 import AdminPanel from './Pages/AdminPanel/AdminPanel';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: "/signin",
         element: <SignIn />
+      },
+      {
+        path: "/signup",
+        element: <SignUp />
       },
       
         {

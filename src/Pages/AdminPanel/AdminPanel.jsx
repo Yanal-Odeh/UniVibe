@@ -6,13 +6,20 @@ import { useCommunities } from '../../contexts/CommunitiesContext';
 import styles from './AdminPanel.module.scss';
 
 function AdminPanel() {
-  const { currentAdmin, logout, isAuthenticated } = useAdminAuth();
+  const { currentAdmin, logout, isAuthenticated, isLoading } = useAdminAuth();
   const { communities, addCommunity, updateCommunity, deleteCommunity, removeMember, updateMemberRole } = useCommunities();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('communities');
+  
+  // Restore active section from localStorage or default to 'communities'
+  const [activeSection, setActiveSection] = useState(() => {
+    return localStorage.getItem('adminActiveSection') || 'communities';
+  });
+  
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [isAddingCommunity, setIsAddingCommunity] = useState(false);
+  const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [students, setStudents] = useState([]);
   
   const [newCommunity, setNewCommunity] = useState({
     name: '',
@@ -21,12 +28,27 @@ function AdminPanel() {
     color: '#667eea'
   });
 
+  const [newStudent, setNewStudent] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    role: 'student'
+  });
+
   // Check authentication
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Wait for auth to finish loading before checking authentication
+    if (!isLoading && !isAuthenticated) {
       navigate('/signin');
     }
-  }, [isAuthenticated, navigate]);
+    
+    // Load students from localStorage
+    const storedStudents = localStorage.getItem('students');
+    if (storedStudents) {
+      setStudents(JSON.parse(storedStudents));
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -35,6 +57,12 @@ function AdminPanel() {
 
   const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
   const emojis = ['🎯', '🖥️', '🎨', '⚽', '📚', '🎵', '🎮', '🌟', '💡', '🚀'];
+
+  // Save active section to localStorage whenever it changes
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    localStorage.setItem('adminActiveSection', section);
+  };
 
   const handleAddCommunity = () => {
     if (newCommunity.name && newCommunity.description) {
@@ -61,9 +89,64 @@ function AdminPanel() {
     updateMemberRole(communityId, memberId, newRole);
   };
 
+  const handleAddStudent = () => {
+    if (newStudent.firstName && newStudent.lastName && newStudent.email && newStudent.password) {
+      const student = {
+        id: Date.now(),
+        ...newStudent,
+        name: `${newStudent.firstName} ${newStudent.lastName}`,
+        createdAt: new Date().toISOString(),
+        createdBy: currentAdmin.name
+      };
+      
+      const updatedStudents = [...students, student];
+      setStudents(updatedStudents);
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      
+      setNewStudent({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: 'student'
+      });
+      setIsAddingStudent(false);
+    }
+  };
+
+  const handleDeleteStudent = (id) => {
+    if (window.confirm('Are you sure you want to delete this student account?')) {
+      const updatedStudents = students.filter(s => s.id !== id);
+      setStudents(updatedStudents);
+      localStorage.setItem('students', JSON.stringify(updatedStudents));
+    }
+  };
+
+  const handleUpdateStudentRole = (id, newRole) => {
+    const updatedStudents = students.map(s => 
+      s.id === id ? { ...s, role: newRole } : s
+    );
+    setStudents(updatedStudents);
+    localStorage.setItem('students', JSON.stringify(updatedStudents));
+  };
+
   const filteredCommunities = communities.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredStudents = students.filter(s =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !currentAdmin) {
     return null;
@@ -89,7 +172,7 @@ function AdminPanel() {
         <nav className={styles.sidebarNav}>
           <button
             className={`${styles.navItem} ${activeSection === 'communities' ? styles.active : ''}`}
-            onClick={() => setActiveSection('communities')}
+            onClick={() => handleSectionChange('communities')}
           >
             <Users size={20} />
             <span>Manage Communities</span>
@@ -103,8 +186,8 @@ function AdminPanel() {
             <span>Manage Events</span>
           </button>
           <button
-            className={`${styles.navItem} ${styles.disabled}`}
-            disabled
+            className={`${styles.navItem} ${activeSection === 'users' ? styles.active : ''}`}
+            onClick={() => handleSectionChange('users')}
           >
             <User size={20} />
             <span>Manage Users</span>
@@ -337,6 +420,194 @@ function AdminPanel() {
           </div>
         </div>
       )}
+          </>
+        )}
+
+        {activeSection === 'users' && (
+          <>
+            <div className={styles.adminHeader}>
+              <div>
+                <h1>Manage Students</h1>
+                <p>Register and manage student accounts with role assignments</p>
+              </div>
+              <button className={styles.addCommunityBtn} onClick={() => setIsAddingStudent(true)}>
+                <Plus size={20} />
+                Register Student
+              </button>
+            </div>
+
+            <div className={styles.adminStats}>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon} style={{ background: '#667eea' }}>
+                  <Users size={24} />
+                </div>
+                <div className={styles.statInfo}>
+                  <h3>{students.length}</h3>
+                  <p>Total Students</p>
+                </div>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon} style={{ background: '#43e97b' }}>
+                  <User size={24} />
+                </div>
+                <div className={styles.statInfo}>
+                  <h3>{students.filter(s => s.role === 'student').length}</h3>
+                  <p>Regular Students</p>
+                </div>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statIcon} style={{ background: '#fa709a' }}>
+                  <Shield size={24} />
+                </div>
+                <div className={styles.statInfo}>
+                  <h3>{students.filter(s => s.role === 'club_leader').length}</h3>
+                  <p>Club Leaders</p>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.searchBar}>
+              <Search className={styles.searchIcon} size={20} />
+              <input
+                type="text"
+                placeholder="Search students by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.communitiesTable}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents.map(student => (
+                    <tr key={student.id}>
+                      <td>
+                        <div className={styles.communityCell}>
+                          <span className={styles.tableAvatar} style={{ background: '#667eea' }}>
+                            {student.firstName[0]}{student.lastName[0]}
+                          </span>
+                          <div>
+                            <strong>{student.name}</strong>
+                            <p>Created by {student.createdBy}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{student.email}</td>
+                      <td>
+                        <select
+                          value={student.role}
+                          onChange={(e) => handleUpdateStudentRole(student.id, e.target.value)}
+                          className={styles.roleSelect}
+                        >
+                          <option value="student">Student</option>
+                          <option value="club_leader">Club Leader</option>
+                          <option value="moderator">Moderator</option>
+                          <option value="event_organizer">Event Organizer</option>
+                        </select>
+                      </td>
+                      <td>{new Date(student.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <div className={styles.actionButtons}>
+                          <button 
+                            className={`${styles.actionBtn} ${styles.delete}`}
+                            onClick={() => handleDeleteStudent(student.id)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredStudents.length === 0 && (
+                <div className={styles.emptyState}>
+                  <User size={48} />
+                  <p>No students registered yet</p>
+                  <button className={styles.addCommunityBtn} onClick={() => setIsAddingStudent(true)}>
+                    <Plus size={18} />
+                    Register First Student
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Add Student Modal */}
+            {isAddingStudent && (
+              <div className={styles.modalOverlay} onClick={() => setIsAddingStudent(false)}>
+                <div className={`${styles.modalContent} ${styles.formModal}`} onClick={(e) => e.stopPropagation()}>
+                  <h2>Register New Student</h2>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>First Name</label>
+                      <input
+                        type="text"
+                        value={newStudent.firstName}
+                        onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label>Last Name</label>
+                      <input
+                        type="text"
+                        value={newStudent.lastName}
+                        onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
+                        placeholder="Enter last name"
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Email Address</label>
+                    <input
+                      type="email"
+                      value={newStudent.email}
+                      onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                      placeholder="student@univibe.edu"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      value={newStudent.password}
+                      onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                      placeholder="Enter password"
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>Role</label>
+                    <select
+                      value={newStudent.role}
+                      onChange={(e) => setNewStudent({ ...newStudent, role: e.target.value })}
+                      className={styles.roleSelectLarge}
+                    >
+                      <option value="student">Student</option>
+                      <option value="club_leader">Club Leader</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="event_organizer">Event Organizer</option>
+                    </select>
+                  </div>
+                  <div className={styles.formActions}>
+                    <button className={styles.cancelBtn} onClick={() => setIsAddingStudent(false)}>
+                      Cancel
+                    </button>
+                    <button className={styles.submitBtn} onClick={handleAddStudent}>
+                      Register Student
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
