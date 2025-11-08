@@ -3,6 +3,7 @@ import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, S
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useCommunities } from '../../contexts/CommunitiesContext';
+import api from '../../lib/api';
 import styles from './AdminPanel.module.scss';
 
 function AdminPanel() {
@@ -10,10 +11,8 @@ function AdminPanel() {
   const { communities, addCommunity, updateCommunity, deleteCommunity, removeMember, updateMemberRole } = useCommunities();
   const navigate = useNavigate();
   
-  // Restore active section from localStorage or default to 'communities'
-  const [activeSection, setActiveSection] = useState(() => {
-    return localStorage.getItem('adminActiveSection') || 'communities';
-  });
+  // Restore active section from API preferences or default to 'communities'
+  const [activeSection, setActiveSection] = useState('communities');
   
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [isAddingCommunity, setIsAddingCommunity] = useState(false);
@@ -36,17 +35,38 @@ function AdminPanel() {
     role: 'student'
   });
 
-  // Check authentication
+  // Check authentication and load data
   useEffect(() => {
     // Wait for auth to finish loading before checking authentication
     if (!isLoading && !isAuthenticated) {
       navigate('/signin');
     }
     
-    // Load students from localStorage
-    const storedStudents = localStorage.getItem('students');
-    if (storedStudents) {
-      setStudents(JSON.parse(storedStudents));
+    // Load students and preferences from API
+    const fetchData = async () => {
+      try {
+        // Fetch students
+        const studentsData = await api.getStudents();
+        const studentsList = studentsData.students || studentsData || [];
+        setStudents(Array.isArray(studentsList) ? studentsList : []);
+
+        // Fetch admin preferences
+        try {
+          const preferences = await api.getAdminPreferences();
+          if (preferences && preferences.activeSection) {
+            setActiveSection(preferences.activeSection);
+          }
+        } catch (err) {
+          // Preferences might not exist yet, that's okay
+          console.log('No preferences found, using defaults');
+        }
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchData();
     }
   }, [isAuthenticated, isLoading, navigate]);
 
@@ -58,86 +78,133 @@ function AdminPanel() {
   const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
   const emojis = ['🎯', '🖥️', '🎨', '⚽', '📚', '🎵', '🎮', '🌟', '💡', '🚀'];
 
-  // Save active section to localStorage whenever it changes
-  const handleSectionChange = (section) => {
+  // Save active section to database whenever it changes
+  const handleSectionChange = async (section) => {
     setActiveSection(section);
-    localStorage.setItem('adminActiveSection', section);
+    try {
+      await api.updateAdminPreferences({ activeSection: section });
+    } catch (err) {
+      console.error('Failed to save preference:', err);
+      // Still update local state even if API call fails
+    }
   };
 
-  const handleAddCommunity = () => {
+  const handleAddCommunity = async () => {
     if (newCommunity.name && newCommunity.description) {
-      addCommunity(newCommunity);
-      setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#667eea' });
-      setIsAddingCommunity(false);
+      try {
+        await addCommunity(newCommunity);
+        setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#667eea' });
+        setIsAddingCommunity(false);
+      } catch (err) {
+        alert('Failed to add community: ' + err.message);
+      }
     }
   };
 
-  const handleDeleteCommunity = (id) => {
+  const handleDeleteCommunity = async (id) => {
     if (window.confirm('Are you sure you want to delete this community?')) {
-      deleteCommunity(id);
-      setSelectedCommunity(null);
+      try {
+        await deleteCommunity(id);
+        setSelectedCommunity(null);
+      } catch (err) {
+        alert('Failed to delete community: ' + err.message);
+      }
     }
   };
 
-  const handleRemoveMember = (communityId, memberId) => {
+  const handleRemoveMember = async (communityId, userId) => {
     if (window.confirm('Are you sure you want to remove this member?')) {
-      removeMember(communityId, memberId);
+      try {
+        await removeMember(communityId, userId);
+      } catch (err) {
+        alert('Failed to remove member: ' + err.message);
+      }
     }
   };
 
-  const handleChangeRole = (communityId, memberId, newRole) => {
-    updateMemberRole(communityId, memberId, newRole);
+  const handleChangeRole = async (communityId, userId, newRole) => {
+    try {
+      await updateMemberRole(communityId, userId, newRole);
+    } catch (err) {
+      alert('Failed to update role: ' + err.message);
+    }
   };
 
-  const handleAddStudent = () => {
+  const handleAddStudent = async () => {
     if (newStudent.firstName && newStudent.lastName && newStudent.email && newStudent.password) {
-      const student = {
-        id: Date.now(),
-        ...newStudent,
-        name: `${newStudent.firstName} ${newStudent.lastName}`,
-        createdAt: new Date().toISOString(),
-        createdBy: currentAdmin.name
-      };
-      
-      const updatedStudents = [...students, student];
-      setStudents(updatedStudents);
-      localStorage.setItem('students', JSON.stringify(updatedStudents));
-      
-      setNewStudent({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        role: 'student'
-      });
-      setIsAddingStudent(false);
+      try {
+        const roleMapping = {
+          'student': 'STUDENT',
+          'moderator': 'MODERATOR',
+          'clubLeader': 'CLUB_LEADER',
+          'admin': 'ADMIN'
+        };
+
+        const studentData = {
+          firstName: newStudent.firstName,
+          lastName: newStudent.lastName,
+          email: newStudent.email,
+          password: newStudent.password,
+          role: roleMapping[newStudent.role] || 'STUDENT'
+        };
+        
+        const response = await api.createStudent(studentData);
+        const newStudentData = response.student || response;
+        setStudents(prev => [...prev, newStudentData]);
+        
+        setNewStudent({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          role: 'student'
+        });
+        setIsAddingStudent(false);
+      } catch (err) {
+        alert('Failed to add student: ' + err.message);
+      }
     }
   };
 
-  const handleDeleteStudent = (id) => {
+  const handleDeleteStudent = async (id) => {
     if (window.confirm('Are you sure you want to delete this student account?')) {
-      const updatedStudents = students.filter(s => s.id !== id);
-      setStudents(updatedStudents);
-      localStorage.setItem('students', JSON.stringify(updatedStudents));
+      try {
+        await api.deleteStudent(id);
+        setStudents(prev => prev.filter(s => s.id !== id));
+      } catch (err) {
+        alert('Failed to delete student: ' + err.message);
+      }
     }
   };
 
-  const handleUpdateStudentRole = (id, newRole) => {
-    const updatedStudents = students.map(s => 
-      s.id === id ? { ...s, role: newRole } : s
-    );
-    setStudents(updatedStudents);
-    localStorage.setItem('students', JSON.stringify(updatedStudents));
+  const handleUpdateStudentRole = async (id, newRole) => {
+    try {
+      const roleMapping = {
+        'student': 'STUDENT',
+        'moderator': 'MODERATOR',
+        'clubLeader': 'CLUB_LEADER',
+        'admin': 'ADMIN'
+      };
+
+      await api.updateStudent(id, { role: roleMapping[newRole] || newRole });
+      setStudents(prev => prev.map(s => 
+        s.id === id ? { ...s, role: roleMapping[newRole] || newRole } : s
+      ));
+    } catch (err) {
+      alert('Failed to update student role: ' + err.message);
+    }
   };
 
-  const filteredCommunities = communities.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCommunities = Array.isArray(communities) ? communities.filter(c =>
+    c && c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
-  const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = Array.isArray(students) ? students.filter(s => {
+    const name = `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase();
+    const email = (s.email || '').toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return name.includes(search) || email.includes(search);
+  }) : [];
 
   // Show loading state while checking authentication
   if (isLoading) {

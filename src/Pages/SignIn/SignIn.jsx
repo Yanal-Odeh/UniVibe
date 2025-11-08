@@ -11,21 +11,28 @@ function SignIn() {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
-    // Try admin login first
-    const adminResult = login(email, password);
-    
-    if (adminResult.success) {
-      // Redirect to admin panel if admin credentials
-      navigate('/admin');
-    } else {
-      // Handle regular user sign in logic here
-      // For now, show error for demo purposes
-      setError('Invalid credentials. Please try again.');
-      console.log('Regular user sign in with:', { email, password });
+    try {
+      // Try to login (works for both admin and regular users)
+      const result = await login(email, password);
+      
+      if (result.success) {
+        // Check if user is admin and redirect accordingly
+        if (result.admin && result.admin.role === 'ADMIN') {
+          navigate('/admin');
+        } else {
+          // Regular user - redirect to home or dashboard
+          navigate('/');
+        }
+      } else {
+        setError(result.error || 'Invalid credentials. Please try again.');
+      }
+    } catch (err) {
+      setError('Failed to sign in. Please try again.');
+      console.error('Sign in error:', err);
     }
   };
 

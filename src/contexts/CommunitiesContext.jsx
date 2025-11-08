@@ -1,107 +1,108 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import communitiesData from '../data/communities';
+import api from '../lib/api';
 
 const CommunitiesContext = createContext();
 
 export function CommunitiesProvider({ children }) {
   const [communities, setCommunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch communities from API
+  const fetchCommunities = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.getCommunities();
+      setCommunities(data.communities || data);
+    } catch (err) {
+      console.error('Failed to fetch communities:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Load communities from localStorage or use default data
-    const storedCommunities = localStorage.getItem('communities');
-    if (storedCommunities) {
-      setCommunities(JSON.parse(storedCommunities));
-    } else {
-      // Convert getter properties to actual values for storage
-      const communitiesWithCounts = communitiesData.map(c => ({
-        ...c,
-        memberCount: c.members.length
-      }));
-      setCommunities(communitiesWithCounts);
-      localStorage.setItem('communities', JSON.stringify(communitiesWithCounts));
-    }
+    fetchCommunities();
   }, []);
 
-  const addCommunity = (community) => {
-    const newCommunity = {
-      ...community,
-      id: Date.now(),
-      members: community.members || [],
-      memberCount: community.members?.length || 0
-    };
-    const updatedCommunities = [...communities, newCommunity];
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const addCommunity = async (community) => {
+    try {
+      const newCommunity = await api.createCommunity(community);
+      setCommunities(prev => [...prev, newCommunity]);
+      return newCommunity;
+    } catch (err) {
+      console.error('Failed to add community:', err);
+      throw err;
+    }
   };
 
-  const updateCommunity = (id, updatedData) => {
-    const updatedCommunities = communities.map(c => {
-      if (c.id === id) {
-        const updated = { ...c, ...updatedData };
-        // Update memberCount if members array changed
-        if (updatedData.members) {
-          updated.memberCount = updatedData.members.length;
-        }
-        return updated;
-      }
-      return c;
-    });
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const updateCommunity = async (id, updatedData) => {
+    try {
+      const updated = await api.updateCommunity(id, updatedData);
+      setCommunities(prev => prev.map(c => c.id === id ? updated : c));
+      return updated;
+    } catch (err) {
+      console.error('Failed to update community:', err);
+      throw err;
+    }
   };
 
-  const deleteCommunity = (id) => {
-    const updatedCommunities = communities.filter(c => c.id !== id);
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const deleteCommunity = async (id) => {
+    try {
+      await api.deleteCommunity(id);
+      setCommunities(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      console.error('Failed to delete community:', err);
+      throw err;
+    }
   };
 
-  const addMember = (communityId, member) => {
-    const updatedCommunities = communities.map(c => {
-      if (c.id === communityId) {
-        const newMembers = [...c.members, member];
-        return { ...c, members: newMembers, memberCount: newMembers.length };
-      }
-      return c;
-    });
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const addMember = async (communityId) => {
+    try {
+      await api.joinCommunity(communityId);
+      // Refresh communities to get updated member count
+      await fetchCommunities();
+    } catch (err) {
+      console.error('Failed to add member:', err);
+      throw err;
+    }
   };
 
-  const removeMember = (communityId, memberId) => {
-    const updatedCommunities = communities.map(c => {
-      if (c.id === communityId) {
-        const newMembers = c.members.filter(m => m.id !== memberId);
-        return { ...c, members: newMembers, memberCount: newMembers.length };
-      }
-      return c;
-    });
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const removeMember = async (communityId, userId) => {
+    try {
+      await api.removeMemberFromCommunity(communityId, userId);
+      // Refresh communities to get updated member count
+      await fetchCommunities();
+    } catch (err) {
+      console.error('Failed to remove member:', err);
+      throw err;
+    }
   };
 
-  const updateMemberRole = (communityId, memberId, newRole) => {
-    const updatedCommunities = communities.map(c => {
-      if (c.id === communityId) {
-        const newMembers = c.members.map(m =>
-          m.id === memberId ? { ...m, role: newRole } : m
-        );
-        return { ...c, members: newMembers };
-      }
-      return c;
-    });
-    setCommunities(updatedCommunities);
-    localStorage.setItem('communities', JSON.stringify(updatedCommunities));
+  const updateMemberRole = async (communityId, userId, newRole) => {
+    try {
+      await api.updateCommunityMemberRole(communityId, userId, newRole);
+      // Refresh communities to get updated data
+      await fetchCommunities();
+    } catch (err) {
+      console.error('Failed to update member role:', err);
+      throw err;
+    }
   };
 
   const value = {
     communities,
+    loading,
+    error,
     addCommunity,
     updateCommunity,
     deleteCommunity,
     addMember,
     removeMember,
-    updateMemberRole
+    updateMemberRole,
+    refreshCommunities: fetchCommunities
   };
 
   return (

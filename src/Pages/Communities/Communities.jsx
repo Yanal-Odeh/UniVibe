@@ -4,7 +4,7 @@ import { useCommunities } from '../../contexts/CommunitiesContext';
 import styles from './Communities.module.scss';
 
 function Communities() {
-  const { communities } = useCommunities();
+  const { communities, loading, error } = useCommunities();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCommunity, setSelectedCommunity] = useState(null);
 
@@ -12,6 +12,28 @@ function Communities() {
     comm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     comm.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className={styles.communitiesView}>
+        <div className={styles.communitiesHeader}>
+          <h1>Our Communities</h1>
+          <p>Loading communities...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.communitiesView}>
+        <div className={styles.communitiesHeader}>
+          <h1>Our Communities</h1>
+          <p style={{ color: 'red' }}>Error loading communities: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.communitiesView}>
@@ -44,13 +66,13 @@ function Communities() {
               <h3>{community.name}</h3>
               <p>{community.description}</p>
               
-              {/* Display admins only in Community Leaders section */}
-              {community.members.filter(m => m.role === 'admin').length > 0 && (
+              {/* Display club leaders */}
+              {community.members.filter(m => m.role === 'club_leader' || m.role === 'admin').length > 0 && (
                 <div className={styles.keyMembers}>
                   <h4 className={styles.keyMembersTitle}>Community Leaders</h4>
                   <div className={styles.keyMembersList}>
                     {community.members
-                      .filter(m => m.role === 'admin')
+                      .filter(m => m.role === 'club_leader' || m.role === 'admin')
                       .slice(0, 3)
                       .map(member => (
                         <div key={member.id} className={styles.keyMemberBadge}>
@@ -60,8 +82,8 @@ function Communities() {
                           <div className={styles.keyMemberInfo}>
                             <span className={styles.keyMemberName}>{member.name}</span>
                             <span className={`${styles.keyMemberRole} ${styles[member.role]}`}>
-                              {member.role === 'admin' ? <Crown size={12} /> : <Shield size={12} />}
-                              {member.role}
+                              <Crown size={12} />
+                              {member.role === 'club_leader' ? 'Leader' : member.role}
                             </span>
                           </div>
                         </div>
@@ -100,39 +122,41 @@ function Communities() {
             <div className={styles.modalBody}>
               <p className={styles.modalDescription}>{selectedCommunity.description}</p>
               
-              {/* Community Leaders Section - Only Admins */}
-              <div className={styles.membersSection}>
-                <h3>
-                  <Crown size={20} />
-                  Community Leaders
-                </h3>
-                <div className={styles.membersList}>
-                  {selectedCommunity.members.filter(m => m.role === 'admin').map(member => (
-                    <div key={member.id} className={styles.memberItem}>
-                      <div className={styles.memberInfo}>
-                        <div className={styles.memberAvatar}>{member.name[0]}</div>
-                        <div>
-                          <h4>{member.name}</h4>
-                          <span className={styles.memberEmail}>{member.email}</span>
+              {/* Community Leaders Section */}
+              {selectedCommunity.members.filter(m => m.role === 'club_leader' || m.role === 'admin').length > 0 && (
+                <div className={styles.membersSection}>
+                  <h3>
+                    <Crown size={20} />
+                    Community Leaders
+                  </h3>
+                  <div className={styles.membersList}>
+                    {selectedCommunity.members.filter(m => m.role === 'club_leader' || m.role === 'admin').map(member => (
+                      <div key={member.id} className={styles.memberItem}>
+                        <div className={styles.memberInfo}>
+                          <div className={styles.memberAvatar}>{member.name[0]}</div>
+                          <div>
+                            <h4>{member.name}</h4>
+                            <span className={styles.memberEmail}>{member.email}</span>
+                          </div>
                         </div>
+                        <span className={`${styles.roleBadge} ${styles[member.role]}`}>
+                          <Crown size={14} />
+                          {member.role === 'club_leader' ? 'Leader' : member.role}
+                        </span>
                       </div>
-                      <span className={`${styles.roleBadge} ${styles[member.role]}`}>
-                        <Crown size={14} />
-                        {member.role}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* All Members Section - Including moderators and regular members, excluding admins */}
+              {/* All Members Section - Including moderators and regular members */}
               <div className={styles.membersSection}>
                 <h3>
                   <Users size={20} />
-                  All Members ({selectedCommunity.members.filter(m => m.role !== 'admin').length})
+                  All Members ({selectedCommunity.members.filter(m => m.role !== 'club_leader' && m.role !== 'admin').length})
                 </h3>
                 <div className={styles.membersList}>
-                  {selectedCommunity.members.filter(m => m.role !== 'admin').map(member => (
+                  {selectedCommunity.members.filter(m => m.role !== 'club_leader' && m.role !== 'admin').map(member => (
                     <div key={member.id} className={styles.memberItem}>
                       <div className={styles.memberInfo}>
                         <div className={styles.memberAvatar}>{member.name[0]}</div>

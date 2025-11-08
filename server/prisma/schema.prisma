@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?  // Track who created this user (for admin panel)
+
+  // Relations
+  createdCommunities Community[]       @relation("CommunityCreator")
+  memberships        CommunityMember[]
+  createdEvents      Event[]           @relation("EventCreator")
+  adminPreferences   AdminPreference?
+
+  @@map("users")
+}
+
+model AdminPreference {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  activeSection String   @default("communities") // Last active section in admin panel
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_preferences")
+}
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  avatar      String   // Emoji
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  
+  // Relations
+  creator     User              @relation("CommunityCreator", fields: [createdBy], references: [id])
+  members     CommunityMember[]
+  events      Event[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String   @id @default(cuid())
+  userId      String
+  communityId String
+  joinedAt    DateTime @default(now())
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@map("community_members")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime?
+  communityId String?
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  creator     User       @relation("EventCreator", fields: [createdBy], references: [id])
+  community   Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+
+  @@map("events")
+}
+
+enum Role {
+  STUDENT
+  CLUB_LEADER
+  MODERATOR
+  EVENT_ORGANIZER
+  ADMIN
+}

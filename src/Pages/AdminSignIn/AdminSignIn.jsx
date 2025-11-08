@@ -12,17 +12,22 @@ function AdminSignIn() {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    const result = login(email, password);
+    try {
+      const result = await login(email, password);
 
-    if (result.success) {
-      navigate('/admin');
-    } else {
-      setError(result.error);
+      if (result.success) {
+        navigate('/admin');
+      } else {
+        setError(result.error);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('Failed to sign in. Please try again.');
       setIsLoading(false);
     }
   };

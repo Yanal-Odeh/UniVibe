@@ -1,61 +1,84 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../lib/api';
 
 const AdminAuthContext = createContext();
-
-// Authorized admins
-const AUTHORIZED_ADMINS = [
-  {
-    id: 1,
-    email: 'yanal@univibe.edu',
-    password: 'yanal1234', // In production, this should be hashed
-    name: 'Yanal Oudeh',
-    role: 'Super Admin'
-  },
-  {
-    id: 2,
-    email: 'younis@univibe.edu',
-    password: 'younis1234', // In production, this should be hashed
-    name: 'Younis Masri',
-    role: 'Admin'
-  }
-];
 
 export function AdminAuthProvider({ children }) {
   const [currentAdmin, setCurrentAdmin] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if admin is logged in (from localStorage)
-    const storedAdmin = localStorage.getItem('currentAdmin');
-    if (storedAdmin) {
-      setCurrentAdmin(JSON.parse(storedAdmin));
-    }
-    setIsLoading(false);
+    // Check if admin is logged in (from token)
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          console.log('Token found, verifying...');
+          const user = await api.getCurrentUser();
+          console.log('Current user from API:', user);
+          // Only set as admin if user has ADMIN role
+          if (user && user.role === 'ADMIN') {
+            setCurrentAdmin({
+              id: user.id,
+              email: user.email,
+              name: `${user.firstName} ${user.lastName}`,
+              role: user.role
+            });
+            console.log('Admin authenticated successfully');
+          } else {
+            console.log('User is not an admin, role:', user?.role);
+            localStorage.removeItem('token');
+          }
+        } else {
+          console.log('No token found in localStorage');
+        }
+      } catch (err) {
+        console.error('Failed to verify admin auth:', err);
+        localStorage.removeItem('token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
-  const login = (email, password) => {
-    const admin = AUTHORIZED_ADMINS.find(
-      a => a.email === email && a.password === password
-    );
-
-    if (admin) {
-      const adminData = {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role
-      };
-      setCurrentAdmin(adminData);
-      localStorage.setItem('currentAdmin', JSON.stringify(adminData));
-      return { success: true, admin: adminData };
+  const login = async (email, password) => {
+    try {
+      console.log('Attempting login with:', email);
+      const data = await api.login(email, password);
+      console.log('Login response:', data);
+      
+      // Check if user has ADMIN role
+      if (data.user && data.user.role === 'ADMIN') {
+        const adminData = {
+          id: data.user.id,
+          email: data.user.email,
+          name: `${data.user.firstName} ${data.user.lastName}`,
+          role: data.user.role
+        };
+        setCurrentAdmin(adminData);
+        return { success: true, admin: adminData };
+      } else {
+        console.log('User role check failed. Role:', data.user?.role);
+        localStorage.removeItem('token');
+        return { success: false, error: 'Access denied. Admin privileges required.' };
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: err.message || 'Invalid email or password' };
     }
-
-    return { success: false, error: 'Invalid email or password' };
   };
 
-  const logout = () => {
-    setCurrentAdmin(null);
-    localStorage.removeItem('currentAdmin');
+  const logout = async () => {
+    try {
+      await api.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setCurrentAdmin(null);
+      localStorage.removeItem('token');
+    }
   };
 
   const value = {
