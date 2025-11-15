@@ -129,7 +129,7 @@ function EventDetails() {
                   </div>
                 </div>
                 <div className={styles.tags}>
-                  {event.tags.map((tag, index) => (
+                  {(event.tags || []).map((tag, index) => (
                     <span key={index} className={styles.tag}>
                       <Tag size={14} />
                       {tag}
@@ -149,7 +149,7 @@ function EventDetails() {
             <div className={styles.card}>
               <h2 className={styles.sectionTitle}>Event Schedule</h2>
               <ul className={styles.scheduleList}>
-                {event.schedule.map((item, index) => (
+                {(event.schedule || []).map((item, index) => (
                   <li key={index} className={styles.scheduleItem}>
                     <span className={styles.scheduleTime}>{item.time}</span>
                     <span className={styles.scheduleActivity}>{item.activity}</span>
@@ -162,7 +162,7 @@ function EventDetails() {
             <div className={styles.card}>
               <h2 className={styles.sectionTitle}>Requirements</h2>
               <ul className={styles.requirementsList}>
-                {event.requirements.map((req, index) => (
+                {(event.requirements || []).map((req, index) => (
                   <li key={index}>{req}</li>
                 ))}
               </ul>
@@ -224,17 +224,17 @@ function EventDetails() {
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Attendance</div>
                     <div className={styles.infoValue}>
-                      {event.registeredCount} / {event.venueCapacity} registered
+                      {event.registeredCount ?? 0} / {event.venueCapacity ?? '—'} registered
                     </div>
                     <div className={styles.capacityBar}>
                       <div className={styles.capacityProgress}>
                         <div 
                           className={styles.capacityFill}
-                          style={{ width: `${(event.registeredCount / event.venueCapacity) * 100}%` }}
+                          style={{ width: `${event.venueCapacity ? ((event.registeredCount || 0) / event.venueCapacity) * 100 : 0}%` }}
                         ></div>
                       </div>
                       <div className={styles.capacityText}>
-                        {((event.registeredCount / event.venueCapacity) * 100).toFixed(0)}% Full
+                        {event.venueCapacity ? (((event.registeredCount || 0) / event.venueCapacity) * 100).toFixed(0) : 0}% Full
                       </div>
                     </div>
                   </div>
@@ -280,7 +280,7 @@ function EventDetails() {
             <div className={styles.card}>
               <h3 className={styles.sectionTitle}>Related Events</h3>
               <ul className={styles.relatedEvents}>
-                {event.relatedEvents.map((relatedEvent) => (
+                {(event.relatedEvents || []).map((relatedEvent) => (
                   <li key={relatedEvent.id} className={styles.relatedItem}>
                     <div className={styles.relatedTitle}>
                       {relatedEvent.title}

@@ -20,10 +20,14 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+// Allow any origin in development so Vite's port changes won't cause CORS failures.
+const isDev = process.env.NODE_ENV === 'development';
+const corsOrigin = isDev ? true : (process.env.CLIENT_URL || 'http://localhost:5173');
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: corsOrigin,
   credentials: true
 }));
+console.log(`CORS configured. origin=${isDev ? 'allow-any (development)' : corsOrigin}`);
 app.use(express.json());
 app.use(cookieParser());
 
