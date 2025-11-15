@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
@@ -17,8 +17,10 @@ function AdminPanel() {
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [isAddingCommunity, setIsAddingCommunity] = useState(false);
   const [isAddingStudent, setIsAddingStudent] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   
   const [newCommunity, setNewCommunity] = useState({
     name: '',
@@ -77,6 +79,18 @@ function AdminPanel() {
 
   const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
   const emojis = ['🎯', '🖥️', '🎨', '⚽', '📚', '🎵', '🎮', '🌟', '💡', '🚀'];
+
+  const formatRole = (role) => {
+    const r = (role || '').toString().toLowerCase();
+    if (!r) return '';
+    if (r === 'club_leader' || r === 'clubleader') return 'Club Leader';
+    if (r === 'event_organizer' || r === 'eventorganizer') return 'Event Organizer';
+    if (r === 'moderator') return 'Moderator';
+    if (r === 'admin') return 'Admin';
+    if (r === 'student') return 'Student';
+    // Fallback: replace underscores and capitalize
+    return r.replace(/_/g, ' ').replace(/(^|\s)\S/g, t => t.toUpperCase());
+  };
 
   // Save active section to database whenever it changes
   const handleSectionChange = async (section) => {
@@ -186,9 +200,13 @@ function AdminPanel() {
         'admin': 'ADMIN'
       };
 
-      await api.updateStudent(id, { role: roleMapping[newRole] || newRole });
+      // normalize keys (some parts of the app pass values like 'club_leader')
+      const key = (newRole || '').toString();
+      const normalizedKey = key === 'club_leader' ? 'clubLeader' : key;
+
+      await api.updateStudent(id, { role: roleMapping[normalizedKey] || newRole });
       setStudents(prev => prev.map(s => 
-        s.id === id ? { ...s, role: roleMapping[newRole] || newRole } : s
+        s.id === id ? { ...s, role: roleMapping[normalizedKey] || newRole } : s
       ));
     } catch (err) {
       alert('Failed to update student role: ' + err.message);
@@ -203,7 +221,12 @@ function AdminPanel() {
     const name = `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase();
     const email = (s.email || '').toLowerCase();
     const search = searchTerm.toLowerCase();
-    return name.includes(search) || email.includes(search);
+    const roleLower = (s.role || '').toLowerCase();
+
+    const matchesSearch = name.includes(search) || email.includes(search);
+    const matchesCategory = selectedCategory === 'all' ? true : roleLower === selectedCategory;
+
+    return matchesSearch && matchesCategory;
   }) : [];
 
   // Show loading state while checking authentication
@@ -244,6 +267,7 @@ function AdminPanel() {
             <Users size={20} />
             <span>Manage Communities</span>
           </button>
+
           {/* Placeholder for future sections */}
           <button
             className={`${styles.navItem} ${styles.disabled}`}
@@ -252,6 +276,7 @@ function AdminPanel() {
             <Calendar size={20} />
             <span>Manage Events</span>
           </button>
+
           <button
             className={`${styles.navItem} ${activeSection === 'users' ? styles.active : ''}`}
             onClick={() => handleSectionChange('users')}
@@ -259,6 +284,7 @@ function AdminPanel() {
             <User size={20} />
             <span>Manage Users</span>
           </button>
+
           <button
             className={`${styles.navItem} ${styles.disabled}`}
             disabled
@@ -518,8 +544,8 @@ function AdminPanel() {
                   <User size={24} />
                 </div>
                 <div className={styles.statInfo}>
-                  <h3>{students.filter(s => s.role === 'student').length}</h3>
-                  <p>Regular Students</p>
+                    <h3>{students.filter(s => (s.role || '').toLowerCase() === 'student').length}</h3>
+                    <p>Regular Students</p>
                 </div>
               </div>
               <div className={styles.statCard}>
@@ -527,13 +553,33 @@ function AdminPanel() {
                   <Shield size={24} />
                 </div>
                 <div className={styles.statInfo}>
-                  <h3>{students.filter(s => s.role === 'club_leader').length}</h3>
-                  <p>Club Leaders</p>
+                    <h3>{students.filter(s => (s.role || '').toLowerCase() === 'club_leader').length}</h3>
+                    <p>Club Leaders</p>
                 </div>
               </div>
             </div>
 
-            <div className={styles.searchBar}>
+              {/* Category filter */}
+              <div className={styles.roleFilter}>
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'student', label: 'Students' },
+                  { key: 'club_leader', label: 'Club Leaders' },
+                  { key: 'moderator', label: 'Moderators' },
+                  { key: 'event_organizer', label: 'Event Organizers' },
+                  { key: 'admin', label: 'Admins' }
+                ].map(r => (
+                  <button
+                    key={r.key}
+                    className={`${styles.roleBtn} ${selectedCategory === r.key ? styles.activeRole : ''}`}
+                    onClick={() => setSelectedCategory(r.key)}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.searchBar}>
               <Search className={styles.searchIcon} size={20} />
               <input
                 type="text"
@@ -556,37 +602,27 @@ function AdminPanel() {
                 </thead>
                 <tbody>
                   {filteredStudents.map(student => (
-                    <tr key={student.id}>
+                    <tr key={student.id} onClick={() => setSelectedStudent(student)} className={styles.clickableRow}>
                       <td>
                         <div className={styles.communityCell}>
                           <span className={styles.tableAvatar} style={{ background: '#667eea' }}>
                             {student.firstName[0]}{student.lastName[0]}
                           </span>
                           <div>
-                            <strong>{student.name}</strong>
-                            <p>Created by {student.createdBy}</p>
+                            <strong>{`${student.firstName || ''} ${student.lastName || ''}`.trim()}</strong>
                           </div>
                         </div>
                       </td>
                       <td>{student.email}</td>
                       <td>
-                        <select
-                          value={student.role}
-                          onChange={(e) => handleUpdateStudentRole(student.id, e.target.value)}
-                          className={styles.roleSelect}
-                        >
-                          <option value="student">Student</option>
-                          <option value="club_leader">Club Leader</option>
-                          <option value="moderator">Moderator</option>
-                          <option value="event_organizer">Event Organizer</option>
-                        </select>
+                        <span className={styles.roleText}>{formatRole(student.role)}</span>
                       </td>
                       <td>{new Date(student.createdAt).toLocaleDateString()}</td>
                       <td>
                         <div className={styles.actionButtons}>
                           <button 
                             className={`${styles.actionBtn} ${styles.delete}`}
-                            onClick={() => handleDeleteStudent(student.id)}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteStudent(student.id); }}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -675,8 +711,91 @@ function AdminPanel() {
                 </div>
               </div>
             )}
+            {/* Edit Student Modal */}
+            {selectedStudent && (
+              <div className={styles.modalOverlay} onClick={() => setSelectedStudent(null)}>
+                <div className={`${styles.modalContent} ${styles.formModal}`} onClick={(e) => e.stopPropagation()}>
+                  <h2>Edit Student</h2>
+                  <EditStudentForm
+                    student={selectedStudent}
+                    onCancel={() => setSelectedStudent(null)}
+                    onSave={async (updates) => {
+                      try {
+                        await api.updateStudent(selectedStudent.id, updates);
+                        setStudents(prev => prev.map(s => s.id === selectedStudent.id ? { ...s, ...updates } : s));
+                        setSelectedStudent(null);
+                      } catch (err) {
+                        alert('Failed to update student: ' + err.message);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Small form component to edit a student inside the modal
+function EditStudentForm({ student, onCancel, onSave }) {
+  const [form, setForm] = useState({
+    firstName: student.firstName || '',
+    lastName: student.lastName || '',
+    email: student.email || '',
+    role: (student.role || '').toLowerCase() === 'club_leader' ? 'club_leader' : (student.role || '').toLowerCase()
+  });
+
+  const handleSubmit = async () => {
+    const roleMapping = {
+      'student': 'STUDENT',
+      'moderator': 'MODERATOR',
+      'club_leader': 'CLUB_LEADER',
+      'event_organizer': 'EVENT_ORGANIZER',
+      'admin': 'ADMIN'
+    };
+
+    const updates = {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      role: roleMapping[form.role] || form.role
+    };
+
+    await onSave(updates);
+  };
+
+  return (
+    <div>
+      <div className={styles.formRow}>
+        <div className={styles.formGroup}>
+          <label>First Name</label>
+          <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+        </div>
+        <div className={styles.formGroup}>
+          <label>Last Name</label>
+          <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+        </div>
+      </div>
+      <div className={styles.formGroup}>
+        <label>Email</label>
+        <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+      </div>
+      <div className={styles.formGroup}>
+        <label>Role</label>
+        <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={styles.roleSelectLarge}>
+          <option value="student">Student</option>
+          <option value="club_leader">Club Leader</option>
+          <option value="moderator">Moderator</option>
+          <option value="event_organizer">Event Organizer</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div className={styles.formActions}>
+        <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+        <button className={styles.submitBtn} onClick={handleSubmit}>Save Changes</button>
       </div>
     </div>
   );

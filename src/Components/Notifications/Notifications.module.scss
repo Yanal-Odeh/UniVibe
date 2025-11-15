@@ -1,0 +1,76 @@
+.container {
+  position: relative;
+  display: inline-block;
+}
+
+.bellButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  padding: 6px;
+  color: var(--text-color, #333);
+}
+
+.badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background: #e53e3e;
+  color: white;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.panel {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  width: 300px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.panelBody {
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.empty {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  padding: 8px 6px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: #fafafa;
+}
