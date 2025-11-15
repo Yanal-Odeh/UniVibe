@@ -296,6 +296,9 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 
     tbody {
       tr {
+          &.clickableRow {
+            cursor: pointer;
+          }
         border-bottom: 1px solid $border-color;
         transition: background 0.2s;
 
@@ -388,7 +391,9 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
   justify-content: center;
   z-index: 1000;
   padding: 2rem;
-  animation: fadeIn 0.2s;
+  /* slightly longer fade for smoother feeling */
+  animation: fadeIn 220ms ease;
+  will-change: opacity;
 }
 
 @keyframes fadeIn {
@@ -400,13 +405,38 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 }
 
+/* modal content pop-in animation for a smoother panel entrance
+   NOTE: avoid transform-based animation here because transforms on ancestors
+   can cause native <select> dropdowns to be clipped in some browsers.
+   Use margin/opacity animation instead so dropdowns can escape the modal.
+*/
+.modalContent {
+  /* keep existing layout but animate into view */
+  animation: popIn 220ms cubic-bezier(.2,.8,.2,1) both;
+  /* don't hint transform here to prevent creating a stacking context that
+     would clip native select dropdowns */
+  will-change: opacity;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    margin-top: 8px;
+  }
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+
 .modalContent {
   background: white;
   border-radius: 16px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  /* allow dropdowns to overflow outside the modal container (so native selects can render properly) */
+  overflow: visible;
   animation: slideUp 0.3s;
   position: relative;
 
@@ -421,11 +451,11 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    margin-top: 20px;
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    margin-top: 0;
     opacity: 1;
   }
 }
@@ -472,6 +502,9 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 
 .modalBody {
   padding: 2rem;
+  /* make the body scrollable instead of the modal wrapper so native selects can escape */
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
 
   h3 {
     font-size: 1.5rem;
@@ -918,4 +951,32 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
   &:hover {
     background: $secondary-color;
   }
+}
+
+.roleFilter {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .roleBtn {
+    background: white;
+    border: 1px solid $border-color;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    font-weight: 600;
+    color: $text-dark;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .activeRole {
+    @include gradient-bg;
+    color: white;
+    box-shadow: $shadow;
+  }
+}
+
+.roleText {
+  font-weight: 600;
+  color: $text-dark;
 }

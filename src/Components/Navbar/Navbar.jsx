@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.scss';
+import Notifications from '../Notifications/Notifications';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { User } from 'lucide-react';
 
@@ -169,8 +170,10 @@ function Navbar() {
             </div>
           </div>
         )}
-        {/* Auth area (login icon or signed-in name) */}
+        {/* Auth area (notifications + login icon or signed-in name) */}
         <div className={styles.authArea}>
+          {/* Notifications bell */}
+          <Notifications />
           {!isAuthenticated ? (
             <button
               className={styles.authButton}
