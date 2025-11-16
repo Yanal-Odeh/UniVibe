@@ -16,15 +16,15 @@ function SignIn() {
     setError('');
     
     try {
-      // Try to login (works for both admin and regular users)
+      // Try to login (works for all users)
       const result = await login(email, password);
       
       if (result.success) {
         // Check if user is admin and redirect accordingly
-        if (result.admin && result.admin.role === 'ADMIN') {
-          navigate('/admin');
+        if (result.user && result.user.role === 'ADMIN') {
+          navigate('/admin-panel');
         } else {
-          // Regular user - redirect to home or dashboard
+          // Regular user - redirect to home
           navigate('/');
         }
       } else {

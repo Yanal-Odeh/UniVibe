@@ -85,7 +85,7 @@ const router = createBrowserRouter([
         element: <Communities />
       },
       {
-        path: "/admin",
+        path: "/admin-panel",
         element: <AdminPanel />
       },  
         

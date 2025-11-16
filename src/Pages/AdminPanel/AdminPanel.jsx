@@ -84,8 +84,9 @@ function AdminPanel() {
     const r = (role || '').toString().toLowerCase();
     if (!r) return '';
     if (r === 'club_leader' || r === 'clubleader') return 'Club Leader';
-    if (r === 'event_organizer' || r === 'eventorganizer') return 'Event Organizer';
-    if (r === 'moderator') return 'Moderator';
+    if (r === 'faculty_leader' || r === 'facultyleader') return 'Faculty Leader';
+    if (r === 'dean_of_faculty' || r === 'deanoffaculty') return 'Dean of Faculty';
+    if (r === 'deanship_of_student_affairs' || r === 'deanshipofstudentaffairs') return 'Deanship of Student Affairs';
     if (r === 'admin') return 'Admin';
     if (r === 'student') return 'Student';
     // Fallback: replace underscores and capitalize
@@ -565,8 +566,9 @@ function AdminPanel() {
                   { key: 'all', label: 'All' },
                   { key: 'student', label: 'Students' },
                   { key: 'club_leader', label: 'Club Leaders' },
-                  { key: 'moderator', label: 'Moderators' },
-                  { key: 'event_organizer', label: 'Event Organizers' },
+                  { key: 'faculty_leader', label: 'Faculty Leaders' },
+                  { key: 'dean_of_faculty', label: 'Dean of Faculty' },
+                  { key: 'deanship_of_student_affairs', label: 'Deanship of Student Affairs' },
                   { key: 'admin', label: 'Admins' }
                 ].map(r => (
                   <button
@@ -696,8 +698,10 @@ function AdminPanel() {
                     >
                       <option value="student">Student</option>
                       <option value="club_leader">Club Leader</option>
-                      <option value="moderator">Moderator</option>
-                      <option value="event_organizer">Event Organizer</option>
+                      <option value="faculty_leader">Faculty Leader</option>
+                      <option value="dean_of_faculty">Dean of Faculty</option>
+                      <option value="deanship_of_student_affairs">Deanship of Student Affairs</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </div>
                   <div className={styles.formActions}>
@@ -788,8 +792,9 @@ function EditStudentForm({ student, onCancel, onSave }) {
         <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={styles.roleSelectLarge}>
           <option value="student">Student</option>
           <option value="club_leader">Club Leader</option>
-          <option value="moderator">Moderator</option>
-          <option value="event_organizer">Event Organizer</option>
+          <option value="faculty_leader">Faculty Leader</option>
+          <option value="dean_of_faculty">Dean of Faculty</option>
+          <option value="deanship_of_student_affairs">Deanship of Student Affairs</option>
           <option value="admin">Admin</option>
         </select>
       </div>

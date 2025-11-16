@@ -11,6 +11,18 @@ function Navbar() {
   const { currentAdmin, isAuthenticated, logout } = useAdminAuth();
   const navigate = useNavigate();
 
+  const formatRole = (role) => {
+    if (!role) return '';
+    const r = role.toString().toLowerCase();
+    if (r === 'admin') return 'Administrator';
+    if (r === 'student') return 'Student';
+    if (r === 'club_leader' || r === 'clubleader') return 'Club Leader';
+    if (r === 'faculty_leader' || r === 'facultyleader') return 'Faculty Leader';
+    if (r === 'dean_of_faculty' || r === 'deanoffaculty') return 'Dean of Faculty';
+    if (r === 'deanship_of_student_affairs' || r === 'deanshipofstudentaffairs') return 'Deanship of Student Affairs';
+    return role.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   // Edit these menu items as needed
   const menuItems = [
     {
@@ -184,14 +196,19 @@ function Navbar() {
               <User size={18} />
             </button>
           ) : (
-            <div className={styles.signedIn}>
+            <div className={styles.userProfile}>
               <button
-                className={styles.authButton}
+                className={styles.profileButton}
                 onClick={() => navigate('/admin-panel')}
-                title={`Signed in as ${currentAdmin?.name}`}
+                title="Go to dashboard"
               >
-                <User size={14} />
-                {currentAdmin?.name || 'Admin'}
+                <div className={styles.userAvatar}>
+                  {currentAdmin?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </div>
+                <div className={styles.userInfo}>
+                  <span className={styles.userName}>{currentAdmin?.name || 'User'}</span>
+                  <span className={styles.userRole}>{formatRole(currentAdmin?.role)}</span>
+                </div>
               </button>
               <button
                 className={styles.logoutButton}

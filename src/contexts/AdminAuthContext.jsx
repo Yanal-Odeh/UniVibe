@@ -16,17 +16,17 @@ export function AdminAuthProvider({ children }) {
           console.log('Token found, verifying...');
           const user = await api.getCurrentUser();
           console.log('Current user from API:', user);
-          // Only set as admin if user has ADMIN role
-          if (user && user.role === 'ADMIN') {
+          // Set user data for any authenticated user
+          if (user) {
             setCurrentAdmin({
               id: user.id,
               email: user.email,
               name: `${user.firstName} ${user.lastName}`,
               role: user.role
             });
-            console.log('Admin authenticated successfully');
+            console.log('User authenticated successfully:', user.role);
           } else {
-            console.log('User is not an admin, role:', user?.role);
+            console.log('No user data returned');
             localStorage.removeItem('token');
           }
         } else {
@@ -49,20 +49,20 @@ export function AdminAuthProvider({ children }) {
       const data = await api.login(email, password);
       console.log('Login response:', data);
       
-      // Check if user has ADMIN role
-      if (data.user && data.user.role === 'ADMIN') {
-        const adminData = {
+      // Accept any authenticated user
+      if (data.user) {
+        const userData = {
           id: data.user.id,
           email: data.user.email,
           name: `${data.user.firstName} ${data.user.lastName}`,
           role: data.user.role
         };
-        setCurrentAdmin(adminData);
-        return { success: true, admin: adminData };
+        setCurrentAdmin(userData);
+        return { success: true, user: userData };
       } else {
-        console.log('User role check failed. Role:', data.user?.role);
+        console.log('No user data in response');
         localStorage.removeItem('token');
-        return { success: false, error: 'Access denied. Admin privileges required.' };
+        return { success: false, error: 'Invalid credentials' };
       }
     } catch (err) {
       console.error('Login error:', err);
