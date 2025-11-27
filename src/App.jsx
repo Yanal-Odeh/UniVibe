@@ -11,6 +11,7 @@ import InformationCenter from './Pages/InformationCenter/InformationCenter'
 import FormsApplications from './Pages/FormsApplications/FormsApplications'
 import PoliciesGuidelines from './Pages/PoliciesGuidelines/PoliciesGuidelines'
 import VirtualTour from './Pages/VirtualTour/VirtualTour'
+import PlanEventsPage from './Pages/PlamEvents/PlanEvents'
 import Root from './routes/Root';
 import NotFound from './Pages/NotFound/NotFound';
 import SignIn from './Pages/SignIn/SignIn';
@@ -84,6 +85,10 @@ const router = createBrowserRouter([
         path: "/communities",
         element: <Communities />
       },
+        {
+          path: "/plan-events",
+          element: <PlanEventsPage />
+        },
       {
         path: "/admin-panel",
         element: <AdminPanel />

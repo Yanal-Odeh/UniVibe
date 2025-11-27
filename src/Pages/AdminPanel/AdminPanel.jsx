@@ -271,8 +271,11 @@ function AdminPanel() {
 
           {/* Placeholder for future sections */}
           <button
-            className={`${styles.navItem} ${styles.disabled}`}
-            disabled
+            className={`${styles.navItem} ${activeSection === 'events' ? styles.active : ''}`}
+            onClick={() => {
+              handleSectionChange('events');
+              navigate('/plan-events');
+            }}
           >
             <Calendar size={20} />
             <span>Manage Events</span>
