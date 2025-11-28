@@ -42,6 +42,17 @@ function AdminPanel() {
     // Wait for auth to finish loading before checking authentication
     if (!isLoading && !isAuthenticated) {
       navigate('/signin');
+      return;
+    }
+    
+    // Check if user has ADMIN role - only admins can access this panel
+    if (!isLoading && isAuthenticated && currentAdmin) {
+      const userRole = (currentAdmin.role || '').toString().toUpperCase();
+      if (userRole !== 'ADMIN') {
+        console.warn('Access denied: User does not have ADMIN role');
+        navigate('/'); // Redirect non-admins to home page
+        return;
+      }
     }
     
     // Load students and preferences from API
@@ -67,10 +78,10 @@ function AdminPanel() {
       }
     };
 
-    if (isAuthenticated) {
+    if (isAuthenticated && currentAdmin?.role?.toUpperCase() === 'ADMIN') {
       fetchData();
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, isLoading, navigate, currentAdmin]);
 
   const handleLogout = () => {
     logout();
@@ -239,8 +250,34 @@ function AdminPanel() {
     );
   }
 
+  // Redirect if not authenticated or not an admin
   if (!isAuthenticated || !currentAdmin) {
     return null;
+  }
+
+  // Check admin role - only ADMIN users can access this panel
+  const userRole = (currentAdmin.role || '').toString().toUpperCase();
+  if (userRole !== 'ADMIN') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', textAlign: 'center' }}>
+        <h2 style={{ color: '#667eea', marginBottom: '1rem' }}>Access Denied</h2>
+        <p style={{ marginBottom: '2rem', color: '#666' }}>You need administrator privileges to access this page.</p>
+        <button 
+          onClick={() => navigate('/')} 
+          style={{ 
+            padding: '0.75rem 2rem', 
+            background: '#667eea', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '8px', 
+            cursor: 'pointer',
+            fontSize: '1rem'
+          }}
+        >
+          Go to Home
+        </button>
+      </div>
+    );
   }
 
   return (
