@@ -373,7 +373,51 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
           color: white;
         }
       }
+
+      &.approve {
+        background: rgba(67, 233, 123, 0.1);
+        color: $success-color;
+
+        &:hover {
+          background: $success-color;
+          color: white;
+        }
+      }
+
+      &.reject {
+        background: rgba(250, 112, 154, 0.1);
+        color: $danger-color;
+
+        &:hover {
+          background: $danger-color;
+          color: white;
+        }
+      }
     }
+  }
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &[data-status="pending"] {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ff9800;
+  }
+
+  &[data-status="approved"] {
+    background: rgba(67, 233, 123, 0.1);
+    color: $success-color;
+  }
+
+  &[data-status="rejected"] {
+    background: rgba(250, 112, 154, 0.1);
+    color: $danger-color;
   }
 }
 

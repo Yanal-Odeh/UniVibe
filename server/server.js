@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.js';
 import studentRoutes from './routes/students.js';
 import communityRoutes from './routes/communities.js';
 import eventRoutes from './routes/events.js';
+import applicationRoutes from './routes/applications.js';
 
 // Load .env from parent directory
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

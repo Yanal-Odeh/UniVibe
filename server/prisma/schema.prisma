@@ -80,19 +80,78 @@ model Event {
   id          String    @id @default(cuid())
   title       String
   description String
-  location    String
+  location    String    // Keep for backward compatibility
   startDate   DateTime
   endDate     DateTime?
   communityId String?
+  collegeId   String?   // New: Reference to College
+  locationId  String?   // New: Reference to Location
   createdBy   String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
+  // Approval workflow
+  status                      EventStatus @default(PENDING_FACULTY_APPROVAL)
+  facultyLeaderApproval       ApprovalStatus @default(PENDING)
+  facultyLeaderApprovedBy     String?
+  facultyLeaderApprovedAt     DateTime?
+  deanOfFacultyApproval       ApprovalStatus @default(PENDING)
+  deanOfFacultyApprovedBy     String?
+  deanOfFacultyApprovedAt     DateTime?
+  deanshipApproval            ApprovalStatus @default(PENDING)
+  deanshipApprovedBy          String?
+  deanshipApprovedAt          DateTime?
+  
   // Relations
   creator     User       @relation("EventCreator", fields: [createdBy], references: [id])
   community   Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  college     College?   @relation(fields: [collegeId], references: [id], onDelete: SetNull)
+  eventLocation Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
 
   @@map("events")
+}
+
+enum EventStatus {
+  PENDING_FACULTY_APPROVAL
+  PENDING_DEAN_APPROVAL
+  PENDING_DEANSHIP_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model College {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  code      String     @unique // e.g., "ENG", "BUS", "IT"
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Relations
+  locations Location[]
+  events    Event[]
+
+  @@map("colleges")
+}
+
+model Location {
+  id         String   @id @default(cuid())
+  name       String
+  capacity   Int?     // Optional: maximum capacity
+  collegeId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  college College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  events  Event[]
+
+  @@map("locations")
 }
 
 enum Role {
@@ -102,4 +161,28 @@ enum Role {
   DEAN_OF_FACULTY
   DEANSHIP_OF_STUDENT_AFFAIRS
   ADMIN
+}
+model ApplicationForm {
+  id            String   @id @default(cuid())
+  userId        String
+  communityId   String
+  name          String
+  studentNumber String
+  age           Int
+  major         String
+  phoneNumber   String
+  city          String
+  status        ApplicationStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("application_forms")
+}
+
+
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

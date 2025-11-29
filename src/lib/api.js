@@ -195,6 +195,31 @@ class ApiClient {
       body: JSON.stringify(preferences),
     });
   }
+
+  // Application form endpoints
+  async createApplication(applicationData) {
+    return this.request('/applications', {
+      method: 'POST',
+      body: JSON.stringify(applicationData),
+    });
+  }
+
+  async getApplications() {
+    return this.request('/applications');
+  }
+
+  async updateApplicationStatus(id, status) {
+    return this.request(`/applications/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async deleteApplication(id) {
+    return this.request(`/applications/${id}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export default new ApiClient();

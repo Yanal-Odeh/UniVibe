@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, Settings, LogOut } from 'lucide-react';
+import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, Settings, LogOut, FileText, Check, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useCommunities } from '../../contexts/CommunitiesContext';
@@ -20,6 +20,7 @@ function AdminPanel() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   
   const [newCommunity, setNewCommunity] = useState({
@@ -62,6 +63,14 @@ function AdminPanel() {
         const studentsData = await api.getStudents();
         const studentsList = studentsData.students || studentsData || [];
         setStudents(Array.isArray(studentsList) ? studentsList : []);
+
+        // Fetch applications
+        try {
+          const applicationsData = await api.getApplications();
+          setApplications(applicationsData.applications || []);
+        } catch (err) {
+          console.error('Failed to fetch applications:', err);
+        }
 
         // Fetch admin preferences
         try {
@@ -324,6 +333,14 @@ function AdminPanel() {
           >
             <User size={20} />
             <span>Manage Users</span>
+          </button>
+
+          <button
+            className={`${styles.navItem} ${activeSection === 'applications' ? styles.active : ''}`}
+            onClick={() => handleSectionChange('applications')}
+          >
+            <FileText size={20} />
+            <span>Manage Applications</span>
           </button>
 
           <button
@@ -776,6 +793,162 @@ function AdminPanel() {
                 </div>
               </div>
             )}
+          </>
+        )}
+
+        {/* Applications Section */}
+        {activeSection === 'applications' && (
+          <>
+            <div className={styles.adminHeader}>
+              <div>
+                <h1>Manage Application Forms</h1>
+                <p>Review and approve community join applications</p>
+              </div>
+            </div>
+
+            <div className={styles.searchBar}>
+              <Search className={styles.searchIcon} size={20} />
+              <input
+                type="text"
+                placeholder="Search applications by name, student number, or community..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.communitiesTable}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Applicant</th>
+                    <th>Community</th>
+                    <th>Student #</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications
+                    .filter(app => {
+                      const searchLower = searchTerm.toLowerCase();
+                      const community = communities.find(c => c.id === app.communityId);
+                      return (
+                        app.name.toLowerCase().includes(searchLower) ||
+                        app.studentNumber.toLowerCase().includes(searchLower) ||
+                        community?.name.toLowerCase().includes(searchLower) ||
+                        ''
+                      );
+                    })
+                    .map(application => {
+                      const community = communities.find(c => c.id === application.communityId);
+                      return (
+                        <tr key={application.id}>
+                          <td>
+                            <div className={styles.communityCell}>
+                              <div 
+                                className={styles.tableAvatar}
+                                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                              >
+                                {application.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div>
+                                <strong>{application.name}</strong>
+                                <p>{application.major} • Age {application.age}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            {community ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '1.5rem' }}>{community.avatar}</span>
+                                <span>{community.name}</span>
+                              </div>
+                            ) : (
+                              'N/A'
+                            )}
+                          </td>
+                          <td>{application.studentNumber}</td>
+                          <td>
+                            <div>
+                              <div>{application.phoneNumber}</div>
+                              <div style={{ fontSize: '0.85rem', color: '#718096' }}>{application.city}</div>
+                            </div>
+                          </td>
+                          <td>
+                            <span 
+                              className={styles.statusBadge}
+                              data-status={application.status.toLowerCase()}
+                            >
+                              {application.status}
+                            </span>
+                          </td>
+                          <td>
+                            <div className={styles.actionButtons}>
+                              {application.status === 'PENDING' && (
+                                <>
+                                  <button 
+                                    className={`${styles.actionBtn} ${styles.approve}`}
+                                    onClick={async () => {
+                                      try {
+                                        await api.updateApplicationStatus(application.id, 'APPROVED');
+                                        const applicationsData = await api.getApplications();
+                                        setApplications(applicationsData.applications || []);
+                                      } catch (err) {
+                                        alert('Failed to approve application');
+                                      }
+                                    }}
+                                    title="Approve"
+                                  >
+                                    <Check size={18} />
+                                  </button>
+                                  <button 
+                                    className={`${styles.actionBtn} ${styles.reject}`}
+                                    onClick={async () => {
+                                      try {
+                                        await api.updateApplicationStatus(application.id, 'REJECTED');
+                                        const applicationsData = await api.getApplications();
+                                        setApplications(applicationsData.applications || []);
+                                      } catch (err) {
+                                        alert('Failed to reject application');
+                                      }
+                                    }}
+                                    title="Reject"
+                                  >
+                                    <XCircle size={18} />
+                                  </button>
+                                </>
+                              )}
+                              <button 
+                                className={`${styles.actionBtn} ${styles.delete}`}
+                                onClick={async () => {
+                                  if (window.confirm('Delete this application?')) {
+                                    try {
+                                      await api.deleteApplication(application.id);
+                                      const applicationsData = await api.getApplications();
+                                      setApplications(applicationsData.applications || []);
+                                    } catch (err) {
+                                      alert('Failed to delete application');
+                                    }
+                                  }
+                                }}
+                                title="Delete"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+              {applications.length === 0 && (
+                <div className={styles.emptyState}>
+                  <p>No applications submitted yet</p>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
