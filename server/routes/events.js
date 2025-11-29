@@ -4,9 +4,13 @@ import {
   getEventById,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  facultyApproval,
+  deanApproval,
+  deanshipApproval,
+  getPendingApprovals
 } from '../controllers/eventController.js';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,9 +18,15 @@ const router = express.Router();
 router.get('/', getAllEvents);
 router.get('/:id', getEventById);
 
-// Authenticated routes - event organizers and admins can create/update/delete
-router.post('/', authenticate, requireRole('EVENT_ORGANIZER', 'ADMIN'), createEvent);
-router.patch('/:id', authenticate, requireRole('EVENT_ORGANIZER', 'ADMIN'), updateEvent);
-router.delete('/:id', authenticate, requireRole('EVENT_ORGANIZER', 'ADMIN'), deleteEvent);
+// Authenticated routes - Club Leaders can create events
+router.post('/', authenticate, createEvent);
+router.patch('/:id', authenticate, updateEvent);
+router.delete('/:id', authenticate, deleteEvent);
+
+// Approval routes
+router.get('/pending/approvals', authenticate, getPendingApprovals);
+router.post('/:id/approve/faculty', authenticate, facultyApproval);
+router.post('/:id/approve/dean', authenticate, deanApproval);
+router.post('/:id/approve/deanship', authenticate, deanshipApproval);
 
 export default router;

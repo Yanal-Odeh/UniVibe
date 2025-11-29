@@ -161,8 +161,10 @@ function AdminPanel() {
       try {
         const roleMapping = {
           'student': 'STUDENT',
-          'moderator': 'MODERATOR',
-          'clubLeader': 'CLUB_LEADER',
+          'club_leader': 'CLUB_LEADER',
+          'faculty_leader': 'FACULTY_LEADER',
+          'dean_of_faculty': 'DEAN_OF_FACULTY',
+          'deanship_of_student_affairs': 'DEANSHIP_OF_STUDENT_AFFAIRS',
           'admin': 'ADMIN'
         };
 
@@ -372,7 +374,7 @@ function AdminPanel() {
             <User size={24} />
           </div>
           <div className={styles.statInfo}>
-            <h3>{communities.reduce((acc, c) => acc + c.memberCount, 0)}</h3>
+            <h3>{communities.reduce((acc, c) => acc + (c.memberCount || 0), 0)}</h3>
             <p>Total Members</p>
           </div>
         </div>
@@ -381,7 +383,7 @@ function AdminPanel() {
             <Crown size={24} />
           </div>
           <div className={styles.statInfo}>
-            <h3>{communities.reduce((acc, c) => acc + c.members.filter(m => m.role === 'admin').length, 0)}</h3>
+            <h3>{communities.reduce((acc, c) => acc + (c.members?.filter(m => m.role === 'admin').length || 0), 0)}</h3>
             <p>Community Admins</p>
           </div>
         </div>

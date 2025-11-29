@@ -1,40 +1,28 @@
 // src/Pages/PlanEvents/PlanEvents.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, Users, Clock } from 'lucide-react';
 import styles from './PlanEvents.module.scss';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-
-// Mock communities - in real app, fetch from API
-const mockCommunities = [
-  { id: '1', name: 'Computer Science Club' },
-  { id: '2', name: 'Drama Society' },
-  { id: '3', name: 'Basketball Team' }
-];
+import api from '../../lib/api';
 
 const PlanEvents = () => {
   const [showModal, setShowModal] = useState(false);
-  const [events, setEvents] = useState([
-    {
-      id: '1',
-      title: 'Coding Workshop',
-      description: 'Learn React and modern web development',
-      location: 'Lab 204',
-      startDate: '2024-12-20T10:00',
-      endDate: '2024-12-20T12:00',
-      communityId: '1',
-      communityName: 'Computer Science Club',
-      status: 'published'
-    }
-  ]);
+  const [events, setEvents] = useState([]);
+  
+  const [colleges, setColleges] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [communities, setCommunities] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    location: '',
+    collegeId: '',
+    locationId: '',
     startDate: '',
     endDate: '',
     communityId: '',
-    status: 'draft'
+    status: 'pending_faculty_approval' // Start with pending approval
   });
   
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
@@ -42,9 +30,96 @@ const PlanEvents = () => {
   // Get real user from auth context
   const { currentAdmin, isLoading } = useAdminAuth();
 
-  // Check if user has permission to plan events
+  // Check if user has permission to plan events (ONLY CLUB_LEADER)
   const userRole = currentAdmin?.role || 'STUDENT';
-  const canPlanEvents = userRole === 'CLUB_LEADER' || userRole === 'ADMIN';
+  const canPlanEvents = userRole === 'CLUB_LEADER';
+
+  // Fetch events on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await api.getEvents();
+        const eventsData = response.events || [];
+        
+        // Map events to include approval status
+        const mappedEvents = eventsData.map(event => ({
+          ...event,
+          approvalStatus: {
+            facultyLeader: event.facultyLeaderApproval?.toLowerCase() || 'pending',
+            deanOfFaculty: event.deanOfFacultyApproval?.toLowerCase() || 'pending',
+            deanshipOfStudentAffairs: event.deanshipApproval?.toLowerCase() || 'pending'
+          },
+          communityName: event.community?.name || 'Unknown Community'
+        }));
+        
+        setEvents(mappedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        showToast('Failed to load events', 'error');
+      }
+    };
+
+    if (!isLoading && currentAdmin) {
+      fetchEvents();
+    }
+  }, [isLoading, currentAdmin]);
+
+  // Fetch communities from database
+  useEffect(() => {
+    const fetchCommunities = async () => {
+      try {
+        const response = await api.getCommunities();
+        const communitiesData = response.communities || response || [];
+        setCommunities(Array.isArray(communitiesData) ? communitiesData : []);
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+        showToast('Failed to load communities', 'error');
+        setCommunities([]);
+      }
+    };
+    fetchCommunities();
+  }, []);
+
+  // Fetch colleges on component mount
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/colleges');
+        if (!response.ok) throw new Error('Failed to fetch colleges');
+        const data = await response.json();
+        setColleges(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching colleges:', error);
+        showToast('Failed to load colleges', 'error');
+        setColleges([]);
+      }
+    };
+    fetchColleges();
+  }, []);
+
+  // Fetch locations when college is selected
+  useEffect(() => {
+    if (formData.collegeId) {
+      const fetchLocations = async () => {
+        setLoadingLocations(true);
+        try {
+          const response = await fetch(`http://localhost:5000/api/colleges/${formData.collegeId}/locations`);
+          if (!response.ok) throw new Error('Failed to fetch locations');
+          const data = await response.json();
+          setLocations(Array.isArray(data) ? data : []);
+        } catch (error) {
+          console.error('Error fetching locations:', error);
+          showToast('Failed to load locations', 'error');
+          setLocations([]);
+        } finally {
+          setLoadingLocations(false);
+        }
+      };
+      fetchLocations();
+    } else {
+      setLocations([]);
+    }
+  }, [formData.collegeId]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -53,48 +128,81 @@ const PlanEvents = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      // When community is selected, auto-assign its college
+      if (name === 'communityId') {
+        const selectedCommunity = communities.find(c => c.id === value);
+        if (selectedCommunity?.collegeId) {
+          return {
+            ...prev,
+            communityId: value,
+            collegeId: selectedCommunity.collegeId,
+            locationId: '' // Reset location when college changes
+          };
+        }
+        return { ...prev, communityId: value };
+      }
+      
+      // Reset locationId when collegeId changes
+      if (name === 'collegeId') {
+        return { ...prev, [name]: value, locationId: '' };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     // Validate required fields
-    if (!formData.title || !formData.description || !formData.location || 
-        !formData.startDate || !formData.communityId) {
+    if (!formData.title || !formData.description || !formData.collegeId || 
+        !formData.locationId || !formData.startDate || !formData.communityId) {
       showToast('Please fill in all required fields', 'error');
       return;
     }
 
-    // In real app, make API call:
-    // fetch('/api/events', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${token}`
-    //   },
-    //   body: JSON.stringify(formData)
-    // })
-    
-    // Mock creating event
-    const newEvent = {
-      id: Date.now().toString(),
-      ...formData,
-      communityName: mockCommunities.find(c => c.id === formData.communityId)?.name
-    };
-    
-    setEvents(prev => [...prev, newEvent]);
-    showToast('Event created successfully!', 'success');
-    setShowModal(false);
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      communityId: '',
-      status: 'draft'
-    });
+    try {
+      // Create event via API
+      const response = await api.createEvent({
+        title: formData.title,
+        description: formData.description,
+        collegeId: formData.collegeId,
+        locationId: formData.locationId,
+        startDate: formData.startDate,
+        endDate: formData.endDate || null,
+        communityId: formData.communityId
+      });
+
+      const newEvent = response.event;
+      
+      // Map the event to include approval status
+      const mappedEvent = {
+        ...newEvent,
+        approvalStatus: {
+          facultyLeader: newEvent.facultyLeaderApproval?.toLowerCase() || 'pending',
+          deanOfFaculty: newEvent.deanOfFacultyApproval?.toLowerCase() || 'pending',
+          deanshipOfStudentAffairs: newEvent.deanshipApproval?.toLowerCase() || 'pending'
+        },
+        communityName: newEvent.community?.name || mockCommunities.find(c => c.id === formData.communityId)?.name
+      };
+      
+      setEvents(prev => [mappedEvent, ...prev]);
+      showToast('Event submitted for approval!', 'success');
+      setShowModal(false);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        collegeId: '',
+        locationId: '',
+        startDate: '',
+        endDate: '',
+        communityId: '',
+        status: 'pending_faculty_approval'
+      });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      showToast(error.message || 'Failed to create event', 'error');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -107,6 +215,31 @@ const PlanEvents = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getStatusLabel = (status) => {
+    const statusLabels = {
+      'PENDING_FACULTY_APPROVAL': 'Pending Faculty Leader',
+      'PENDING_DEAN_APPROVAL': 'Pending Dean of Faculty',
+      'PENDING_DEANSHIP_APPROVAL': 'Pending Deanship',
+      'APPROVED': 'Approved',
+      'REJECTED': 'Rejected',
+      'pending_faculty_approval': 'Pending Faculty Leader',
+      'pending_dean_approval': 'Pending Dean of Faculty',
+      'pending_deanship_approval': 'Pending Deanship',
+      'approved': 'Approved',
+      'rejected': 'Rejected',
+      'draft': 'Draft'
+    };
+    return statusLabels[status] || status;
+  };
+
+  const getStatusClass = (status) => {
+    const normalizedStatus = status?.toLowerCase() || '';
+    if (normalizedStatus === 'approved') return 'approved';
+    if (normalizedStatus === 'rejected') return 'rejected';
+    if (normalizedStatus.includes('pending')) return 'pending';
+    return 'draft';
   };
 
   return (
@@ -144,7 +277,7 @@ const PlanEvents = () => {
             <div className={styles.alertContent}>
               <h3 className={styles.alertTitle}>Access Restricted</h3>
               <p className={styles.alertText}>
-                You don't have permission to plan events. Only Club Leaders and Admins can create and manage events.
+                You don't have permission to plan events. Only Club Leaders can create and submit events for approval.
               </p>
             </div>
           </div>
@@ -171,12 +304,35 @@ const PlanEvents = () => {
                   <div className={styles.eventContent}>
                     <div className={styles.eventHeader}>
                       <h3 className={styles.eventTitle}>{event.title}</h3>
-                      <span className={`${styles.statusBadge} ${styles[event.status]}`}>
-                        {event.status.toUpperCase()}
+                      <span className={`${styles.statusBadge} ${styles[getStatusClass(event.status)]}`}>
+                        {getStatusLabel(event.status)}
                       </span>
                     </div>
                     
                     <p className={styles.eventDescription}>{event.description}</p>
+                    
+                    {/* Approval Progress */}
+                    {event.status !== 'approved' && event.status !== 'rejected' && event.approvalStatus && (
+                      <div className={styles.approvalProgress}>
+                        <h4 className={styles.approvalTitle}>Approval Progress:</h4>
+                        <div className={styles.approvalSteps}>
+                          <div className={`${styles.approvalStep} ${event.approvalStatus.facultyLeader === 'approved' ? styles.approved : event.approvalStatus.facultyLeader === 'rejected' ? styles.rejected : styles.pending}`}>
+                            <span className={styles.stepNumber}>1</span>
+                            <span className={styles.stepLabel}>Faculty Leader</span>
+                          </div>
+                          <div className={styles.approvalArrow}>→</div>
+                          <div className={`${styles.approvalStep} ${event.approvalStatus.deanOfFaculty === 'approved' ? styles.approved : event.approvalStatus.deanOfFaculty === 'rejected' ? styles.rejected : styles.pending}`}>
+                            <span className={styles.stepNumber}>2</span>
+                            <span className={styles.stepLabel}>Dean of Faculty</span>
+                          </div>
+                          <div className={styles.approvalArrow}>→</div>
+                          <div className={`${styles.approvalStep} ${event.approvalStatus.deanshipOfStudentAffairs === 'approved' ? styles.approved : event.approvalStatus.deanshipOfStudentAffairs === 'rejected' ? styles.rejected : styles.pending}`}>
+                            <span className={styles.stepNumber}>3</span>
+                            <span className={styles.stepLabel}>Deanship of Student Affairs</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     
                     <div className={styles.eventMeta}>
                       <div className={styles.metaItem}>
@@ -273,7 +429,7 @@ const PlanEvents = () => {
                   className={styles.select}
                 >
                   <option value="">Select a community</option>
-                  {mockCommunities.map(community => (
+                  {communities.map(community => (
                     <option key={community.id} value={community.id}>
                       {community.name}
                     </option>
@@ -281,19 +437,51 @@ const PlanEvents = () => {
                 </select>
               </div>
 
-              {/* Location */}
+              {/* College Selection */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  College <span className={styles.required}>*</span>
+                </label>
+                <select
+                  name="collegeId"
+                  value={formData.collegeId}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                >
+                  <option value="">Select a college</option>
+                  {colleges.map(college => (
+                    <option key={college.id} value={college.id}>
+                      {college.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Location Selection */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>
                   Location <span className={styles.required}>*</span>
                 </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
+                <select
+                  name="locationId"
+                  value={formData.locationId}
                   onChange={handleInputChange}
-                  className={styles.input}
-                  placeholder="e.g., Lab 204, Main Hall, Online"
-                />
+                  className={styles.select}
+                  disabled={!formData.collegeId || loadingLocations}
+                >
+                  <option value="">
+                    {!formData.collegeId 
+                      ? 'Select a college first' 
+                      : loadingLocations 
+                        ? 'Loading locations...' 
+                        : 'Select a location'}
+                  </option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>
+                      {location.name} {location.capacity ? `(Capacity: ${location.capacity})` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Date & Time */}
@@ -325,42 +513,13 @@ const PlanEvents = () => {
                 </div>
               </div>
 
-              {/* Status */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Publish Status</label>
-                <div className={styles.radioGroup}>
-                  <label className={styles.radioLabel}>
-                    <input
-                      type="radio"
-                      name="status"
-                      value="draft"
-                      checked={formData.status === 'draft'}
-                      onChange={handleInputChange}
-                      className={styles.radio}
-                    />
-                    <span>Save as Draft</span>
-                  </label>
-                  <label className={styles.radioLabel}>
-                    <input
-                      type="radio"
-                      name="status"
-                      value="published"
-                      checked={formData.status === 'published'}
-                      onChange={handleInputChange}
-                      className={styles.radio}
-                    />
-                    <span>Publish Immediately</span>
-                  </label>
-                </div>
-              </div>
-
               {/* Action Buttons */}
               <div className={styles.modalActions}>
                 <button onClick={() => setShowModal(false)} className={styles.cancelButton}>
                   Cancel
                 </button>
                 <button onClick={handleCreateEvent} className={styles.submitButton}>
-                  Create Event
+                  Submit for Approval
                 </button>
               </div>
             </div>

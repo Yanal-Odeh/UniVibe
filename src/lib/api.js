@@ -195,6 +195,45 @@ class ApiClient {
       body: JSON.stringify(preferences),
     });
   }
+
+  // Notification endpoints
+  async getNotifications() {
+    return this.request('/notifications');
+  }
+
+  async markNotificationAsRead(id) {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/mark-all-read', {
+      method: 'PATCH',
+    });
+  }
+
+  // Event approval endpoints
+  async approveFacultyEvent(eventId, approved, reason = '') {
+    return this.request(`/events/${eventId}/approve/faculty`, {
+      method: 'POST',
+      body: JSON.stringify({ approved, reason }),
+    });
+  }
+
+  async approveDeanEvent(eventId, approved, reason = '') {
+    return this.request(`/events/${eventId}/approve/dean`, {
+      method: 'POST',
+      body: JSON.stringify({ approved, reason }),
+    });
+  }
+
+  async approveDeanshipEvent(eventId, approved, reason = '') {
+    return this.request(`/events/${eventId}/approve/deanship`, {
+      method: 'POST',
+      body: JSON.stringify({ approved, reason }),
+    });
+  }
 }
 
 export default new ApiClient();

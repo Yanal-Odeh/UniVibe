@@ -256,6 +256,137 @@ async function main() {
     console.log(`✅ Created event: ${newEvent.title}`);
   }
 
+  // 5. Seed Colleges and Locations
+  console.log('\n📝 Seeding colleges and locations...');
+  const colleges = [
+    { name: 'College of Engineering', code: 'ENG' },
+    { name: 'College of Business', code: 'BUS' },
+    { name: 'College of Arts and Sciences', code: 'ART' },
+    { name: 'College of Medicine', code: 'MED' },
+    { name: 'College of Information Technology', code: 'IT' }
+  ];
+
+  const createdColleges = {};
+  for (const college of colleges) {
+    let existingCollege = await prisma.college.findUnique({
+      where: { code: college.code }
+    });
+
+    if (!existingCollege) {
+      existingCollege = await prisma.college.create({ data: college });
+      console.log(`✅ Created college: ${existingCollege.name}`);
+    } else {
+      console.log(`⚠️  College "${college.name}" already exists`);
+    }
+
+    createdColleges[college.code] = existingCollege;
+
+    // Add 2 locations for each college
+    const locations = [
+      { name: 'Auditorium', capacity: 200, collegeId: existingCollege.id },
+      { name: 'Conference Room', capacity: 50, collegeId: existingCollege.id }
+    ];
+
+    for (const location of locations) {
+      const existingLocation = await prisma.location.findFirst({
+        where: {
+          name: location.name,
+          collegeId: location.collegeId
+        }
+      });
+
+      if (!existingLocation) {
+        const newLocation = await prisma.location.create({ data: location });
+        console.log(`✅ Created location: ${existingCollege.code} - ${newLocation.name}`);
+      } else {
+        console.log(`⚠️  Location "${location.name}" at ${existingCollege.code} already exists`);
+      }
+    }
+
+    // Create Faculty Leader and Dean of Faculty for each college
+    const facultyLeaderEmail = `faculty.${college.code.toLowerCase()}@univibe.edu`;
+    const deanEmail = `dean.${college.code.toLowerCase()}@univibe.edu`;
+
+    // Faculty Leader
+    const existingFaculty = await prisma.user.findUnique({ where: { email: facultyLeaderEmail } });
+    if (!existingFaculty) {
+      const hashedPassword = await bcrypt.hash('faculty123', 10);
+      await prisma.user.create({
+        data: {
+          email: facultyLeaderEmail,
+          password: hashedPassword,
+          firstName: 'Faculty',
+          lastName: `Leader ${college.code}`,
+          role: 'FACULTY_LEADER',
+          collegeId: existingCollege.id
+        }
+      });
+      console.log(`✅ Created Faculty Leader for ${college.code}`);
+    } else {
+      console.log(`⚠️  Faculty Leader for ${college.code} already exists`);
+    }
+
+    // Dean of Faculty
+    const existingDean = await prisma.user.findUnique({ where: { email: deanEmail } });
+    if (!existingDean) {
+      const hashedPassword = await bcrypt.hash('dean123', 10);
+      await prisma.user.create({
+        data: {
+          email: deanEmail,
+          password: hashedPassword,
+          firstName: 'Dean',
+          lastName: `of ${college.name}`,
+          role: 'DEAN_OF_FACULTY',
+          collegeId: existingCollege.id
+        }
+      });
+      console.log(`✅ Created Dean of Faculty for ${college.code}`);
+    } else {
+      console.log(`⚠️  Dean of Faculty for ${college.code} already exists`);
+    }
+  }
+
+  // Create Deanship of Student Affairs (one for all colleges)
+  const deanshipEmail = 'deanship@univibe.edu';
+  const existingDeanship = await prisma.user.findUnique({ where: { email: deanshipEmail } });
+  if (!existingDeanship) {
+    const hashedPassword = await bcrypt.hash('deanship123', 10);
+    await prisma.user.create({
+      data: {
+        email: deanshipEmail,
+        password: hashedPassword,
+        firstName: 'Deanship',
+        lastName: 'of Student Affairs',
+        role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
+      }
+    });
+    console.log(`✅ Created Deanship of Student Affairs`);
+  } else {
+    console.log(`⚠️  Deanship of Student Affairs already exists`);
+  }
+
+  // Update existing communities to assign them to colleges
+  console.log('\n📝 Assigning communities to colleges...');
+  const communityCollegeMapping = {
+    'Computer Science Club': 'IT',
+    'Art & Design Society': 'ART',
+    'Sports & Fitness': 'ART',
+    'Photography Club': 'ART',
+    'Music & Bands': 'ART',
+    'Book Club': 'ART'
+  };
+
+  for (const [communityName, collegeCode] of Object.entries(communityCollegeMapping)) {
+    const community = await prisma.community.findUnique({ where: { name: communityName } });
+    if (community && !community.collegeId) {
+      await prisma.community.update({
+        where: { id: community.id },
+        data: { collegeId: createdColleges[collegeCode].id }
+      });
+      console.log(`✅ Assigned "${communityName}" to ${collegeCode}`);
+    }
+  }
+
   console.log('\n✨ Seeding completed successfully!');
 }
 
