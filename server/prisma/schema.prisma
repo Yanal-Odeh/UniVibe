@@ -190,7 +190,8 @@ enum Role {
   DEANSHIP_OF_STUDENT_AFFAIRS
   ADMIN
 }
- model ApplicationForm {
+
+model ApplicationForm {
   id            String   @id @default(cuid())
   userId        String
   communityId   String
@@ -206,8 +207,6 @@ enum Role {
 
   @@map("application_forms")
 }
-
-
 
 enum ApplicationStatus {
   PENDING

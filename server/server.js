@@ -11,6 +11,7 @@ import communityRoutes from './routes/communities.js';
 import eventRoutes from './routes/events.js';
 import collegeRoutes from './routes/colleges.js';
 import notificationRoutes from './routes/notifications.js';
+import applicationRoutes from './routes/applications.js';
 
 // Load .env from parent directory
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,7 @@ app.use('/api/communities', communityRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/applications', applicationRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
