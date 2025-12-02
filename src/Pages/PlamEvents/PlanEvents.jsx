@@ -143,9 +143,9 @@ const PlanEvents = () => {
         return { ...prev, communityId: value };
       }
       
-      // Reset locationId when collegeId changes
+      // Reset locationId and communityId when collegeId changes
       if (name === 'collegeId') {
-        return { ...prev, [name]: value, locationId: '' };
+        return { ...prev, [name]: value, locationId: '', communityId: '' };
       }
       return { ...prev, [name]: value };
     });
@@ -240,6 +240,22 @@ const PlanEvents = () => {
     if (normalizedStatus === 'rejected') return 'rejected';
     if (normalizedStatus.includes('pending')) return 'pending';
     return 'draft';
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) {
+      return;
+    }
+
+    try {
+      await api.deleteEvent(eventId);
+      // Remove event from local state
+      setEvents(events.filter(event => event.id !== eventId));
+      showToast('Event deleted successfully', 'success');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      showToast(error.message || 'Failed to delete event', 'error');
+    }
   };
 
   return (
@@ -350,16 +366,10 @@ const PlanEvents = () => {
                     </div>
                   </div>
                   
-                  {canPlanEvents && (
+                  {canPlanEvents && event.createdBy === currentAdmin?.id && (
                     <div className={styles.eventActions}>
                       <button 
-                        onClick={() => showToast('Edit functionality coming soon!', 'success')}
-                        className={styles.editButton}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => showToast('Delete functionality coming soon!', 'success')}
+                        onClick={() => handleDeleteEvent(event.id)}
                         className={styles.deleteButton}
                       >
                         Delete
@@ -417,26 +427,6 @@ const PlanEvents = () => {
                 />
               </div>
 
-              {/* Community Selection */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Community <span className={styles.required}>*</span>
-                </label>
-                <select
-                  name="communityId"
-                  value={formData.communityId}
-                  onChange={handleInputChange}
-                  className={styles.select}
-                >
-                  <option value="">Select a community</option>
-                  {communities.map(community => (
-                    <option key={community.id} value={community.id}>
-                      {community.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* College Selection */}
               <div className={styles.formGroup}>
                 <label className={styles.label}>
@@ -454,6 +444,31 @@ const PlanEvents = () => {
                       {college.name}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Community Selection */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  Community <span className={styles.required}>*</span>
+                </label>
+                <select
+                  name="communityId"
+                  value={formData.communityId}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                  disabled={!formData.collegeId}
+                >
+                  <option value="">
+                    {!formData.collegeId ? 'Select a college first' : 'Select a community'}
+                  </option>
+                  {communities
+                    .filter(community => community.collegeId === formData.collegeId)
+                    .map(community => (
+                      <option key={community.id} value={community.id}>
+                        {community.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 

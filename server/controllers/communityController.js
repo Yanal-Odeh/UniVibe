@@ -56,6 +56,7 @@ export const getAllCommunities = async (req, res) => {
       description: community.description,
       avatar: community.avatar,
       color: community.color,
+      collegeId: community.collegeId,
       memberCount: community._count.members,
       members: community.members.map(member => ({
         id: member.user.id,

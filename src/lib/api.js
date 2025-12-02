@@ -201,6 +201,10 @@ class ApiClient {
     return this.request('/notifications');
   }
 
+  async getUnreadCount() {
+    return this.request('/notifications/unread-count');
+  }
+
   async markNotificationAsRead(id) {
     return this.request(`/notifications/${id}/read`, {
       method: 'PATCH',

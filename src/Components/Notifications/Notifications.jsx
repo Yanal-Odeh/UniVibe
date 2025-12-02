@@ -7,6 +7,7 @@ import styles from './Notifications.module.scss';
 function Notifications() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [processingId, setProcessingId] = useState(null);
   const [denyReason, setDenyReason] = useState({});
   const [showReasonInput, setShowReasonInput] = useState({});
@@ -16,13 +17,21 @@ function Notifications() {
 
   const toggle = () => setOpen(o => !o);
 
-  // Fetch notifications
+  // Fetch notifications and unread count
   useEffect(() => {
     if (currentAdmin) {
       fetchNotifications();
+      fetchUnreadCount();
       // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
+      const interval = setInterval(() => {
+        fetchNotifications();
+        fetchUnreadCount();
+      }, 30000);
       return () => clearInterval(interval);
+    } else {
+      // Clear notifications when user logs out
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, [currentAdmin]);
 
@@ -32,6 +41,15 @@ function Notifications() {
       setNotifications(Array.isArray(data) ? data : data.notifications || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await api.getUnreadCount();
+      setUnreadCount(data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
     }
   };
 
@@ -55,16 +73,23 @@ function Notifications() {
     
     setProcessingId(notification.id);
     try {
-      // Determine which approval endpoint to use based on notification type
-      if (notification.type === 'EVENT_PENDING_APPROVAL') {
+      // Determine which approval endpoint to use based on user role
+      const userRole = currentAdmin?.role?.toUpperCase();
+      
+      if (userRole === 'FACULTY_LEADER') {
         await api.approveFacultyEvent(notification.eventId, true);
+      } else if (userRole === 'DEAN_OF_FACULTY') {
+        await api.approveDeanEvent(notification.eventId, true);
+      } else if (userRole === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+        await api.approveDeanshipEvent(notification.eventId, true);
       }
       
       // Mark notification as read
       await api.markNotificationAsRead(notification.id);
       
-      // Refresh notifications
+      // Refresh notifications and count
       await fetchNotifications();
+      await fetchUnreadCount();
       
       alert('Event approved successfully!');
     } catch (error) {
@@ -86,16 +111,23 @@ function Notifications() {
     
     setProcessingId(notification.id);
     try {
-      // Determine which approval endpoint to use based on notification type
-      if (notification.type === 'EVENT_PENDING_APPROVAL') {
+      // Determine which approval endpoint to use based on user role
+      const userRole = currentAdmin?.role?.toUpperCase();
+      
+      if (userRole === 'FACULTY_LEADER') {
         await api.approveFacultyEvent(notification.eventId, false, reason);
+      } else if (userRole === 'DEAN_OF_FACULTY') {
+        await api.approveDeanEvent(notification.eventId, false, reason);
+      } else if (userRole === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+        await api.approveDeanshipEvent(notification.eventId, false, reason);
       }
       
       // Mark notification as read
       await api.markNotificationAsRead(notification.id);
       
-      // Refresh notifications
+      // Refresh notifications and count
       await fetchNotifications();
+      await fetchUnreadCount();
       
       // Clear reason input
       setDenyReason(prev => ({ ...prev, [notification.id]: '' }));
@@ -116,8 +148,6 @@ function Notifications() {
       [notificationId]: !prev[notificationId]
     }));
   };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <div className={styles.container}>
