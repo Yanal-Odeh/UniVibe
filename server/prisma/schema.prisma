@@ -103,12 +103,15 @@ model Event {
   facultyLeaderApproval       ApprovalStatus @default(PENDING)
   facultyLeaderApprovedBy     String?
   facultyLeaderApprovedAt     DateTime?
+  facultyLeaderRejectionReason String?
   deanOfFacultyApproval       ApprovalStatus @default(PENDING)
   deanOfFacultyApprovedBy     String?
   deanOfFacultyApprovedAt     DateTime?
+  deanOfFacultyRejectionReason String?
   deanshipApproval            ApprovalStatus @default(PENDING)
   deanshipApprovedBy          String?
   deanshipApprovedAt          DateTime?
+  deanshipRejectionReason     String?
   
   // Relations
   creator       User          @relation("EventCreator", fields: [createdBy], references: [id])
