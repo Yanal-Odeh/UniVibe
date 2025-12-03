@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -17,16 +17,42 @@ import {
   Phone
 } from 'lucide-react';
 import styles from './EventDetails.module.scss';
-import events from '../../data/events';
+import api from '../../lib/api';
 
 function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Find event by id from shared data
-  const event = events.find(e => String(e.id) === String(id));
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        console.log('Fetching event with ID:', id);
+        const response = await api.getEvent(id);
+        console.log('Event response:', response);
+        setEvent(response.event);
+      } catch (error) {
+        console.error('Failed to fetch event:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className={styles.eventDetailsPage}>
+        <div className={styles.container}>
+          <p>Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -96,11 +122,13 @@ function EventDetails() {
         </div>
 
         {/* Hero Image */}
-        <img 
-          src={event.image} 
-          alt={event.title}
-          className={styles.heroImage}
-        />
+        {event.image && (
+          <img 
+            src={event.image} 
+            alt={event.title}
+            className={styles.heroImage}
+          />
+        )}
 
         {/* Main Grid */}
         <div className={styles.mainGrid}>
@@ -113,59 +141,29 @@ function EventDetails() {
                 <div className={styles.meta}>
                   <div className={styles.metaItem}>
                     <Calendar size={18} />
-                    <span>{event.date}</span>
+                    <span>{new Date(event.startDate).toLocaleDateString()}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={18} />
-                    <span>{event.time}</span>
+                    <span>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <MapPin size={18} />
-                    <span>{event.venue}</span>
+                    <span>{event.location}</span>
                   </div>
-                  <div className={`${styles.statusBadge} ${styles[getStatusColor(event.status)]}`}>
-                    {getStatusIcon(event.status)}
-                    <span>{event.status}</span>
-                  </div>
-                </div>
-                <div className={styles.tags}>
-                  {(event.tags || []).map((tag, index) => (
-                    <span key={index} className={styles.tag}>
-                      <Tag size={14} />
-                      {tag}
-                    </span>
-                  ))}
+                  {event.community && (
+                    <div className={styles.metaItem}>
+                      <span style={{ marginRight: '0.5rem' }}>{event.community.avatar}</span>
+                      <span>{event.community.name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <h2 className={styles.sectionTitle}>About This Event</h2>
                 <p className={styles.description}>{event.description}</p>
-                <p className={styles.description}>{event.fullDescription}</p>
               </div>
-            </div>
-
-            {/* Event Schedule */}
-            <div className={styles.card}>
-              <h2 className={styles.sectionTitle}>Event Schedule</h2>
-              <ul className={styles.scheduleList}>
-                {(event.schedule || []).map((item, index) => (
-                  <li key={index} className={styles.scheduleItem}>
-                    <span className={styles.scheduleTime}>{item.time}</span>
-                    <span className={styles.scheduleActivity}>{item.activity}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Requirements */}
-            <div className={styles.card}>
-              <h2 className={styles.sectionTitle}>Requirements</h2>
-              <ul className={styles.requirementsList}>
-                {(event.requirements || []).map((req, index) => (
-                  <li key={index}>{req}</li>
-                ))}
-              </ul>
             </div>
           </div>
 
@@ -215,81 +213,32 @@ function EventDetails() {
                   <MapPin size={20} className={styles.infoIcon} />
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Venue</div>
-                    <div className={styles.infoValue}>{event.venue}</div>
+                    <div className={styles.infoValue}>{event.location}</div>
                   </div>
                 </div>
 
-                <div className={styles.infoItem}>
-                  <Users size={20} className={styles.infoIcon} />
-                  <div className={styles.infoContent}>
-                    <div className={styles.infoLabel}>Attendance</div>
-                    <div className={styles.infoValue}>
-                      {event.registeredCount ?? 0} / {event.venueCapacity ?? '—'} registered
+                {event.community && (
+                  <div className={styles.infoItem}>
+                    <Users size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Organized By</div>
+                      <div className={styles.infoValue}>{event.community.name}</div>
                     </div>
-                    <div className={styles.capacityBar}>
-                      <div className={styles.capacityProgress}>
-                        <div 
-                          className={styles.capacityFill}
-                          style={{ width: `${event.venueCapacity ? ((event.registeredCount || 0) / event.venueCapacity) * 100 : 0}%` }}
-                        ></div>
+                  </div>
+                )}
+
+                {event.creator && (
+                  <div className={styles.infoItem}>
+                    <Tag size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Created By</div>
+                      <div className={styles.infoValue}>
+                        {event.creator.firstName} {event.creator.lastName}
                       </div>
-                      <div className={styles.capacityText}>
-                        {event.venueCapacity ? (((event.registeredCount || 0) / event.venueCapacity) * 100).toFixed(0) : 0}% Full
-                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className={styles.infoItem}>
-                  <Tag size={20} className={styles.infoIcon} />
-                  <div className={styles.infoContent}>
-                    <div className={styles.infoLabel}>Category</div>
-                    <div className={styles.infoValue}>{event.category}</div>
-                  </div>
-                </div>
+                )}
               </div>
-            </div>
-
-            {/* Organizer Info */}
-            <div className={styles.card}>
-              <h3 className={styles.sectionTitle}>Organized By</h3>
-              <div className={styles.organizerCard}>
-                <img 
-                  src={event.organizer.logo} 
-                  alt={event.organizer.name}
-                  className={styles.organizerLogo}
-                />
-                <div className={styles.organizerInfo}>
-                  <div className={styles.organizerName}>{event.organizer.name}</div>
-                  <div className={styles.organizerType}>{event.organizer.type}</div>
-                  <div className={styles.organizerContact}>
-                    <a href={`mailto:${event.organizer.email}`}>
-                      <Mail size={14} />
-                      {event.organizer.email}
-                    </a>
-                    <a href={`tel:${event.organizer.phone}`}>
-                      <Phone size={14} />
-                      {event.organizer.phone}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Related Events */}
-            <div className={styles.card}>
-              <h3 className={styles.sectionTitle}>Related Events</h3>
-              <ul className={styles.relatedEvents}>
-                {(event.relatedEvents || []).map((relatedEvent) => (
-                  <li key={relatedEvent.id} className={styles.relatedItem}>
-                    <div className={styles.relatedTitle}>
-                      {relatedEvent.title}
-                      <ExternalLink size={16} />
-                    </div>
-                    <div className={styles.relatedDate}>{relatedEvent.date}</div>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>

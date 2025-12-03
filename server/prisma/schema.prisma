@@ -25,6 +25,7 @@ model User {
 
   // Relations
   createdCommunities Community[]       @relation("CommunityCreator")
+  ledCommunities     Community[]       @relation("CommunityClubLeader")
   memberships        CommunityMember[]
   createdEvents      Event[]           @relation("EventCreator")
   adminPreferences   AdminPreference?
@@ -48,21 +49,23 @@ model AdminPreference {
 }
 
 model Community {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  avatar      String   // Emoji
-  color       String
-  collegeId   String?  // Optional for migration, will be required later
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String
+  avatar        String   // Emoji
+  color         String
+  collegeId     String?  // Optional for migration, will be required later
+  clubLeaderId  String?  // Club leader assigned to this community
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String
   
   // Relations
-  creator     User              @relation("CommunityCreator", fields: [createdBy], references: [id])
-  college     College?          @relation(fields: [collegeId], references: [id], onDelete: Cascade)
-  members     CommunityMember[]
-  events      Event[]
+  creator       User              @relation("CommunityCreator", fields: [createdBy], references: [id])
+  clubLeader    User?             @relation("CommunityClubLeader", fields: [clubLeaderId], references: [id], onDelete: SetNull)
+  college       College?          @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  members       CommunityMember[]
+  events        Event[]
 
   @@map("communities")
 }

@@ -47,7 +47,7 @@ async function main() {
   console.log('\n📝 Seeding students...');
   const students = [
     { email: 'sarah@univibe.edu', password: 'password123', firstName: 'Sarah', lastName: 'Johnson', role: 'CLUB_LEADER' },
-    { email: 'mike@univibe.edu', password: 'password123', firstName: 'Mike', lastName: 'Chen', role: 'FACULTY_LEADER' },
+    { email: 'mike@univibe.edu', password: 'password123', firstName: 'Mike', lastName: 'Chen', role: 'STUDENT' },
     { email: 'emily@univibe.edu', password: 'password123', firstName: 'Emily', lastName: 'Davis', role: 'STUDENT' },
     { email: 'alex@univibe.edu', password: 'password123', firstName: 'Alex', lastName: 'Kumar', role: 'STUDENT' },
     { email: 'jessica@univibe.edu', password: 'password123', firstName: 'Jessica', lastName: 'Lee', role: 'CLUB_LEADER' },
@@ -57,7 +57,6 @@ async function main() {
     { email: 'tom@univibe.edu', password: 'password123', firstName: 'Tom', lastName: 'Wilson', role: 'CLUB_LEADER' },
     { email: 'amy@univibe.edu', password: 'password123', firstName: 'Amy', lastName: 'Zhang', role: 'CLUB_LEADER' },
     { email: 'chris@univibe.edu', password: 'password123', firstName: 'Chris', lastName: 'Brown', role: 'CLUB_LEADER' },
-    { email: 'james@univibe.edu', password: 'password123', firstName: 'James', lastName: 'Wilson', role: 'DEANSHIP_OF_STUDENT_AFFAIRS' },
     { email: 'olivia@univibe.edu', password: 'password123', firstName: 'Olivia', lastName: 'Martinez', role: 'STUDENT' },
     { email: 'daniel@univibe.edu', password: 'password123', firstName: 'Daniel', lastName: 'Lee', role: 'STUDENT' },
     { email: 'sophia@univibe.edu', password: 'password123', firstName: 'Sophia', lastName: 'Brown', role: 'STUDENT' },
@@ -175,7 +174,12 @@ async function main() {
     const existing = await prisma.community.findUnique({ where: { name: community.name } });
     if (existing) {
       console.log(`⚠️  Community "${community.name}" already exists`);
-      createdCommunities.push(existing);
+      // Update existing community to set club leader
+      const updated = await prisma.community.update({
+        where: { id: existing.id },
+        data: { clubLeaderId: community.createdBy }
+      });
+      createdCommunities.push(updated);
       continue;
     }
 
@@ -185,7 +189,8 @@ async function main() {
         description: community.description,
         avatar: community.avatar,
         color: community.color,
-        createdBy: community.createdBy
+        createdBy: community.createdBy,
+        clubLeaderId: community.createdBy
       }
     });
     
@@ -263,7 +268,8 @@ async function main() {
     { name: 'College of Business', code: 'BUS' },
     { name: 'College of Arts and Sciences', code: 'ART' },
     { name: 'College of Medicine', code: 'MED' },
-    { name: 'College of Information Technology', code: 'IT' }
+    { name: 'College of Information Technology', code: 'IT' },
+    { name: 'College of Science', code: 'SCI' }
   ];
 
   const createdColleges = {};
@@ -346,34 +352,15 @@ async function main() {
     }
   }
 
-  // Create Deanship of Student Affairs (one for all colleges)
-  const deanshipEmail = 'deanship@univibe.edu';
-  const existingDeanship = await prisma.user.findUnique({ where: { email: deanshipEmail } });
-  if (!existingDeanship) {
-    const hashedPassword = await bcrypt.hash('deanship123', 10);
-    await prisma.user.create({
-      data: {
-        email: deanshipEmail,
-        password: hashedPassword,
-        firstName: 'Deanship',
-        lastName: 'of Student Affairs',
-        role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
-      }
-    });
-    console.log(`✅ Created Deanship of Student Affairs`);
-  } else {
-    console.log(`⚠️  Deanship of Student Affairs already exists`);
-  }
-
   // Update existing communities to assign them to colleges
   console.log('\n📝 Assigning communities to colleges...');
   const communityCollegeMapping = {
-    'Computer Science Club': 'IT',
+    'Computer Science Club': 'ENG',
+    'Book Club': 'BUS',
     'Art & Design Society': 'ART',
-    'Sports & Fitness': 'ART',
-    'Photography Club': 'ART',
-    'Music & Bands': 'ART',
-    'Book Club': 'ART'
+    'Sports & Fitness': 'MED',
+    'Photography Club': 'IT',
+    'Music & Bands': 'SCI'
   };
 
   for (const [communityName, collegeCode] of Object.entries(communityCollegeMapping)) {

@@ -6,7 +6,9 @@ export const getAllEvents = async (req, res) => {
   try {
     const { search, communityId, upcoming } = req.query;
 
-    const where = {};
+    const where = {
+      status: 'APPROVED' // Only show approved events to public
+    };
     
     if (search) {
       where.OR = [
@@ -98,11 +100,11 @@ export const createEvent = async (req, res) => {
     const { title, description, collegeId, locationId, startDate, endDate, communityId } = req.body;
 
     // Validate input
-    if (!title || !description || !collegeId || !locationId || !startDate || !communityId) {
-      return res.status(400).json({ error: 'Required fields: title, description, collegeId, locationId, startDate, communityId' });
+    if (!title || !description || !locationId || !startDate || !communityId) {
+      return res.status(400).json({ error: 'Required fields: title, description, locationId, startDate, communityId' });
     }
 
-    // Get community to verify it belongs to the college
+    // Get community to use its college
     const community = await prisma.community.findUnique({
       where: { id: communityId },
       include: { college: true }
@@ -110,6 +112,10 @@ export const createEvent = async (req, res) => {
 
     if (!community) {
       return res.status(404).json({ error: 'Community not found' });
+    }
+
+    if (!community.collegeId) {
+      return res.status(400).json({ error: 'Community must be assigned to a college' });
     }
 
     // Get location details for display
@@ -129,7 +135,7 @@ export const createEvent = async (req, res) => {
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         communityId,
-        collegeId,
+        collegeId: community.collegeId,
         locationId,
         createdBy: req.user.id,
         status: 'PENDING_FACULTY_APPROVAL',

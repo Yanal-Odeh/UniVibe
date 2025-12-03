@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import events from '../../data/events';
+import api from '../../lib/api';
 import { 
   Calendar, 
   ChevronLeft, 
@@ -23,8 +23,61 @@ function EventCalendar() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Use shared events data (replace with API call later)
+  // Fetch approved events from API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const data = await api.getEvents();
+        const eventsList = data.events || data || [];
+        
+        // Transform API data to match calendar format
+        const transformedEvents = eventsList.map(event => ({
+          id: event.id,
+          title: event.title,
+          date: event.startDate,
+          time: new Date(event.startDate).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: true 
+          }),
+          venue: event.location || 'TBA',
+          attendees: event.attendees || 0,
+          category: event.category || 'General',
+          color: getCategoryColor(event.category),
+          description: event.description
+        }));
+        
+        setEvents(transformedEvents);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch events:', err);
+        setError('Failed to load events');
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Helper function to get category colors
+  const getCategoryColor = (category) => {
+    const colors = {
+      'Technology': '#667eea',
+      'Cultural': '#f093fb',
+      'Educational': '#4facfe',
+      'Career': '#43e97b',
+      'Sports': '#fa709a',
+      'General': '#ffd16a'
+    };
+    return colors[category] || '#667eea';
+  };
 
   const categories = ['All', 'Technology', 'Cultural', 'Educational', 'Career', 'Sports'];
 
@@ -198,7 +251,22 @@ function EventCalendar() {
 
         {/* Main Content */}
         <div className={styles.calendarMain}>
-          {viewMode === 'calendar' ? (
+          {loading ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyStateIcon}>
+                <Calendar size={40} />
+              </div>
+              <h3>Loading events...</h3>
+            </div>
+          ) : error ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyStateIcon}>
+                <Calendar size={40} />
+              </div>
+              <h3>Error loading events</h3>
+              <p>{error}</p>
+            </div>
+          ) : viewMode === 'calendar' ? (
             <>
               <div className={styles.calendarNav}>
                 <h2 className={styles.monthYear}>
