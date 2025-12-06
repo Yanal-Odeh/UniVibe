@@ -1,6 +1,9 @@
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
-export const authenticate = (req, res, next) => {
+const prisma = new PrismaClient();
+
+export const authenticate = async (req, res, next) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
@@ -9,7 +12,25 @@ export const authenticate = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    
+    // Fetch full user data including collegeId
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        collegeId: true
+      }
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid or expired token' });

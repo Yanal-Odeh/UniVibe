@@ -72,17 +72,6 @@ function AdminPanel() {
         } catch (err) {
           console.error('Failed to fetch applications:', err);
         }
-
-        // Fetch admin preferences
-        try {
-          const preferences = await api.getAdminPreferences();
-          if (preferences && preferences.activeSection) {
-            setActiveSection(preferences.activeSection);
-          }
-        } catch (err) {
-          // Preferences might not exist yet, that's okay
-          console.log('No preferences found, using defaults');
-        }
       } catch (err) {
         console.error('Failed to fetch data:', err);
       }
@@ -114,15 +103,9 @@ function AdminPanel() {
     return r.replace(/_/g, ' ').replace(/(^|\s)\S/g, t => t.toUpperCase());
   };
 
-  // Save active section to database whenever it changes
-  const handleSectionChange = async (section) => {
+  // Change active section
+  const handleSectionChange = (section) => {
     setActiveSection(section);
-    try {
-      await api.updateAdminPreferences({ activeSection: section });
-    } catch (err) {
-      console.error('Failed to save preference:', err);
-      // Still update local state even if API call fails
-    }
   };
 
   const handleAddCommunity = async () => {
@@ -321,10 +304,7 @@ function AdminPanel() {
           {/* Placeholder for future sections */}
           <button
             className={`${styles.navItem} ${activeSection === 'events' ? styles.active : ''}`}
-            onClick={() => {
-              handleSectionChange('events');
-              navigate('/plan-events');
-            }}
+            onClick={() => handleSectionChange('events')}
           >
             <Calendar size={20} />
             <span>Manage Events</span>
@@ -797,6 +777,23 @@ function AdminPanel() {
               </div>
             )}
           </>
+        )}
+
+        {/* Events Section */}
+        {activeSection === 'events' && (
+          <div className={styles.adminHeader}>
+            <div>
+              <h1>Manage Events</h1>
+              <p>Event management features coming soon</p>
+            </div>
+            <button 
+              className={styles.addCommunityBtn} 
+              onClick={() => navigate('/plan-events')}
+            >
+              <Calendar size={20} />
+              Go to Plan Events
+            </button>
+          </div>
         )}
 
         {/* Applications Section */}

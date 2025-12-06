@@ -26,6 +26,10 @@ function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
+<<<<<<< HEAD
+=======
+  const [loading, setLoading] = useState(true);
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
   const [isRegistered, setIsRegistered] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,6 +37,7 @@ function EventDetails() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+<<<<<<< HEAD
     fetchEventDetails();
     fetchCurrentUser();
   }, [id]);
@@ -70,12 +75,33 @@ function EventDetails() {
       setLoading(false);
     }
   };
+=======
+    const fetchEvent = async () => {
+      try {
+        console.log('Fetching event with ID:', id);
+        const response = await api.getEvent(id);
+        console.log('Event response:', response);
+        setEvent(response.event);
+      } catch (error) {
+        console.error('Failed to fetch event:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id]);
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
 
   if (loading) {
     return (
       <div className={styles.eventDetailsPage}>
         <div className={styles.container}>
+<<<<<<< HEAD
           <Loader text="Loading event details..." />
+=======
+          <p>Loading event details...</p>
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
         </div>
       </div>
     );
@@ -248,6 +274,18 @@ function EventDetails() {
           Back to Events
         </div>
 
+<<<<<<< HEAD
+=======
+        {/* Hero Image */}
+        {event.image && (
+          <img 
+            src={event.image} 
+            alt={event.title}
+            className={styles.heroImage}
+          />
+        )}
+
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
         {/* Main Grid */}
         <div className={styles.mainGrid}>
           {/* Main Content */}
@@ -259,6 +297,7 @@ function EventDetails() {
                 <div className={styles.meta}>
                   <div className={styles.metaItem}>
                     <Calendar size={18} />
+<<<<<<< HEAD
                     <span>{formatDate(event.startDate)}</span>
                   </div>
                   <div className={styles.metaItem}>
@@ -280,6 +319,25 @@ function EventDetails() {
                     <span>{event.community.name}</span>
                   </div>
                 )}
+=======
+                    <span>{new Date(event.startDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <Clock size={18} />
+                    <span>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <MapPin size={18} />
+                    <span>{event.location}</span>
+                  </div>
+                  {event.community && (
+                    <div className={styles.metaItem}>
+                      <span style={{ marginRight: '0.5rem' }}>{event.community.avatar}</span>
+                      <span>{event.community.name}</span>
+                    </div>
+                  )}
+                </div>
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
               </div>
 
               <div>
@@ -368,6 +426,7 @@ function EventDetails() {
                   <MapPin size={20} className={styles.infoIcon} />
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Venue</div>
+<<<<<<< HEAD
                     <div className={styles.infoValue}>{event.eventLocation?.name || event.location}</div>
                   </div>
                 </div>
@@ -403,12 +462,36 @@ function EventDetails() {
                       <div className={styles.infoValue}>
                         <span style={{ marginRight: '0.5rem' }}>{event.community.avatar}</span>
                         {event.community.name}
+=======
+                    <div className={styles.infoValue}>{event.location}</div>
+                  </div>
+                </div>
+
+                {event.community && (
+                  <div className={styles.infoItem}>
+                    <Users size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Organized By</div>
+                      <div className={styles.infoValue}>{event.community.name}</div>
+                    </div>
+                  </div>
+                )}
+
+                {event.creator && (
+                  <div className={styles.infoItem}>
+                    <Tag size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Created By</div>
+                      <div className={styles.infoValue}>
+                        {event.creator.firstName} {event.creator.lastName}
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
                       </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+<<<<<<< HEAD
 
             {event.creator && (
               <div className={styles.card}>
@@ -424,6 +507,8 @@ function EventDetails() {
                 </div>
               </div>
             )}
+=======
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
           </div>
         </div>
       </div>

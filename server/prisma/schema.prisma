@@ -24,7 +24,12 @@ model User {
   createdBy String?  // Track who created this user (for admin panel)
 
   // Relations
+<<<<<<< HEAD
   createdCommunities Community[]          @relation("CommunityCreator")
+=======
+  createdCommunities Community[]       @relation("CommunityCreator")
+  ledCommunities     Community[]       @relation("CommunityClubLeader")
+>>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
   memberships        CommunityMember[]
   createdEvents      Event[]              @relation("EventCreator")
   adminPreferences   AdminPreference?
@@ -50,21 +55,23 @@ model AdminPreference {
 }
 
 model Community {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String
-  avatar      String   // Emoji
-  color       String
-  collegeId   String?  // Optional for migration, will be required later
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String
+  avatar        String   // Emoji
+  color         String
+  collegeId     String?  // Optional for migration, will be required later
+  clubLeaderId  String?  // Club leader assigned to this community
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String
   
   // Relations
-  creator     User              @relation("CommunityCreator", fields: [createdBy], references: [id])
-  college     College?          @relation(fields: [collegeId], references: [id], onDelete: Cascade)
-  members     CommunityMember[]
-  events      Event[]
+  creator       User              @relation("CommunityCreator", fields: [createdBy], references: [id])
+  clubLeader    User?             @relation("CommunityClubLeader", fields: [clubLeaderId], references: [id], onDelete: SetNull)
+  college       College?          @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  members       CommunityMember[]
+  events        Event[]
 
   @@map("communities")
 }
@@ -103,12 +110,15 @@ model Event {
   facultyLeaderApproval       ApprovalStatus @default(PENDING)
   facultyLeaderApprovedBy     String?
   facultyLeaderApprovedAt     DateTime?
+  facultyLeaderRejectionReason String?
   deanOfFacultyApproval       ApprovalStatus @default(PENDING)
   deanOfFacultyApprovedBy     String?
   deanOfFacultyApprovedAt     DateTime?
+  deanOfFacultyRejectionReason String?
   deanshipApproval            ApprovalStatus @default(PENDING)
   deanshipApprovedBy          String?
   deanshipApprovedAt          DateTime?
+  deanshipRejectionReason     String?
   
   // Relations
   creator       User               @relation("EventCreator", fields: [createdBy], references: [id])

@@ -47,7 +47,7 @@ async function main() {
   console.log('\n📝 Seeding students...');
   const students = [
     { email: 'sarah@univibe.edu', password: 'password123', firstName: 'Sarah', lastName: 'Johnson', role: 'CLUB_LEADER' },
-    { email: 'mike@univibe.edu', password: 'password123', firstName: 'Mike', lastName: 'Chen', role: 'FACULTY_LEADER' },
+    { email: 'mike@univibe.edu', password: 'password123', firstName: 'Mike', lastName: 'Chen', role: 'STUDENT' },
     { email: 'emily@univibe.edu', password: 'password123', firstName: 'Emily', lastName: 'Davis', role: 'STUDENT' },
     { email: 'alex@univibe.edu', password: 'password123', firstName: 'Alex', lastName: 'Kumar', role: 'STUDENT' },
     { email: 'jessica@univibe.edu', password: 'password123', firstName: 'Jessica', lastName: 'Lee', role: 'CLUB_LEADER' },
@@ -57,7 +57,6 @@ async function main() {
     { email: 'tom@univibe.edu', password: 'password123', firstName: 'Tom', lastName: 'Wilson', role: 'CLUB_LEADER' },
     { email: 'amy@univibe.edu', password: 'password123', firstName: 'Amy', lastName: 'Zhang', role: 'CLUB_LEADER' },
     { email: 'chris@univibe.edu', password: 'password123', firstName: 'Chris', lastName: 'Brown', role: 'CLUB_LEADER' },
-    { email: 'james@univibe.edu', password: 'password123', firstName: 'James', lastName: 'Wilson', role: 'DEANSHIP_OF_STUDENT_AFFAIRS' },
     { email: 'olivia@univibe.edu', password: 'password123', firstName: 'Olivia', lastName: 'Martinez', role: 'STUDENT' },
     { email: 'daniel@univibe.edu', password: 'password123', firstName: 'Daniel', lastName: 'Lee', role: 'STUDENT' },
     { email: 'sophia@univibe.edu', password: 'password123', firstName: 'Sophia', lastName: 'Brown', role: 'STUDENT' },
@@ -94,9 +93,9 @@ async function main() {
   console.log('\n📝 Seeding communities...');
   const communities = [
     {
-      name: 'Computer Science Club',
-      description: 'For all tech enthusiasts and programmers',
-      avatar: '🖥️',
+      name: 'Engineers without borders (EWB)',
+      description: 'Engineers without borders community focusing on social impact projects',
+      avatar: '🌍',
       color: '#667eea',
       createdBy: createdStudents['sarah@univibe.edu'].id,
       members: [
@@ -104,7 +103,6 @@ async function main() {
         { email: 'mike@univibe.edu', joinedAt: new Date('2024-01-20') },
         { email: 'emily@univibe.edu', joinedAt: new Date('2024-02-10') },
         { email: 'alex@univibe.edu', joinedAt: new Date('2024-02-15') },
-        { email: 'james@univibe.edu', joinedAt: new Date('2024-01-25') },
         { email: 'olivia@univibe.edu', joinedAt: new Date('2024-03-01') },
         { email: 'daniel@univibe.edu', joinedAt: new Date('2024-03-05') },
         { email: 'sophia@univibe.edu', joinedAt: new Date('2024-03-10') },
@@ -117,9 +115,9 @@ async function main() {
       ]
     },
     {
-      name: 'Art & Design Society',
-      description: 'Creative minds unite! Share your artwork and designs',
-      avatar: '🎨',
+      name: 'Theater troupe',
+      description: 'Theater and performing arts community',
+      avatar: '🎭',
       color: '#f093fb',
       createdBy: createdStudents['jessica@univibe.edu'].id,
       members: [
@@ -128,20 +126,19 @@ async function main() {
       ]
     },
     {
-      name: 'Sports & Fitness',
-      description: 'Stay active and healthy together',
-      avatar: '⚽',
+      name: 'Medical Students Union',
+      description: 'Union representing medical students and health sciences',
+      avatar: '⚕️',
       color: '#4facfe',
       createdBy: createdStudents['ryan@univibe.edu'].id,
       members: [
-        { email: 'ryan@univibe.edu', joinedAt: new Date('2024-01-05') },
-        { email: 'lisa@univibe.edu', joinedAt: new Date('2024-01-12') }
+        { email: 'ryan@univibe.edu', joinedAt: new Date('2024-01-05') }
       ]
     },
     {
-      name: 'Photography Club',
-      description: 'Capture moments, share perspectives',
-      avatar: '📷',
+      name: 'Entrepreneurs Association',
+      description: 'Association for aspiring entrepreneurs and innovators',
+      avatar: '💡',
       color: '#43e97b',
       createdBy: createdStudents['tom@univibe.edu'].id,
       members: [
@@ -149,9 +146,9 @@ async function main() {
       ]
     },
     {
-      name: 'Music & Bands',
-      description: 'Musicians, singers, and music lovers welcome',
-      avatar: '🎵',
+      name: 'Student Association for Physics and Astronomy (SAPA)',
+      description: 'Student association dedicated to physics and astronomy research',
+      avatar: '🔭',
       color: '#fa709a',
       createdBy: createdStudents['amy@univibe.edu'].id,
       members: [
@@ -159,9 +156,9 @@ async function main() {
       ]
     },
     {
-      name: 'Book Club',
-      description: 'Read, discuss, and share your favorite books',
-      avatar: '📚',
+      name: 'Legal Clinic',
+      description: 'Legal clinic providing legal education and community service',
+      avatar: '⚖️',
       color: '#ffd16a',
       createdBy: createdStudents['chris@univibe.edu'].id,
       members: [
@@ -175,7 +172,12 @@ async function main() {
     const existing = await prisma.community.findUnique({ where: { name: community.name } });
     if (existing) {
       console.log(`⚠️  Community "${community.name}" already exists`);
-      createdCommunities.push(existing);
+      // Update existing community to set club leader
+      const updated = await prisma.community.update({
+        where: { id: existing.id },
+        data: { clubLeaderId: community.createdBy }
+      });
+      createdCommunities.push(updated);
       continue;
     }
 
@@ -185,7 +187,8 @@ async function main() {
         description: community.description,
         avatar: community.avatar,
         color: community.color,
-        createdBy: community.createdBy
+        createdBy: community.createdBy,
+        clubLeaderId: community.createdBy
       }
     });
     
@@ -259,11 +262,12 @@ async function main() {
   // 5. Seed Colleges and Locations
   console.log('\n📝 Seeding colleges and locations...');
   const colleges = [
-    { name: 'College of Engineering', code: 'ENG' },
-    { name: 'College of Business', code: 'BUS' },
-    { name: 'College of Arts and Sciences', code: 'ART' },
-    { name: 'College of Medicine', code: 'MED' },
-    { name: 'College of Information Technology', code: 'IT' }
+    { name: 'Faculty of Engineering', code: 'ENG' },
+    { name: 'Faculty of Medicine and Allied medical Sciences', code: 'MED' },
+    { name: 'Faculty of Fine Arts', code: 'ART' },
+    { name: 'Faculty of Information Technology & Artificial Intelligence', code: 'IT' },
+    { name: 'Faculty of Law and Political Sciences', code: 'LAW' },
+    { name: 'Faculty of Science', code: 'SCI' }
   ];
 
   const createdColleges = {};
@@ -303,6 +307,16 @@ async function main() {
       }
     }
 
+    // Dean names mapping
+    const deanNames = {
+      'MED': { firstName: 'Dr. Faris', lastName: 'Abushamma' },
+      'ENG': { firstName: 'Dr. Muhannad', lastName: 'Haj Hussein' },
+      'ART': { firstName: 'Dr. Ghawi', lastName: 'Ghawi' },
+      'IT': { firstName: 'Dr. Ahmed', lastName: 'Awad' },
+      'LAW': { firstName: 'Dr. Noor', lastName: 'Adas' },
+      'SCI': { firstName: 'Dr. Ghassan', lastName: 'Saffarini' }
+    };
+
     // Create Faculty Leader and Dean of Faculty for each college
     const facultyLeaderEmail = `faculty.${college.code.toLowerCase()}@univibe.edu`;
     const deanEmail = `dean.${college.code.toLowerCase()}@univibe.edu`;
@@ -330,12 +344,13 @@ async function main() {
     const existingDean = await prisma.user.findUnique({ where: { email: deanEmail } });
     if (!existingDean) {
       const hashedPassword = await bcrypt.hash('dean123', 10);
+      const deanName = deanNames[college.code] || { firstName: 'Dean', lastName: `of ${college.name}` };
       await prisma.user.create({
         data: {
           email: deanEmail,
           password: hashedPassword,
-          firstName: 'Dean',
-          lastName: `of ${college.name}`,
+          firstName: deanName.firstName,
+          lastName: deanName.lastName,
           role: 'DEAN_OF_FACULTY',
           collegeId: existingCollege.id
         }
@@ -346,34 +361,15 @@ async function main() {
     }
   }
 
-  // Create Deanship of Student Affairs (one for all colleges)
-  const deanshipEmail = 'deanship@univibe.edu';
-  const existingDeanship = await prisma.user.findUnique({ where: { email: deanshipEmail } });
-  if (!existingDeanship) {
-    const hashedPassword = await bcrypt.hash('deanship123', 10);
-    await prisma.user.create({
-      data: {
-        email: deanshipEmail,
-        password: hashedPassword,
-        firstName: 'Deanship',
-        lastName: 'of Student Affairs',
-        role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
-      }
-    });
-    console.log(`✅ Created Deanship of Student Affairs`);
-  } else {
-    console.log(`⚠️  Deanship of Student Affairs already exists`);
-  }
-
   // Update existing communities to assign them to colleges
   console.log('\n📝 Assigning communities to colleges...');
   const communityCollegeMapping = {
-    'Computer Science Club': 'IT',
-    'Art & Design Society': 'ART',
-    'Sports & Fitness': 'ART',
-    'Photography Club': 'ART',
-    'Music & Bands': 'ART',
-    'Book Club': 'ART'
+    'Engineers without borders (EWB)': 'ENG',
+    'Legal Clinic': 'LAW',
+    'Theater troupe': 'ART',
+    'Medical Students Union': 'MED',
+    'Entrepreneurs Association': 'IT',
+    'Student Association for Physics and Astronomy (SAPA)': 'SCI'
   };
 
   for (const [communityName, collegeCode] of Object.entries(communityCollegeMapping)) {

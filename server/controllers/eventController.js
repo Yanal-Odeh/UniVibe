@@ -6,7 +6,9 @@ export const getAllEvents = async (req, res) => {
   try {
     const { search, communityId, upcoming } = req.query;
 
-    const where = {};
+    const where = {
+      status: 'APPROVED' // Only show approved events to public
+    };
     
     if (search) {
       where.OR = [
@@ -104,11 +106,11 @@ export const createEvent = async (req, res) => {
     const { title, description, collegeId, locationId, startDate, endDate, communityId } = req.body;
 
     // Validate input
-    if (!title || !description || !collegeId || !locationId || !startDate || !communityId) {
-      return res.status(400).json({ error: 'Required fields: title, description, collegeId, locationId, startDate, communityId' });
+    if (!title || !description || !locationId || !startDate || !communityId) {
+      return res.status(400).json({ error: 'Required fields: title, description, locationId, startDate, communityId' });
     }
 
-    // Get community to verify it belongs to the college
+    // Get community to use its college
     const community = await prisma.community.findUnique({
       where: { id: communityId },
       include: { college: true }
@@ -116,6 +118,10 @@ export const createEvent = async (req, res) => {
 
     if (!community) {
       return res.status(404).json({ error: 'Community not found' });
+    }
+
+    if (!community.collegeId) {
+      return res.status(400).json({ error: 'Community must be assigned to a college' });
     }
 
     // Get location details for display
@@ -126,6 +132,81 @@ export const createEvent = async (req, res) => {
 
     const locationDisplay = location ? `${location.college.name} - ${location.name}` : '';
 
+    // Check for conflicts with approved events at the same time and location
+    const eventStartDate = new Date(startDate);
+    const eventEndDate = endDate ? new Date(endDate) : new Date(eventStartDate.getTime() + 2 * 60 * 60 * 1000); // Default 2 hours if no end date
+
+    const conflictingEvents = await prisma.event.findMany({
+      where: {
+        locationId,
+        status: 'APPROVED',
+        OR: [
+          {
+            // New event starts during existing event
+            AND: [
+              { startDate: { lte: eventStartDate } },
+              { 
+                OR: [
+                  { endDate: { gte: eventStartDate } },
+                  { endDate: null }
+                ]
+              }
+            ]
+          },
+          {
+            // New event ends during existing event
+            AND: [
+              { startDate: { lte: eventEndDate } },
+              { 
+                OR: [
+                  { endDate: { gte: eventEndDate } },
+                  { endDate: null }
+                ]
+              }
+            ]
+          },
+          {
+            // New event completely contains existing event
+            AND: [
+              { startDate: { gte: eventStartDate } },
+              { startDate: { lte: eventEndDate } }
+            ]
+          }
+        ]
+      },
+      include: {
+        community: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    if (conflictingEvents.length > 0) {
+      const conflict = conflictingEvents[0];
+      const conflictStart = new Date(conflict.startDate).toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+      const conflictEnd = conflict.endDate 
+        ? new Date(conflict.endDate).toLocaleString('en-US', { timeStyle: 'short' })
+        : 'end time not specified';
+      
+      return res.status(409).json({ 
+        error: 'Event conflict detected',
+        message: `This location is already booked for "${conflict.title}" by ${conflict.community.name} from ${conflictStart} to ${conflictEnd}. Please choose a different time or location.`,
+        conflictingEvent: {
+          id: conflict.id,
+          title: conflict.title,
+          community: conflict.community.name,
+          startDate: conflict.startDate,
+          endDate: conflict.endDate,
+          location: conflict.location
+        }
+      });
+    }
+
     // Create event with approval workflow
     const event = await prisma.event.create({
       data: {
@@ -135,7 +216,7 @@ export const createEvent = async (req, res) => {
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         communityId,
-        collegeId,
+        collegeId: community.collegeId,
         locationId,
         createdBy: req.user.id,
         status: 'PENDING_FACULTY_APPROVAL',
@@ -258,7 +339,7 @@ export const deleteEvent = async (req, res) => {
 export const facultyApproval = async (req, res) => {
   try {
     const { id } = req.params;
-    const { approved } = req.body;
+    const { approved, reason } = req.body;
     const user = req.user;
 
     // Verify user is Faculty Leader
@@ -321,6 +402,7 @@ export const facultyApproval = async (req, res) => {
           facultyLeaderApproval: 'REJECTED',
           facultyLeaderApprovedBy: user.id,
           facultyLeaderApprovedAt: new Date(),
+          facultyLeaderRejectionReason: reason || 'No reason provided',
           status: 'REJECTED'
         }
       });
@@ -331,7 +413,7 @@ export const facultyApproval = async (req, res) => {
           userId: event.createdBy,
           eventId: event.id,
           type: 'EVENT_REJECTED',
-          message: `Your event "${event.title}" was rejected by Faculty Leader`
+          message: `Your event "${event.title}" was rejected by Faculty Leader${reason ? `: ${reason}` : ''}`
         }
       });
 
@@ -347,7 +429,7 @@ export const facultyApproval = async (req, res) => {
 export const deanApproval = async (req, res) => {
   try {
     const { id } = req.params;
-    const { approved } = req.body;
+    const { approved, reason } = req.body;
     const user = req.user;
 
     // Verify user is Dean of Faculty
@@ -414,6 +496,7 @@ export const deanApproval = async (req, res) => {
           deanOfFacultyApproval: 'REJECTED',
           deanOfFacultyApprovedBy: user.id,
           deanOfFacultyApprovedAt: new Date(),
+          deanOfFacultyRejectionReason: reason || 'No reason provided',
           status: 'REJECTED'
         }
       });
@@ -424,7 +507,7 @@ export const deanApproval = async (req, res) => {
           userId: event.createdBy,
           eventId: event.id,
           type: 'EVENT_REJECTED',
-          message: `Your event "${event.title}" was rejected by Dean of Faculty`
+          message: `Your event "${event.title}" was rejected by Dean of Faculty${reason ? `: ${reason}` : ''}`
         }
       });
 
@@ -440,7 +523,7 @@ export const deanApproval = async (req, res) => {
 export const deanshipApproval = async (req, res) => {
   try {
     const { id } = req.params;
-    const { approved } = req.body;
+    const { approved, reason } = req.body;
     const user = req.user;
 
     // Verify user is Deanship
@@ -493,6 +576,7 @@ export const deanshipApproval = async (req, res) => {
           deanshipApproval: 'REJECTED',
           deanshipApprovedBy: user.id,
           deanshipApprovedAt: new Date(),
+          deanshipRejectionReason: reason || 'No reason provided',
           status: 'REJECTED'
         }
       });
@@ -503,7 +587,7 @@ export const deanshipApproval = async (req, res) => {
           userId: event.createdBy,
           eventId: event.id,
           type: 'EVENT_REJECTED',
-          message: `Your event "${event.title}" was rejected by Deanship of Student Affairs`
+          message: `Your event "${event.title}" was rejected by Deanship of Student Affairs${reason ? `: ${reason}` : ''}`
         }
       });
 
