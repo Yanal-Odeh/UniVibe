@@ -7,6 +7,7 @@ import About from './Pages/About/About'
 import EventCalendar from './Pages/EventCalendar/EventCalendar'
 import Events from './Pages/Events/Events'
 import EventDetails from './Pages/EventDetails/EventDetails'
+import SavedEvents from './Pages/SavedEvents/SavedEvents'
 import InformationCenter from './Pages/InformationCenter/InformationCenter'
 import FormsApplications from './Pages/FormsApplications/FormsApplications'
 import PoliciesGuidelines from './Pages/PoliciesGuidelines/PoliciesGuidelines'
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
         {
           path: "/events/:id",
           element: <EventDetails />
+        },
+        {
+          path: "/saved-events",
+          element: <SavedEvents />
         },
         {
           path: "/information",

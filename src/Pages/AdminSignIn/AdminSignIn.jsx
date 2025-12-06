@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import Loader from '../../Components/Loader/Loader';
 import styles from './AdminSignIn.module.scss';
 
 function AdminSignIn() {
@@ -88,7 +89,7 @@ function AdminSignIn() {
             className={styles.submitButton}
             disabled={isLoading}
           >
-            {isLoading ? 'Signing In...' : 'Sign In to Admin Panel'}
+            {isLoading ? <Loader size="small" /> : 'Sign In to Admin Panel'}
           </button>
         </form>
 

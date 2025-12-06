@@ -15,7 +15,22 @@ function Notifications() {
   const panelRef = useRef(null);
   const { currentAdmin } = useAdminAuth();
 
-  const toggle = () => setOpen(o => !o);
+  const toggle = async () => {
+    const newOpenState = !open;
+    setOpen(newOpenState);
+    
+    // When opening the dropdown, mark all notifications as read
+    if (newOpenState && unreadCount > 0) {
+      try {
+        await api.markAllNotificationsAsRead();
+        setUnreadCount(0);
+        // Update local notifications to mark them as read
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      } catch (error) {
+        console.error('Error marking notifications as read:', error);
+      }
+    }
+  };
 
   // Fetch notifications and unread count
   useEffect(() => {

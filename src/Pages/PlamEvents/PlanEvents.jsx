@@ -22,6 +22,7 @@ const PlanEvents = () => {
     startDate: '',
     endDate: '',
     communityId: '',
+    capacity: '',
     status: 'pending_faculty_approval' // Start with pending approval
   });
   
@@ -168,7 +169,8 @@ const PlanEvents = () => {
         locationId: formData.locationId,
         startDate: formData.startDate,
         endDate: formData.endDate || null,
-        communityId: formData.communityId
+        communityId: formData.communityId,
+        capacity: formData.capacity ? parseInt(formData.capacity) : null
       });
 
       const newEvent = response.event;
@@ -197,6 +199,7 @@ const PlanEvents = () => {
         startDate: '',
         endDate: '',
         communityId: '',
+        capacity: '',
         status: 'pending_faculty_approval'
       });
     } catch (error) {
@@ -523,6 +526,21 @@ const PlanEvents = () => {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleInputChange}
+                    className={styles.input}
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Maximum Capacity <span className={styles.optional}>(Optional - Leave empty for unlimited)</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="capacity"
+                    value={formData.capacity}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 100"
+                    min="1"
                     className={styles.input}
                   />
                 </div>

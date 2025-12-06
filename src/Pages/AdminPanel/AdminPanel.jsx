@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useCommunities } from '../../contexts/CommunitiesContext';
 import api from '../../lib/api';
+import Loader from '../../Components/Loader/Loader';
 import styles from './AdminPanel.module.scss';
 
 function AdminPanel() {
@@ -256,7 +257,7 @@ function AdminPanel() {
   if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p>Loading...</p>
+        <Loader size="large" />
       </div>
     );
   }

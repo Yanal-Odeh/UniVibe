@@ -50,6 +50,46 @@ h1 {
   font-size: 0.95rem;
 }
 
+.eventMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.communityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: #f1f5f9;
+  border-radius: 16px;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.loading,
+.noEvents {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
 @media (max-width: 600px) {
   .eventsList {
     grid-template-columns: 1fr;

@@ -24,12 +24,14 @@ model User {
   createdBy String?  // Track who created this user (for admin panel)
 
   // Relations
-  createdCommunities Community[]       @relation("CommunityCreator")
+  createdCommunities Community[]          @relation("CommunityCreator")
   memberships        CommunityMember[]
-  createdEvents      Event[]           @relation("EventCreator")
+  createdEvents      Event[]              @relation("EventCreator")
   adminPreferences   AdminPreference?
-  college            College?          @relation(fields: [collegeId], references: [id], onDelete: SetNull)
+  college            College?             @relation(fields: [collegeId], references: [id], onDelete: SetNull)
   notifications      Notification[]
+  eventRegistrations EventRegistration[]
+  savedEvents        SavedEvent[]
 
   @@map("users")
 }
@@ -91,6 +93,7 @@ model Event {
   communityId String?
   collegeId   String?   // New: Reference to College
   locationId  String?   // New: Reference to Location
+  capacity    Int?      // Maximum number of attendees
   createdBy   String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -108,11 +111,13 @@ model Event {
   deanshipApprovedAt          DateTime?
   
   // Relations
-  creator       User          @relation("EventCreator", fields: [createdBy], references: [id])
-  community     Community?    @relation(fields: [communityId], references: [id], onDelete: SetNull)
-  college       College?      @relation(fields: [collegeId], references: [id], onDelete: SetNull)
-  eventLocation Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  creator       User               @relation("EventCreator", fields: [createdBy], references: [id])
+  community     Community?         @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  college       College?           @relation(fields: [collegeId], references: [id], onDelete: SetNull)
+  eventLocation Location?          @relation(fields: [locationId], references: [id], onDelete: SetNull)
   notifications Notification[]
+  registrations EventRegistration[]
+  savedByUsers  SavedEvent[]
 
   @@map("events")
 }
@@ -214,4 +219,32 @@ enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model EventRegistration {
+  id           String   @id @default(cuid())
+  userId       String
+  eventId      String
+  registeredAt DateTime @default(now())
+  
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+model SavedEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  savedAt   DateTime @default(now())
+  
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("saved_events")
 }

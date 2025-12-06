@@ -41,6 +41,7 @@ function Navbar() {
       dropdown: [
         { name: 'Plan Events', path: '/plan-events' },
         { name: 'Event Calendar', path: '/calendar' },
+        { name: 'Saved Events', path: '/saved-events' },
         { name: 'Virtual Events', path: '/virtual-events' }
       ]
     },

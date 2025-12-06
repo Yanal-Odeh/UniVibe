@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -14,19 +14,72 @@ import {
   ChevronLeft,
   ExternalLink,
   Mail,
-  Phone
+  Phone,
+  UserCheck,
+  UserX
 } from 'lucide-react';
+import Loader from '../../Components/Loader/Loader';
 import styles from './EventDetails.module.scss';
-import events from '../../data/events';
+import api from '../../lib/api';
 
 function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [event, setEvent] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [registering, setRegistering] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Find event by id from shared data
-  const event = events.find(e => String(e.id) === String(id));
+  useEffect(() => {
+    fetchEventDetails();
+    fetchCurrentUser();
+  }, [id]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const user = await api.getCurrentUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
+
+  const fetchEventDetails = async () => {
+    try {
+      setLoading(true);
+      const { event: eventData } = await api.getEvent(id);
+      setEvent(eventData);
+
+      // Check if user is registered
+      const { isRegistered: registered } = await api.checkRegistration(id);
+      setIsRegistered(registered);
+
+      // Check if event is saved
+      try {
+        const { isSaved: saved } = await api.checkSavedEvent(id);
+        setIsSaved(saved);
+      } catch (error) {
+        // User might not be logged in
+        setIsSaved(false);
+      }
+    } catch (error) {
+      console.error('Error fetching event:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.eventDetailsPage}>
+        <div className={styles.container}>
+          <Loader text="Loading event details..." />
+        </div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (
@@ -45,14 +98,97 @@ function EventDetails() {
     );
   }
 
-  const handleRegister = () => {
-    setIsRegistered(!isRegistered);
-    // Add your registration logic here
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    // Add your save logic here
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const registrationCount = event._count?.registrations || 0;
+  const isEventFull = event.capacity && registrationCount >= event.capacity;
+  const isEventApproved = event.status === 'APPROVED';
+
+  const handleRegister = async () => {
+    if (!currentUser) {
+      alert('Please sign in to register for events');
+      navigate('/signin');
+      return;
+    }
+
+    // Check if user is a student
+    if (currentUser.role !== 'STUDENT') {
+      alert('Only students can register for events');
+      return;
+    }
+
+    if (registering) return;
+
+    try {
+      setRegistering(true);
+      if (isRegistered) {
+        await api.unregisterFromEvent(id);
+        setIsRegistered(false);
+        // Update count locally without refreshing
+        setEvent(prev => ({
+          ...prev,
+          _count: {
+            ...prev._count,
+            registrations: (prev._count?.registrations || 1) - 1
+          }
+        }));
+      } else {
+        // Check if event is full
+        if (event.capacity && event._count.registrations >= event.capacity) {
+          alert('Sorry, this event is full');
+          return;
+        }
+        await api.registerForEvent(id);
+        setIsRegistered(true);
+        // Update count locally without refreshing
+        setEvent(prev => ({
+          ...prev,
+          _count: {
+            ...prev._count,
+            registrations: (prev._count?.registrations || 0) + 1
+          }
+        }));
+      }
+    } catch (error) {
+      alert(error.message || 'Failed to register');
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!currentUser) {
+      navigate('/signin');
+      return;
+    }
+
+    try {
+      if (isSaved) {
+        await api.unsaveEvent(id);
+        setIsSaved(false);
+      } else {
+        await api.saveEvent(id);
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
   };
 
   const handleShare = () => {
@@ -70,19 +206,36 @@ function EventDetails() {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'Approved': return 'green';
-      case 'Pending': return 'yellow';
-      case 'Rejected': return 'red';
+      case 'APPROVED': return 'green';
+      case 'PENDING_FACULTY_APPROVAL':
+      case 'PENDING_DEAN_APPROVAL':
+      case 'PENDING_DEANSHIP_APPROVAL':
+        return 'yellow';
+      case 'REJECTED': return 'red';
       default: return 'gray';
     }
   };
 
   const getStatusIcon = (status) => {
     switch(status) {
-      case 'Approved': return <CheckCircle size={16} />;
-      case 'Pending': return <AlertCircle size={16} />;
-      case 'Rejected': return <XCircle size={16} />;
+      case 'APPROVED': return <CheckCircle size={16} />;
+      case 'PENDING_FACULTY_APPROVAL':
+      case 'PENDING_DEAN_APPROVAL':
+      case 'PENDING_DEANSHIP_APPROVAL':
+        return <AlertCircle size={16} />;
+      case 'REJECTED': return <XCircle size={16} />;
       default: return null;
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'APPROVED': return 'Approved';
+      case 'PENDING_FACULTY_APPROVAL': return 'Pending Faculty Approval';
+      case 'PENDING_DEAN_APPROVAL': return 'Pending Dean Approval';
+      case 'PENDING_DEANSHIP_APPROVAL': return 'Pending Deanship Approval';
+      case 'REJECTED': return 'Rejected';
+      default: return status;
     }
   };
 
@@ -95,13 +248,6 @@ function EventDetails() {
           Back to Events
         </div>
 
-        {/* Hero Image */}
-        <img 
-          src={event.image} 
-          alt={event.title}
-          className={styles.heroImage}
-        />
-
         {/* Main Grid */}
         <div className={styles.mainGrid}>
           {/* Main Content */}
@@ -113,59 +259,33 @@ function EventDetails() {
                 <div className={styles.meta}>
                   <div className={styles.metaItem}>
                     <Calendar size={18} />
-                    <span>{event.date}</span>
+                    <span>{formatDate(event.startDate)}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={18} />
-                    <span>{event.time}</span>
+                    <span>{formatTime(event.startDate)}{event.endDate && ` - ${formatTime(event.endDate)}`}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <MapPin size={18} />
-                    <span>{event.venue}</span>
+                    <span>{event.eventLocation?.name || event.location}</span>
                   </div>
                   <div className={`${styles.statusBadge} ${styles[getStatusColor(event.status)]}`}>
                     {getStatusIcon(event.status)}
-                    <span>{event.status}</span>
+                    <span>{getStatusLabel(event.status)}</span>
                   </div>
                 </div>
-                <div className={styles.tags}>
-                  {(event.tags || []).map((tag, index) => (
-                    <span key={index} className={styles.tag}>
-                      <Tag size={14} />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {event.community && (
+                  <div className={styles.communityBadge}>
+                    <span className={styles.communityAvatar}>{event.community.avatar}</span>
+                    <span>{event.community.name}</span>
+                  </div>
+                )}
               </div>
 
               <div>
                 <h2 className={styles.sectionTitle}>About This Event</h2>
                 <p className={styles.description}>{event.description}</p>
-                <p className={styles.description}>{event.fullDescription}</p>
               </div>
-            </div>
-
-            {/* Event Schedule */}
-            <div className={styles.card}>
-              <h2 className={styles.sectionTitle}>Event Schedule</h2>
-              <ul className={styles.scheduleList}>
-                {(event.schedule || []).map((item, index) => (
-                  <li key={index} className={styles.scheduleItem}>
-                    <span className={styles.scheduleTime}>{item.time}</span>
-                    <span className={styles.scheduleActivity}>{item.activity}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Requirements */}
-            <div className={styles.card}>
-              <h2 className={styles.sectionTitle}>Requirements</h2>
-              <ul className={styles.requirementsList}>
-                {(event.requirements || []).map((req, index) => (
-                  <li key={index}>{req}</li>
-                ))}
-              </ul>
             </div>
           </div>
 
@@ -174,22 +294,55 @@ function EventDetails() {
             {/* Action Buttons */}
             <div className={styles.card}>
               <div className={styles.actionButtons}>
-                <button 
-                  className={`${styles.btn} ${styles.btnPrimary} ${isRegistered ? styles.registered : ''}`}
-                  onClick={handleRegister}
-                >
-                  {isRegistered ? (
-                    <>
-                      <CheckCircle size={20} />
-                      Registered
-                    </>
-                  ) : (
-                    <>
-                      <Users size={20} />
-                      Register Now
-                    </>
-                  )}
-                </button>
+                {!currentUser && isEventApproved && (
+                  <button 
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    onClick={() => navigate('/signin')}
+                  >
+                    <Users size={20} />
+                    Sign In to Register
+                  </button>
+                )}
+                {currentUser && currentUser.role !== 'STUDENT' && isEventApproved && (
+                  <div className={styles.notApprovedMessage}>
+                    <AlertCircle size={20} />
+                    <span>Only students can register for events</span>
+                  </div>
+                )}
+                {currentUser && currentUser.role === 'STUDENT' && isEventApproved && (
+                  <button 
+                    className={`${styles.btn} ${styles.btnPrimary} ${isRegistered ? styles.registered : ''} ${isEventFull && !isRegistered ? styles.disabled : ''}`}
+                    onClick={handleRegister}
+                    disabled={registering || (isEventFull && !isRegistered) || !isEventApproved}
+                  >
+                    {registering ? (
+                      <>
+                        Loading...
+                      </>
+                    ) : isRegistered ? (
+                      <>
+                        <UserCheck size={20} />
+                        Registered - Click to Cancel
+                      </>
+                    ) : isEventFull ? (
+                      <>
+                        <UserX size={20} />
+                        Event is Full
+                      </>
+                    ) : (
+                      <>
+                        <Users size={20} />
+                        Register Now
+                      </>
+                    )}
+                  </button>
+                )}
+                {!isEventApproved && (
+                  <div className={styles.notApprovedMessage}>
+                    <AlertCircle size={20} />
+                    <span>Registration will be available once the event is approved</span>
+                  </div>
+                )}
                 <button 
                   className={`${styles.btn} ${styles.btnSecondary} ${isSaved ? styles.saved : ''}`}
                   onClick={handleSave}
@@ -215,7 +368,7 @@ function EventDetails() {
                   <MapPin size={20} className={styles.infoIcon} />
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Venue</div>
-                    <div className={styles.infoValue}>{event.venue}</div>
+                    <div className={styles.infoValue}>{event.eventLocation?.name || event.location}</div>
                   </div>
                 </div>
 
@@ -224,73 +377,53 @@ function EventDetails() {
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Attendance</div>
                     <div className={styles.infoValue}>
-                      {event.registeredCount ?? 0} / {event.venueCapacity ?? '—'} registered
+                      {registrationCount} / {event.capacity ?? 'Unlimited'} registered
                     </div>
-                    <div className={styles.capacityBar}>
-                      <div className={styles.capacityProgress}>
-                        <div 
-                          className={styles.capacityFill}
-                          style={{ width: `${event.venueCapacity ? ((event.registeredCount || 0) / event.venueCapacity) * 100 : 0}%` }}
-                        ></div>
+                    {event.capacity && (
+                      <div className={styles.capacityBar}>
+                        <div className={styles.capacityProgress}>
+                          <div 
+                            className={styles.capacityFill}
+                            style={{ width: `${(registrationCount / event.capacity) * 100}%` }}
+                          ></div>
+                        </div>
+                        <div className={styles.capacityText}>
+                          {((registrationCount / event.capacity) * 100).toFixed(0)}% Full
+                        </div>
                       </div>
-                      <div className={styles.capacityText}>
-                        {event.venueCapacity ? (((event.registeredCount || 0) / event.venueCapacity) * 100).toFixed(0) : 0}% Full
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
-                <div className={styles.infoItem}>
-                  <Tag size={20} className={styles.infoIcon} />
-                  <div className={styles.infoContent}>
-                    <div className={styles.infoLabel}>Category</div>
-                    <div className={styles.infoValue}>{event.category}</div>
+                {event.community && (
+                  <div className={styles.infoItem}>
+                    <Users size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Organized By</div>
+                      <div className={styles.infoValue}>
+                        <span style={{ marginRight: '0.5rem' }}>{event.community.avatar}</span>
+                        {event.community.name}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Organizer Info */}
-            <div className={styles.card}>
-              <h3 className={styles.sectionTitle}>Organized By</h3>
-              <div className={styles.organizerCard}>
-                <img 
-                  src={event.organizer.logo} 
-                  alt={event.organizer.name}
-                  className={styles.organizerLogo}
-                />
-                <div className={styles.organizerInfo}>
-                  <div className={styles.organizerName}>{event.organizer.name}</div>
-                  <div className={styles.organizerType}>{event.organizer.type}</div>
-                  <div className={styles.organizerContact}>
-                    <a href={`mailto:${event.organizer.email}`}>
-                      <Mail size={14} />
-                      {event.organizer.email}
-                    </a>
-                    <a href={`tel:${event.organizer.phone}`}>
-                      <Phone size={14} />
-                      {event.organizer.phone}
-                    </a>
+            {event.creator && (
+              <div className={styles.card}>
+                <h3 className={styles.sectionTitle}>Event Creator</h3>
+                <div className={styles.creatorInfo}>
+                  <div className={styles.creatorName}>
+                    {event.creator.firstName} {event.creator.lastName}
+                  </div>
+                  <div className={styles.creatorEmail}>
+                    <Mail size={14} />
+                    {event.creator.email}
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Related Events */}
-            <div className={styles.card}>
-              <h3 className={styles.sectionTitle}>Related Events</h3>
-              <ul className={styles.relatedEvents}>
-                {(event.relatedEvents || []).map((relatedEvent) => (
-                  <li key={relatedEvent.id} className={styles.relatedItem}>
-                    <div className={styles.relatedTitle}>
-                      {relatedEvent.title}
-                      <ExternalLink size={16} />
-                    </div>
-                    <div className={styles.relatedDate}>{relatedEvent.date}</div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            )}
           </div>
         </div>
       </div>

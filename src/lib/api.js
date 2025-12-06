@@ -263,6 +263,54 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Event registration endpoints
+  async registerForEvent(eventId) {
+    return this.request('/registrations/register', {
+      method: 'POST',
+      body: JSON.stringify({ eventId }),
+    });
+  }
+
+  async unregisterFromEvent(eventId) {
+    return this.request(`/registrations/unregister/${eventId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getMyRegistrations() {
+    return this.request('/registrations/my-registrations');
+  }
+
+  async checkRegistration(eventId) {
+    return this.request(`/registrations/check/${eventId}`);
+  }
+
+  async getEventRegistrations(eventId) {
+    return this.request(`/registrations/event/${eventId}`);
+  }
+
+  // Saved events endpoints
+  async saveEvent(eventId) {
+    return this.request('/saved-events/save', {
+      method: 'POST',
+      body: JSON.stringify({ eventId }),
+    });
+  }
+
+  async unsaveEvent(eventId) {
+    return this.request(`/saved-events/unsave/${eventId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getMySavedEvents() {
+    return this.request('/saved-events/my-saved');
+  }
+
+  async checkSavedEvent(eventId) {
+    return this.request(`/saved-events/check/${eventId}`);
+  }
 }
 
 export default new ApiClient();

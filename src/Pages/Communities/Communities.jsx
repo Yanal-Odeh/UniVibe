@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Search, X, Crown, Shield } from 'lucide-react';
 import { useCommunities } from '../../contexts/CommunitiesContext';
+import Loader from '../../Components/Loader/Loader';
 import styles from './Communities.module.scss';
 
 function Communities() {
@@ -18,7 +19,7 @@ function Communities() {
       <div className={styles.communitiesView}>
         <div className={styles.communitiesHeader}>
           <h1>Our Communities</h1>
-          <p>Loading communities...</p>
+          <Loader text="Loading communities..." />
         </div>
       </div>
     );

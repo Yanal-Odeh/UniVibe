@@ -44,6 +44,9 @@ export const getAllEvents = async (req, res) => {
             avatar: true,
             color: true
           }
+        },
+        _count: {
+          select: { registrations: true }
         }
       },
       orderBy: { startDate: 'asc' }
@@ -78,6 +81,9 @@ export const getEventById = async (req, res) => {
             avatar: true,
             color: true
           }
+        },
+        _count: {
+          select: { registrations: true }
         }
       }
     });

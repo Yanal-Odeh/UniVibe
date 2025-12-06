@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCommunities } from '../../contexts/CommunitiesContext';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import api from '../../lib/api';
+import Loader from '../../Components/Loader/Loader';
 import styles from './FormsApplications.module.scss';
 
 function FormsApplications() {
@@ -301,7 +302,7 @@ function FormsApplications() {
                     className={styles.submitBtn}
                     disabled={submitting}
                   >
-                    {submitting ? 'Submitting...' : 'Submit Application'}
+                    {submitting ? <Loader size="small" /> : 'Submit Application'}
                   </button>
                 </div>
               </form>
