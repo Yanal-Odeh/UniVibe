@@ -26,56 +26,13 @@ function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
-<<<<<<< HEAD
-=======
   const [loading, setLoading] = useState(true);
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
   const [isRegistered, setIsRegistered] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-<<<<<<< HEAD
-    fetchEventDetails();
-    fetchCurrentUser();
-  }, [id]);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const user = await api.getCurrentUser();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
-  };
-
-  const fetchEventDetails = async () => {
-    try {
-      setLoading(true);
-      const { event: eventData } = await api.getEvent(id);
-      setEvent(eventData);
-
-      // Check if user is registered
-      const { isRegistered: registered } = await api.checkRegistration(id);
-      setIsRegistered(registered);
-
-      // Check if event is saved
-      try {
-        const { isSaved: saved } = await api.checkSavedEvent(id);
-        setIsSaved(saved);
-      } catch (error) {
-        // User might not be logged in
-        setIsSaved(false);
-      }
-    } catch (error) {
-      console.error('Error fetching event:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-=======
     const fetchEvent = async () => {
       try {
         console.log('Fetching event with ID:', id);
@@ -91,17 +48,14 @@ function EventDetails() {
 
     fetchEvent();
   }, [id]);
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
+
 
   if (loading) {
     return (
       <div className={styles.eventDetailsPage}>
         <div className={styles.container}>
-<<<<<<< HEAD
-          <Loader text="Loading event details..." />
-=======
-          <p>Loading event details...</p>
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
+<p>Loading event details...</p>
+
         </div>
       </div>
     );
@@ -274,9 +228,7 @@ function EventDetails() {
           Back to Events
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Hero Image */}
+{/* Hero Image */}
         {event.image && (
           <img 
             src={event.image} 
@@ -285,7 +237,7 @@ function EventDetails() {
           />
         )}
 
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
+
         {/* Main Grid */}
         <div className={styles.mainGrid}>
           {/* Main Content */}
@@ -297,30 +249,7 @@ function EventDetails() {
                 <div className={styles.meta}>
                   <div className={styles.metaItem}>
                     <Calendar size={18} />
-<<<<<<< HEAD
-                    <span>{formatDate(event.startDate)}</span>
-                  </div>
-                  <div className={styles.metaItem}>
-                    <Clock size={18} />
-                    <span>{formatTime(event.startDate)}{event.endDate && ` - ${formatTime(event.endDate)}`}</span>
-                  </div>
-                  <div className={styles.metaItem}>
-                    <MapPin size={18} />
-                    <span>{event.eventLocation?.name || event.location}</span>
-                  </div>
-                  <div className={`${styles.statusBadge} ${styles[getStatusColor(event.status)]}`}>
-                    {getStatusIcon(event.status)}
-                    <span>{getStatusLabel(event.status)}</span>
-                  </div>
-                </div>
-                {event.community && (
-                  <div className={styles.communityBadge}>
-                    <span className={styles.communityAvatar}>{event.community.avatar}</span>
-                    <span>{event.community.name}</span>
-                  </div>
-                )}
-=======
-                    <span>{new Date(event.startDate).toLocaleDateString()}</span>
+<span>{new Date(event.startDate).toLocaleDateString()}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={18} />
@@ -337,7 +266,7 @@ function EventDetails() {
                     </div>
                   )}
                 </div>
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
+
               </div>
 
               <div>
@@ -426,44 +355,7 @@ function EventDetails() {
                   <MapPin size={20} className={styles.infoIcon} />
                   <div className={styles.infoContent}>
                     <div className={styles.infoLabel}>Venue</div>
-<<<<<<< HEAD
-                    <div className={styles.infoValue}>{event.eventLocation?.name || event.location}</div>
-                  </div>
-                </div>
-
-                <div className={styles.infoItem}>
-                  <Users size={20} className={styles.infoIcon} />
-                  <div className={styles.infoContent}>
-                    <div className={styles.infoLabel}>Attendance</div>
-                    <div className={styles.infoValue}>
-                      {registrationCount} / {event.capacity ?? 'Unlimited'} registered
-                    </div>
-                    {event.capacity && (
-                      <div className={styles.capacityBar}>
-                        <div className={styles.capacityProgress}>
-                          <div 
-                            className={styles.capacityFill}
-                            style={{ width: `${(registrationCount / event.capacity) * 100}%` }}
-                          ></div>
-                        </div>
-                        <div className={styles.capacityText}>
-                          {((registrationCount / event.capacity) * 100).toFixed(0)}% Full
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {event.community && (
-                  <div className={styles.infoItem}>
-                    <Users size={20} className={styles.infoIcon} />
-                    <div className={styles.infoContent}>
-                      <div className={styles.infoLabel}>Organized By</div>
-                      <div className={styles.infoValue}>
-                        <span style={{ marginRight: '0.5rem' }}>{event.community.avatar}</span>
-                        {event.community.name}
-=======
-                    <div className={styles.infoValue}>{event.location}</div>
+<div className={styles.infoValue}>{event.location}</div>
                   </div>
                 </div>
 
@@ -484,31 +376,14 @@ function EventDetails() {
                       <div className={styles.infoLabel}>Created By</div>
                       <div className={styles.infoValue}>
                         {event.creator.firstName} {event.creator.lastName}
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
+
                       </div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
-<<<<<<< HEAD
 
-            {event.creator && (
-              <div className={styles.card}>
-                <h3 className={styles.sectionTitle}>Event Creator</h3>
-                <div className={styles.creatorInfo}>
-                  <div className={styles.creatorName}>
-                    {event.creator.firstName} {event.creator.lastName}
-                  </div>
-                  <div className={styles.creatorEmail}>
-                    <Mail size={14} />
-                    {event.creator.email}
-                  </div>
-                </div>
-              </div>
-            )}
-=======
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
           </div>
         </div>
       </div>

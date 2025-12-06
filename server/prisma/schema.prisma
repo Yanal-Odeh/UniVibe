@@ -24,12 +24,8 @@ model User {
   createdBy String?  // Track who created this user (for admin panel)
 
   // Relations
-<<<<<<< HEAD
-  createdCommunities Community[]          @relation("CommunityCreator")
-=======
   createdCommunities Community[]       @relation("CommunityCreator")
   ledCommunities     Community[]       @relation("CommunityClubLeader")
->>>>>>> 4dbad2147b9b08f834f954b4483a02f9e581383c
   memberships        CommunityMember[]
   createdEvents      Event[]              @relation("EventCreator")
   adminPreferences   AdminPreference?
