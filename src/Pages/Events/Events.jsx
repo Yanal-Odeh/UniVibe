@@ -33,8 +33,8 @@ function Events() {
     return (
       <div className={styles.eventsPage}>
         <div className={styles.container}>
-<h1>Events</h1>
-          <p>Loading events...</p>
+          <h1>Events</h1>
+          <Loader text="Loading events..." />
         </div>
       </div>
     );
