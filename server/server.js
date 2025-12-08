@@ -15,6 +15,7 @@ import notificationRoutes from './routes/notifications.js';
 import applicationRoutes from './routes/applications.js';
 import registrationRoutes from './routes/registrations.js';
 import savedEventRoutes from './routes/savedEvents.js';
+import { startReminderScheduler } from './services/eventReminderService.js';
 
 // Load .env from parent directory
 const __filename = fileURLToPath(import.meta.url);
@@ -96,6 +97,9 @@ app.listen(PORT, async () => {
   try {
     await prisma.$connect();
     console.log('✅ Connected to Supabase database');
+    
+    // Start event reminder scheduler
+    startReminderScheduler();
   } catch (error) {
     console.error('❌ Failed to connect to database:', error.message);
   }

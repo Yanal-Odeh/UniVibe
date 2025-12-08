@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users } from 'lucide-react';
+import { Calendar, MapPin, Users, Bookmark, CheckCircle } from 'lucide-react';
 import api from '../../lib/api';
 import Loader from '../../Components/Loader/Loader';
 import styles from './Events.module.scss';
@@ -14,6 +14,10 @@ const EventCard = React.memo(({ event }) => {
     [eventDate]
   );
 
+  const registrationCount = event._count?.registrations || 0;
+  const isEventFull = event.capacity && registrationCount >= event.capacity;
+  const spotsLeft = event.capacity ? event.capacity - registrationCount : null;
+
   return (
     <Link to={`/events/${event.id}`} className={styles.eventCard}>
       <div className={styles.eventInfo}>
@@ -26,6 +30,19 @@ const EventCard = React.memo(({ event }) => {
             {event.community.name}
           </p>
         )}
+        {event.capacity && (
+          <div className={styles.capacityInfo}>
+            <Users size={16} />
+            <span className={styles.capacityText}>
+              {registrationCount} / {event.capacity}
+            </span>
+            {isEventFull ? (
+              <span className={styles.fullBadge}>Full</span>
+            ) : spotsLeft <= 5 ? (
+              <span className={styles.limitedBadge}>{spotsLeft} left</span>
+            ) : null}
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -34,15 +51,49 @@ const EventCard = React.memo(({ event }) => {
 EventCard.displayName = 'EventCard';
 
 function Events() {
-  const [events, setEvents] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [savedEvents, setSavedEvents] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const user = await api.getCurrentUser();
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
+        setLoading(true);
         const response = await api.getEvents();
-        setEvents(response.events || []);
+        setAllEvents(response.events || []);
+
+        // Fetch registered and saved events if user is logged in
+        if (currentUser) {
+          try {
+            const registrations = await api.getMyRegistrations();
+            setRegisteredEvents(registrations.map(reg => reg.event));
+
+            const saved = await api.getMySavedEvents();
+            setSavedEvents(saved.map(s => s.event));
+          } catch (error) {
+            console.error('Failed to fetch user events:', error);
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch events:', error);
         setError(error.message);
@@ -52,11 +103,22 @@ function Events() {
     };
 
     fetchEvents();
-  }, []);
+  }, [currentUser]);
+
+  const displayedEvents = useMemo(() => {
+    switch (activeTab) {
+      case 'registered':
+        return registeredEvents;
+      case 'saved':
+        return savedEvents;
+      default:
+        return allEvents;
+    }
+  }, [activeTab, allEvents, registeredEvents, savedEvents]);
 
   const eventsList = useMemo(() => 
-    events.map(event => <EventCard key={event.id} event={event} />),
-    [events]
+    displayedEvents.map(event => <EventCard key={event.id} event={event} />),
+    [displayedEvents]
   );
 
   if (loading) {
@@ -85,11 +147,48 @@ function Events() {
     <div className={styles.eventsPage}>
       <div className={styles.container}>
         <h1>Events</h1>
-        <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
-          Found {events.length} approved event(s)
-        </p>
-        {events.length === 0 ? (
-          <p>No approved events yet. Check back soon!</p>
+
+        {/* Tabs */}
+        <div className={styles.tabs}>
+          <button 
+            className={`${styles.tab} ${activeTab === 'all' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            <Calendar size={18} />
+            All Events
+            <span className={styles.tabCount}>{allEvents.length}</span>
+          </button>
+          
+          {currentUser && (
+            <>
+              <button 
+                className={`${styles.tab} ${activeTab === 'registered' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('registered')}
+              >
+                <CheckCircle size={18} />
+                My Registrations
+                <span className={styles.tabCount}>{registeredEvents.length}</span>
+              </button>
+              
+              <button 
+                className={`${styles.tab} ${activeTab === 'saved' ? styles.activeTab : ''}`}
+                onClick={() => setActiveTab('saved')}
+              >
+                <Bookmark size={18} />
+                Saved Events
+                <span className={styles.tabCount}>{savedEvents.length}</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Events List */}
+        {displayedEvents.length === 0 ? (
+          <div className={styles.emptyState}>
+            {activeTab === 'all' && <p>No approved events yet. Check back soon!</p>}
+            {activeTab === 'registered' && <p>You haven't registered for any events yet. Browse events and register!</p>}
+            {activeTab === 'saved' && <p>You haven't saved any events yet. Save events to keep track of them!</p>}
+          </div>
         ) : (
           <div className={styles.eventsList}>
             {eventsList}

@@ -33,10 +33,39 @@ function EventDetails() {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const user = await api.getCurrentUser();
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Failed to fetch current user:', error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
     const fetchEvent = async () => {
       try {
         const response = await api.getEvent(id);
         setEvent(response.event);
+        
+        // Check if user is registered and if event is saved
+        if (currentUser) {
+          try {
+            const registrationCheck = await api.checkRegistration(id);
+            setIsRegistered(registrationCheck.isRegistered);
+
+            const savedCheck = await api.checkSavedEvent(id);
+            setIsSaved(savedCheck.isSaved);
+          } catch (error) {
+            console.error('Failed to check registration/saved status:', error);
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch event:', error);
       } finally {
@@ -45,7 +74,7 @@ function EventDetails() {
     };
 
     fetchEvent();
-  }, [id]);
+  }, [id, currentUser]);
 
   // Memoize formatted dates
   const eventDates = useMemo(() => {
@@ -135,37 +164,44 @@ function EventDetails() {
 
     if (registering) return;
 
+    // Check if event is full before attempting to register
+    if (!isRegistered && event.capacity && event._count.registrations >= event.capacity) {
+      alert('Sorry, this event is full');
+      return;
+    }
+
+    const wasRegistered = isRegistered;
+    const previousCount = event._count?.registrations || 0;
+
     try {
       setRegistering(true);
-      if (isRegistered) {
-        await api.unregisterFromEvent(id);
-        setIsRegistered(false);
-        // Update count locally without refreshing
-        setEvent(prev => ({
-          ...prev,
-          _count: {
-            ...prev._count,
-            registrations: (prev._count?.registrations || 1) - 1
-          }
-        }));
-      } else {
-        // Check if event is full
-        if (event.capacity && event._count.registrations >= event.capacity) {
-          alert('Sorry, this event is full');
-          return;
+      
+      // Optimistic update - update UI immediately
+      setIsRegistered(!wasRegistered);
+      setEvent(prev => ({
+        ...prev,
+        _count: {
+          ...prev._count,
+          registrations: wasRegistered ? previousCount - 1 : previousCount + 1
         }
+      }));
+
+      // Make API call in background
+      if (wasRegistered) {
+        await api.unregisterFromEvent(id);
+      } else {
         await api.registerForEvent(id);
-        setIsRegistered(true);
-        // Update count locally without refreshing
-        setEvent(prev => ({
-          ...prev,
-          _count: {
-            ...prev._count,
-            registrations: (prev._count?.registrations || 0) + 1
-          }
-        }));
       }
     } catch (error) {
+      // Rollback on error
+      setIsRegistered(wasRegistered);
+      setEvent(prev => ({
+        ...prev,
+        _count: {
+          ...prev._count,
+          registrations: previousCount
+        }
+      }));
       alert(error.message || 'Failed to register');
     } finally {
       setRegistering(false);
@@ -178,16 +214,23 @@ function EventDetails() {
       return;
     }
 
+    const wasSaved = isSaved;
+
     try {
-      if (isSaved) {
+      // Optimistic update - update UI immediately
+      setIsSaved(!wasSaved);
+
+      // Make API call in background
+      if (wasSaved) {
         await api.unsaveEvent(id);
-        setIsSaved(false);
       } else {
         await api.saveEvent(id);
-        setIsSaved(true);
       }
     } catch (error) {
+      // Rollback on error
+      setIsSaved(wasSaved);
       console.error('Error saving event:', error);
+      alert('Failed to save event. Please try again.');
     }
   };
 
@@ -398,6 +441,41 @@ function EventDetails() {
                         {event.creator.firstName} {event.creator.lastName}
 
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {event.capacity && (
+                  <div className={styles.infoItem}>
+                    <Users size={20} className={styles.infoIcon} />
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Capacity</div>
+                      <div className={styles.infoValue}>
+                        {registrationCount} / {event.capacity} registered
+                      </div>
+                      <div className={styles.capacityBar}>
+                        <div 
+                          className={styles.capacityFill}
+                          style={{ 
+                            width: `${Math.min((registrationCount / event.capacity) * 100, 100)}%`,
+                            backgroundColor: registrationCount >= event.capacity ? '#ef4444' : 
+                                           registrationCount >= event.capacity * 0.8 ? '#f59e0b' : '#10b981'
+                          }}
+                        />
+                      </div>
+                      {registrationCount >= event.capacity ? (
+                        <div className={styles.capacityWarning} style={{ color: '#ef4444' }}>
+                          Event is full
+                        </div>
+                      ) : registrationCount >= event.capacity * 0.8 ? (
+                        <div className={styles.capacityWarning} style={{ color: '#f59e0b' }}>
+                          {event.capacity - registrationCount} spots left!
+                        </div>
+                      ) : (
+                        <div className={styles.capacityWarning} style={{ color: '#10b981' }}>
+                          {event.capacity - registrationCount} spots available
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

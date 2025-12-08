@@ -12,8 +12,81 @@
 
 h1 {
   font-size: 2rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   color: #0f172a;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e5e7eb;
+  overflow-x: auto;
+  
+  @media (max-width: 600px) {
+    gap: 0.25rem;
+  }
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    color: #4f46e5;
+    background: #f8f9fa;
+  }
+
+  @media (max-width: 600px) {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+.activeTab {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+  background: #f8f9ff;
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  background: #e0e7ff;
+  color: #4f46e5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+
+  .activeTab & {
+    background: #4f46e5;
+    color: white;
+  }
+}
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+  font-size: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e6e9ef;
 }
 
 .eventsList {
@@ -80,6 +153,40 @@ h1 {
   font-size: 0.85rem;
   font-weight: 500;
   color: #475569;
+}
+
+.capacityInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.capacityText {
+  font-weight: 500;
+}
+
+.fullBadge {
+  padding: 0.2rem 0.6rem;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.limitedBadge {
+  padding: 0.2rem 0.6rem;
+  background: #fffbeb;
+  color: #d97706;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .loading,
