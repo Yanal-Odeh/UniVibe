@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -35,9 +35,7 @@ function EventDetails() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        console.log('Fetching event with ID:', id);
         const response = await api.getEvent(id);
-        console.log('Event response:', response);
         setEvent(response.event);
       } catch (error) {
         console.error('Failed to fetch event:', error);
@@ -49,13 +47,35 @@ function EventDetails() {
     fetchEvent();
   }, [id]);
 
+  // Memoize formatted dates
+  const eventDates = useMemo(() => {
+    if (!event) return null;
+    const startDate = new Date(event.startDate);
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+    return {
+      formattedDate: startDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      formattedTime: startDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      formattedEndTime: endDate ? endDate.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }) : null
+    };
+  }, [event]);
+
 
   if (loading) {
     return (
       <div className={styles.eventDetailsPage}>
         <div className={styles.container}>
-<p>Loading event details...</p>
-
+          <Loader />
         </div>
       </div>
     );

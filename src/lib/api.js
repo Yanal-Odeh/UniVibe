@@ -3,10 +3,67 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 class ApiClient {
   constructor() {
     this.baseURL = API_URL;
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.pendingRequests = new Map();
+  }
+
+  // Cache management
+  getCacheKey(endpoint, options) {
+    return `${endpoint}_${JSON.stringify(options)}`;
+  }
+
+  getFromCache(key) {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+    this.cache.delete(key);
+    return null;
+  }
+
+  setCache(key, data) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  // Debounce duplicate requests
+  async requestWithDeduplication(endpoint, options = {}) {
+    const cacheKey = this.getCacheKey(endpoint, options);
+    
+    // Check if there's a pending request for the same endpoint
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey);
+    }
+
+    // Create new request promise
+    const requestPromise = this.request(endpoint, options).finally(() => {
+      this.pendingRequests.delete(cacheKey);
+    });
+
+    this.pendingRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   }
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    
+    // Check cache for GET requests
+    const method = options.method || 'GET';
+    if (method === 'GET') {
+      const cacheKey = this.getCacheKey(endpoint, options);
+      const cachedData = this.getFromCache(cacheKey);
+      if (cachedData) {
+        return cachedData;
+      }
+    }
+    
     const config = {
       ...options,
       headers: {
@@ -28,6 +85,17 @@ class ApiClient {
 
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong');
+      }
+
+      // Cache GET requests
+      if (method === 'GET') {
+        const cacheKey = this.getCacheKey(endpoint, options);
+        this.setCache(cacheKey, data);
+      }
+
+      // Clear cache on mutations
+      if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+        this.clearCache();
       }
 
       return data;
@@ -102,11 +170,11 @@ class ApiClient {
 
   // Community endpoints
   async getCommunities(search = '') {
-    return this.request(`/communities${search ? `?search=${search}` : ''}`);
+    return this.requestWithDeduplication(`/communities${search ? `?search=${search}` : ''}`);
   }
 
   async getCommunity(id) {
-    return this.request(`/communities/${id}`);
+    return this.requestWithDeduplication(`/communities/${id}`);
   }
 
   async createCommunity(communityData) {
@@ -157,11 +225,11 @@ class ApiClient {
   // Event endpoints
   async getEvents(params = {}) {
     const query = new URLSearchParams(params).toString();
-    return this.request(`/events${query ? `?${query}` : ''}`);
+    return this.requestWithDeduplication(`/events${query ? `?${query}` : ''}`);
   }
 
   async getEvent(id) {
-    return this.request(`/events/${id}`);
+    return this.requestWithDeduplication(`/events/${id}`);
   }
 
   async createEvent(eventData) {

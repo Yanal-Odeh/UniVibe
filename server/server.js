@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
@@ -21,10 +22,23 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
 const app = express();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+});
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+// Compression middleware - compress all responses
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6 // Balance between compression and speed
+}));
+
 // Allow any origin in development so Vite's port changes won't cause CORS failures.
 const isDev = process.env.NODE_ENV === 'development';
 const corsOrigin = isDev ? true : (process.env.CLIENT_URL || 'http://localhost:5173');
@@ -33,7 +47,7 @@ app.use(cors({
   credentials: true
 }));
 console.log(`CORS configured. origin=${isDev ? 'allow-any (development)' : corsOrigin}`);
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
 // Routes

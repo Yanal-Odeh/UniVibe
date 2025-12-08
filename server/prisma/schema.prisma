@@ -125,6 +125,10 @@ model Event {
   registrations EventRegistration[]
   savedByUsers  SavedEvent[]
 
+  @@index([status, startDate])
+  @@index([communityId])
+  @@index([collegeId])
+  @@index([createdBy])
   @@map("events")
 }
 

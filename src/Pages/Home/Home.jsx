@@ -1,7 +1,72 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Users, BookOpen, Coffee, Music, Camera, Sparkles, ArrowRight } from 'lucide-react';
 import styles from './Home.module.scss';
+
+// Memoized components for better performance
+const StatCard = React.memo(({ stat }) => (
+  <div className={styles.statCard}>
+    <h3 className={styles.statNumber}>{stat.number}</h3>
+    <p className={styles.statLabel}>{stat.label}</p>
+  </div>
+));
+
+StatCard.displayName = 'StatCard';
+
+const FeatureCard = React.memo(({ feature }) => (
+  <Link 
+    to={feature.link} 
+    className={styles.featureCard}
+    style={{'--card-gradient': feature.color, color: feature.color}}
+  >
+    <div className={styles.featureIcon} style={{background: feature.color}}>
+      {feature.icon}
+    </div>
+    <h3 className={styles.featureTitle}>{feature.title}</h3>
+    <p className={styles.featureDescription}>{feature.description}</p>
+    <span className={styles.featureLink}>
+      Learn More <ArrowRight size={16} />
+    </span>
+  </Link>
+));
+
+FeatureCard.displayName = 'FeatureCard';
+
+const InfoCard = React.memo(({ card }) => (
+  <div className={styles.card}>
+    <div className={styles.cardHeader}>
+      <div className={styles.cardIcon}>{card.icon}</div>
+      <h2 className={styles.cardTitle}>{card.title}</h2>
+    </div>
+    <div className={styles.cardContent}>
+      {card.subtitle && <p className={styles.cardSubtitle}>{card.subtitle}</p>}
+      {card.info && <p className={styles.cardInfo}>{card.info}</p>}
+      {card.note && <p className={styles.cardNote}>{card.note}</p>}
+    </div>
+    <div className={styles.cardButtons}>
+      {card.buttons.map((button, btnIndex) => (
+        button.text === 'Event Calendar' ? (
+          <Link
+            key={btnIndex}
+            to="/calendar"
+            className={button.primary ? styles.btnPrimary : styles.btnSecondary}
+          >
+            {button.text}
+          </Link>
+        ) : (
+          <button
+            key={btnIndex}
+            className={button.primary ? styles.btnPrimary : styles.btnSecondary}
+          >
+            {button.text}
+          </button>
+        )
+      ))}
+    </div>
+  </div>
+));
+
+InfoCard.displayName = 'InfoCard';
 
 const Home = () => {
   const cards = [
@@ -99,6 +164,22 @@ const Home = () => {
     { number: "24/7", label: "Access Available" }
   ];
 
+  // Memoize computed lists
+  const statsList = useMemo(() => 
+    stats.map((stat, index) => <StatCard key={index} stat={stat} />),
+    []
+  );
+
+  const featuresList = useMemo(() => 
+    features.map((feature, index) => <FeatureCard key={index} feature={feature} />),
+    []
+  );
+
+  const cardsList = useMemo(() => 
+    cards.map((card, index) => <InfoCard key={index} card={card} />),
+    []
+  );
+
   return (
     <div className={styles.homePage}>
       {/* Hero Section */}
@@ -126,12 +207,7 @@ const Home = () => {
       {/* Stats Section */}
       <div className={styles.statsSection}>
         <div className={styles.statsContainer}>
-          {stats.map((stat, index) => (
-            <div key={index} className={styles.statCard}>
-              <h3 className={styles.statNumber}>{stat.number}</h3>
-              <p className={styles.statLabel}>{stat.label}</p>
-            </div>
-          ))}
+          {statsList}
         </div>
       </div>
 
@@ -143,73 +219,14 @@ const Home = () => {
           <p>Everything you need for an amazing campus experience</p>
         </div>
         <div className={styles.featuresGrid}>
-          {features.map((feature, index) => (
-            <Link 
-              key={index} 
-              to={feature.link} 
-              className={styles.featureCard}
-              style={{'--card-gradient': feature.color, color: feature.color}}
-            >
-              <div className={styles.featureIcon} style={{background: feature.color}}>
-                {feature.icon}
-              </div>
-              <h3 className={styles.featureTitle}>{feature.title}</h3>
-              <p className={styles.featureDescription}>{feature.description}</p>
-              <span className={styles.featureLink}>
-                Learn More <ArrowRight size={16} />
-              </span>
-            </Link>
-          ))}
+          {featuresList}
         </div>
       </div>
 
       {/* Cards Section */}
       <div className={styles.cardsSection}>
         <div className={styles.cardsGrid}>
-          {cards.map((card, index) => (
-            <div key={index} className={styles.card}>
-              {/* Icon and Title */}
-              <div className={styles.cardHeader}>
-                <div className={styles.cardIcon}>{card.icon}</div>
-                <h2 className={styles.cardTitle}>{card.title}</h2>
-              </div>
-
-              {/* Content */}
-              <div className={styles.cardContent}>
-                {card.subtitle && (
-                  <p className={styles.cardSubtitle}>{card.subtitle}</p>
-                )}
-                {card.info && (
-                  <p className={styles.cardInfo}>{card.info}</p>
-                )}
-                {card.note && (
-                  <p className={styles.cardNote}>{card.note}</p>
-                )}
-              </div>
-
-              {/* Buttons */}
-              <div className={styles.cardButtons}>
-                {card.buttons.map((button, btnIndex) => (
-                  button.text === 'Event Calendar' ? (
-                    <Link
-                      key={btnIndex}
-                      to="/calendar"
-                      className={button.primary ? styles.btnPrimary : styles.btnSecondary}
-                    >
-                      {button.text}
-                    </Link>
-                  ) : (
-                    <button
-                      key={btnIndex}
-                      className={button.primary ? styles.btnPrimary : styles.btnSecondary}
-                    >
-                      {button.text}
-                    </button>
-                  )
-                ))}
-              </div>
-            </div>
-          ))}
+          {cardsList}
         </div>
       </div>
 
@@ -271,4 +288,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default React.memo(Home);

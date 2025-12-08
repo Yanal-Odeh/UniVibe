@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../lib/api';
 
 const CommunitiesContext = createContext();
@@ -9,7 +9,7 @@ export function CommunitiesProvider({ children }) {
   const [error, setError] = useState(null);
 
   // Fetch communities from API
-  const fetchCommunities = async () => {
+  const fetchCommunities = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -21,13 +21,13 @@ export function CommunitiesProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCommunities();
-  }, []);
+  }, [fetchCommunities]);
 
-  const addCommunity = async (community) => {
+  const addCommunity = useCallback(async (community) => {
     try {
       const newCommunity = await api.createCommunity(community);
       setCommunities(prev => [...prev, newCommunity]);
@@ -36,9 +36,9 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to add community:', err);
       throw err;
     }
-  };
+  }, []);
 
-  const updateCommunity = async (id, updatedData) => {
+  const updateCommunity = useCallback(async (id, updatedData) => {
     try {
       const updated = await api.updateCommunity(id, updatedData);
       setCommunities(prev => prev.map(c => c.id === id ? updated : c));
@@ -47,9 +47,9 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to update community:', err);
       throw err;
     }
-  };
+  }, []);
 
-  const deleteCommunity = async (id) => {
+  const deleteCommunity = useCallback(async (id) => {
     try {
       await api.deleteCommunity(id);
       setCommunities(prev => prev.filter(c => c.id !== id));
@@ -57,9 +57,9 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to delete community:', err);
       throw err;
     }
-  };
+  }, []);
 
-  const addMember = async (communityId) => {
+  const addMember = useCallback(async (communityId) => {
     try {
       await api.joinCommunity(communityId);
       // Refresh communities to get updated member count
@@ -68,9 +68,9 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to add member:', err);
       throw err;
     }
-  };
+  }, [fetchCommunities]);
 
-  const removeMember = async (communityId, userId) => {
+  const removeMember = useCallback(async (communityId, userId) => {
     try {
       await api.removeMemberFromCommunity(communityId, userId);
       // Refresh communities to get updated member count
@@ -79,9 +79,9 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to remove member:', err);
       throw err;
     }
-  };
+  }, [fetchCommunities]);
 
-  const updateMemberRole = async (communityId, userId, newRole) => {
+  const updateMemberRole = useCallback(async (communityId, userId, newRole) => {
     try {
       await api.updateCommunityMemberRole(communityId, userId, newRole);
       // Refresh communities to get updated data
@@ -90,9 +90,10 @@ export function CommunitiesProvider({ children }) {
       console.error('Failed to update member role:', err);
       throw err;
     }
-  };
+  }, [fetchCommunities]);
 
-  const value = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     communities,
     loading,
     error,
@@ -103,7 +104,7 @@ export function CommunitiesProvider({ children }) {
     removeMember,
     updateMemberRole,
     refreshCommunities: fetchCommunities
-  };
+  }), [communities, loading, error, addCommunity, updateCommunity, deleteCommunity, addMember, removeMember, updateMemberRole, fetchCommunities]);
 
   return (
     <CommunitiesContext.Provider value={value}>
