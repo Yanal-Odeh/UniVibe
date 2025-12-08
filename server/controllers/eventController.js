@@ -2,6 +2,23 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Cache for frequently accessed data
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function setCache(key, value) {
+  cache.set(key, { value, timestamp: Date.now() });
+}
+
+function getCache(key) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.value;
+  }
+  cache.delete(key);
+  return null;
+}
+
 export const getAllEvents = async (req, res) => {
   try {
     const { search, communityId, upcoming } = req.query;
@@ -28,9 +45,18 @@ export const getAllEvents = async (req, res) => {
       };
     }
 
+    // Optimize query - select only needed fields
     const events = await prisma.event.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        capacity: true,
         creator: {
           select: {
             id: true,
@@ -51,9 +77,12 @@ export const getAllEvents = async (req, res) => {
           select: { registrations: true }
         }
       },
-      orderBy: { startDate: 'asc' }
+      orderBy: { startDate: 'asc' },
+      take: 100 // Limit results for better performance
     });
 
+    // Set cache headers for client-side caching
+    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
     res.json({ events });
   } catch (error) {
     console.error('Get events error:', error);
@@ -65,9 +94,27 @@ export const getEventById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Check cache first
+    const cacheKey = `event_${id}`;
+    const cachedEvent = getCache(cacheKey);
+    if (cachedEvent) {
+      res.set('X-Cache', 'HIT');
+      return res.json({ event: cachedEvent });
+    }
+
     const event = await prisma.event.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        capacity: true,
+        createdAt: true,
+        updatedAt: true,
         creator: {
           select: {
             id: true,
@@ -94,6 +141,10 @@ export const getEventById = async (req, res) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
+    // Cache the result
+    setCache(cacheKey, event);
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'public, max-age=300');
     res.json({ event });
   } catch (error) {
     console.error('Get event error:', error);

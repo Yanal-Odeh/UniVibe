@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Users, Search, X, Crown, Shield } from 'lucide-react';
 import { useCommunities } from '../../contexts/CommunitiesContext';
 import Loader from '../../Components/Loader/Loader';
@@ -9,10 +9,23 @@ function Communities() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCommunity, setSelectedCommunity] = useState(null);
 
-  const filteredCommunities = communities.filter(comm =>
-    comm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    comm.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Memoize filtered communities to avoid recalculating on every render
+  const filteredCommunities = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return communities.filter(comm =>
+      comm.name.toLowerCase().includes(lowerSearchTerm) ||
+      comm.description.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [communities, searchTerm]);
+
+  // Memoize callbacks
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleSelectCommunity = useCallback((community) => {
+    setSelectedCommunity(community);
+  }, []);
 
   if (loading) {
     return (
@@ -49,7 +62,7 @@ function Communities() {
           type="text"
           placeholder="Search communities..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
         />
       </div>
 
@@ -58,7 +71,7 @@ function Communities() {
           <div 
             key={community.id} 
             className={styles.communityCard}
-            onClick={() => setSelectedCommunity(community)}
+            onClick={() => handleSelectCommunity(community)}
           >
             <div className={styles.cardHeader} style={{ background: community.color }}>
               <span className={styles.avatar}>{community.avatar}</span>

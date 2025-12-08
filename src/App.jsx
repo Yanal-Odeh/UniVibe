@@ -1,28 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Suspense, lazy } from 'react'
 import './App.css'
-import Home from './Pages/Home/Home'
-import About from './Pages/About/About'
-import EventCalendar from './Pages/EventCalendar/EventCalendar'
-import Events from './Pages/Events/Events'
-import EventDetails from './Pages/EventDetails/EventDetails'
-import SavedEvents from './Pages/SavedEvents/SavedEvents'
-import InformationCenter from './Pages/InformationCenter/InformationCenter'
-import FormsApplications from './Pages/FormsApplications/FormsApplications'
-import PoliciesGuidelines from './Pages/PoliciesGuidelines/PoliciesGuidelines'
-import VirtualTour from './Pages/VirtualTour/VirtualTour'
-import PlanEventsPage from './Pages/PlamEvents/PlanEvents'
 import Root from './routes/Root';
-import NotFound from './Pages/NotFound/NotFound';
-import SignIn from './Pages/SignIn/SignIn';
-import SignUp from './Pages/SignUp/SignUp';
-import Communities from './Pages/Communities/Communities';
-import AdminPanel from './Pages/AdminPanel/AdminPanel';
+import Loader from './Components/Loader/Loader';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { CommunitiesProvider } from './contexts/CommunitiesContext';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-//beed
+
+// Lazy load all page components for better code splitting
+const Home = lazy(() => import('./Pages/Home/Home'));
+const About = lazy(() => import('./Pages/About/About'));
+const EventCalendar = lazy(() => import('./Pages/EventCalendar/EventCalendar'));
+const Events = lazy(() => import('./Pages/Events/Events'));
+const EventDetails = lazy(() => import('./Pages/EventDetails/EventDetails'));
+const SavedEvents = lazy(() => import('./Pages/SavedEvents/SavedEvents'));
+const InformationCenter = lazy(() => import('./Pages/InformationCenter/InformationCenter'));
+const FormsApplications = lazy(() => import('./Pages/FormsApplications/FormsApplications'));
+const PoliciesGuidelines = lazy(() => import('./Pages/PoliciesGuidelines/PoliciesGuidelines'));
+const VirtualTour = lazy(() => import('./Pages/VirtualTour/VirtualTour'));
+const PlanEventsPage = lazy(() => import('./Pages/PlamEvents/PlanEvents'));
+const NotFound = lazy(() => import('./Pages/NotFound/NotFound'));
+const SignIn = lazy(() => import('./Pages/SignIn/SignIn'));
+const SignUp = lazy(() => import('./Pages/SignUp/SignUp'));
+const Communities = lazy(() => import('./Pages/Communities/Communities'));
+const AdminPanel = lazy(() => import('./Pages/AdminPanel/AdminPanel'));
+
 const router = createBrowserRouter([
   { 
     path: "/",
@@ -30,78 +31,78 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />
+        element: <Suspense fallback={<Loader />}><Home /></Suspense>
       },
        {
         path: "/about",
-        element: <About />
+        element: <Suspense fallback={<Loader />}><About /></Suspense>
         
       },
       {
         path: "/signin",
-        element: <SignIn />
+        element: <Suspense fallback={<Loader />}><SignIn /></Suspense>
       },
       {
         path: "/signup",
-        element: <SignUp />
+        element: <Suspense fallback={<Loader />}><SignUp /></Suspense>
       },
       
         {
           path: "/calendar",
-          element: <EventCalendar />
+          element: <Suspense fallback={<Loader />}><EventCalendar /></Suspense>
         },
         {
           path: "/events",
-          element: <Events />
+          element: <Suspense fallback={<Loader />}><Events /></Suspense>
         },
         {
           path: "/events/:id",
-          element: <EventDetails />
+          element: <Suspense fallback={<Loader />}><EventDetails /></Suspense>
         },
         {
           path: "/saved-events",
-          element: <SavedEvents />
+          element: <Suspense fallback={<Loader />}><SavedEvents /></Suspense>
         },
         {
           path: "/information",
-          element: <InformationCenter />
+          element: <Suspense fallback={<Loader />}><InformationCenter /></Suspense>
         },
         {
           path: "/information-center",
-          element: <InformationCenter />
+          element: <Suspense fallback={<Loader />}><InformationCenter /></Suspense>
         },
         {
           path: "/forms",
-          element: <FormsApplications />
+          element: <Suspense fallback={<Loader />}><FormsApplications /></Suspense>
         },
         {
           path: "/policies",
-          element: <PoliciesGuidelines />
+          element: <Suspense fallback={<Loader />}><PoliciesGuidelines /></Suspense>
         },
         {
           path: "/tour",
-          element: <VirtualTour />
+          element: <Suspense fallback={<Loader />}><VirtualTour /></Suspense>
         },
         {
           path: "/virtual-tour",
-          element: <VirtualTour />
+          element: <Suspense fallback={<Loader />}><VirtualTour /></Suspense>
         },
         {
         path: "/communities",
-        element: <Communities />
+        element: <Suspense fallback={<Loader />}><Communities /></Suspense>
       },
         {
           path: "/plan-events",
-          element: <PlanEventsPage />
+          element: <Suspense fallback={<Loader />}><PlanEventsPage /></Suspense>
         },
       {
         path: "/admin-panel",
-        element: <AdminPanel />
+        element: <Suspense fallback={<Loader />}><AdminPanel /></Suspense>
       },  
         
       {
         path: "*",
-        element: <NotFound />
+        element: <Suspense fallback={<Loader />}><NotFound /></Suspense>
       }
       
     ]
