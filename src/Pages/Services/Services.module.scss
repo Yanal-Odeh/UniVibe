@@ -1,0 +1,474 @@
+// Colors - matching the theme
+$primary-color: #4f46e5;
+$secondary-color: #9333ea;
+$text-dark: #111827;
+$text-gray: #6b7280;
+$text-light: #9ca3af;
+$bg-light: #f9fafb;
+$white: #ffffff;
+$green: #10b981;
+$blue: #3b82f6;
+$purple: #9333ea;
+$orange: #f59e0b;
+$pink: #ec4899;
+$red: #ef4444;
+
+// Breakpoints
+$mobile: 768px;
+$tablet: 1024px;
+
+.servicesPage {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f0f9ff, #ffffff, #ede9fe);
+}
+
+// Hero Section
+.hero {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  padding: 6rem 2rem 4rem;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 75% 65%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  @media (max-width: $mobile) {
+    padding: 4rem 1.5rem 3rem;
+  }
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+
+  @media (max-width: $mobile) {
+    font-size: 2rem;
+  }
+}
+
+.highlight {
+  color: #fbbf24;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  opacity: 0.95;
+  line-height: 1.6;
+
+  @media (max-width: $mobile) {
+    font-size: 1rem;
+  }
+}
+
+// Container
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+// Search Section
+.searchSection {
+  margin-bottom: 3rem;
+}
+
+.searchBar {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $text-gray;
+  width: 20px;
+  height: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &::placeholder {
+    color: $text-light;
+  }
+}
+
+// Categories
+.categories {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.categoryBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: $text-gray;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  }
+
+  &.active {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.categoryIcon {
+  width: 18px;
+  height: 18px;
+}
+
+// Section Title
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 2rem;
+  text-align: center;
+
+  @media (max-width: $mobile) {
+    font-size: 1.5rem;
+  }
+}
+
+.resultCount {
+  color: $text-gray;
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+}
+
+// Quick Access Section
+.quickAccessSection {
+  margin-bottom: 4rem;
+}
+
+.quickAccessGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quickAccessCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid #f3f4f6;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.quickAccessIcon {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    color: #1e40af;
+  }
+}
+
+.quickAccessInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.quickAccessTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 0.25rem;
+}
+
+.quickAccessDescription {
+  font-size: 0.75rem;
+  color: $text-gray;
+  margin-bottom: 0.5rem;
+}
+
+.quickAccessValue {
+  font-size: 0.875rem;
+  color: #3b82f6;
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Services Section
+.servicesSection {
+  margin-bottom: 4rem;
+}
+
+.servicesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.serviceCard {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid #f3f4f6;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.serviceHeader {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.serviceIcon {
+  width: 4rem;
+  height: 4rem;
+  color: white;
+}
+
+.serviceBody {
+  padding: 1.5rem;
+}
+
+.serviceName {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 0.75rem;
+}
+
+.serviceDescription {
+  color: $text-gray;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
+}
+
+.serviceDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: $bg-light;
+  border-radius: 8px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: $text-gray;
+  font-size: 0.875rem;
+
+  a {
+    color: #3b82f6;
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.detailIcon {
+  width: 16px;
+  height: 16px;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.features {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.featuresTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 0.5rem;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    padding-left: 1.5rem;
+    position: relative;
+    color: $text-gray;
+    font-size: 0.875rem;
+
+    &::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: 700;
+    }
+  }
+}
+
+// Resources Section
+.resourcesSection {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+
+  @media (max-width: $mobile) {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.resourcesGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resourceCard {
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.resourceNumber {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 auto 1rem;
+}
+
+.resourceTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $text-dark;
+  margin-bottom: 0.5rem;
+}
+
+.resourceText {
+  color: $text-gray;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

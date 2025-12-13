@@ -316,7 +316,12 @@ function EventDetails() {
                   </div>
                   <div className={styles.metaItem}>
                     <Clock size={18} />
-                    <span>{new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>
+                      {new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {event.endDate && (
+                        <> - {new Date(event.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</>
+                      )}
+                    </span>
                   </div>
                   <div className={styles.metaItem}>
                     <MapPin size={18} />

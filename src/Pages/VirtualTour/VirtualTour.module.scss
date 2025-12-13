@@ -111,14 +111,37 @@
   }
 
   .locationImage {
-    height: 180px;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .imageOverlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0));
+      }
+    }
 
     .emoji {
-      font-size: 5rem;
+      font-size: 4rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
     }
   }
 
@@ -296,20 +319,25 @@
     }
 
     .modalHeader {
-      padding: 48px 40px;
+      padding: 60px 40px;
       text-align: center;
       color: white;
       border-radius: 20px 20px 0 0;
+      background-size: cover !important;
+      background-position: center !important;
+      position: relative;
 
       .modalEmoji {
         font-size: 4rem;
         display: block;
         margin-bottom: 16px;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
       }
 
       h2 {
         font-size: 2rem;
         margin: 0;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.5);
       }
     }
 

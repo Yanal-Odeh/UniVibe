@@ -11,7 +11,7 @@ const sentReminders = new Set();
 export async function checkAndSendReminders() {
   try {
     const now = new Date();
-    const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const oneDayFromNow = new Date(now.getTime() + 25 * 60 * 60 * 1000); // Extended to 25 hours to catch all events
     const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
 
     // Find approved events that are starting soon

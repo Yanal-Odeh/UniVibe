@@ -16,6 +16,65 @@ h1 {
   color: #0f172a;
 }
 
+.searchContainer {
+  position: relative;
+  margin-bottom: 1.5rem;
+  
+  .searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    pointer-events: none;
+  }
+
+  .searchInput {
+    width: 100%;
+    padding: 0.875rem 3rem 0.875rem 3rem;
+    font-size: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    color: #0f172a;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  .clearButton {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e5e7eb;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 18px;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #cbd5e1;
+      color: #0f172a;
+    }
+  }
+}
+
 .tabs {
   display: flex;
   gap: 0.5rem;
@@ -104,11 +163,41 @@ h1 {
   text-decoration: none;
   color: inherit;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  position: relative;
 }
 
 .eventCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.pastEventCard {
+  background: #f8f9fa;
+  opacity: 0.85;
+  border-color: #dee2e6;
+
+  .eventInfo h3,
+  .eventInfo p {
+    color: #6c757d;
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.pastEventBadge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  background: #6c757d;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  z-index: 1;
 }
 
 .eventInfo h3 {
