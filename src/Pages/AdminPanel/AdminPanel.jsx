@@ -23,6 +23,7 @@ function AdminPanel() {
   const [students, setStudents] = useState([]);
   const [applications, setApplications] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [rejectionModal, setRejectionModal] = useState({ isOpen: false, application: null, reason: '' });
   
   const [newCommunity, setNewCommunity] = useState({
     name: '',
@@ -195,6 +196,22 @@ function AdminPanel() {
       } catch (err) {
         alert('Failed to delete student: ' + err.message);
       }
+    }
+  };
+
+  const handleRejectApplication = async () => {
+    if (!rejectionModal.reason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+
+    try {
+      await api.updateApplicationStatus(rejectionModal.application.id, 'REJECTED', rejectionModal.reason);
+      const applicationsData = await api.getApplications();
+      setApplications(applicationsData.applications || []);
+      setRejectionModal({ isOpen: false, application: null, reason: '' });
+    } catch (err) {
+      alert('Failed to reject application');
     }
   };
 
@@ -904,15 +921,7 @@ function AdminPanel() {
                                   </button>
                                   <button 
                                     className={`${styles.actionBtn} ${styles.reject}`}
-                                    onClick={async () => {
-                                      try {
-                                        await api.updateApplicationStatus(application.id, 'REJECTED');
-                                        const applicationsData = await api.getApplications();
-                                        setApplications(applicationsData.applications || []);
-                                      } catch (err) {
-                                        alert('Failed to reject application');
-                                      }
-                                    }}
+                                    onClick={() => setRejectionModal({ isOpen: true, application, reason: '' })}
                                     title="Reject"
                                   >
                                     <XCircle size={18} />
@@ -952,6 +961,52 @@ function AdminPanel() {
           </>
         )}
       </div>
+
+      {/* Rejection Reason Modal */}
+      {rejectionModal.isOpen && (
+        <div className={styles.modalOverlay} onClick={() => setRejectionModal({ isOpen: false, application: null, reason: '' })}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button 
+              className={styles.modalClose} 
+              onClick={() => setRejectionModal({ isOpen: false, application: null, reason: '' })}
+            >
+              <X size={24} />
+            </button>
+            <div className={styles.modalHeader} style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}>
+              <XCircle size={40} />
+              <h2>Reject Application</h2>
+              <p>Please provide a reason for rejection</p>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.formGroup}>
+                <label>Rejection Reason *</label>
+                <textarea
+                  value={rejectionModal.reason}
+                  onChange={(e) => setRejectionModal(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="Explain why this application is being rejected..."
+                  rows="5"
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px' }}
+                />
+              </div>
+              <div className={styles.formActions}>
+                <button 
+                  className={styles.cancelBtn} 
+                  onClick={() => setRejectionModal({ isOpen: false, application: null, reason: '' })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className={styles.submitBtn}
+                  style={{ background: '#f56565' }}
+                  onClick={handleRejectApplication}
+                >
+                  Reject Application
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

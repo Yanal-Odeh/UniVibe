@@ -10,13 +10,13 @@ import {
   removeMember,
   updateMemberRole
 } from '../controllers/communityController.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requireAdmin, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllCommunities);
-router.get('/:id', getCommunityById);
+// Public routes with optional auth (for isMember feature)
+router.get('/', optionalAuth, getAllCommunities);
+router.get('/:id', optionalAuth, getCommunityById);
 
 // Authenticated routes
 router.post('/:id/join', authenticate, joinCommunity);

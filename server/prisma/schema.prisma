@@ -33,6 +33,7 @@ model User {
   notifications      Notification[]
   eventRegistrations EventRegistration[]
   savedEvents        SavedEvent[]
+  applications       ApplicationForm[]  @relation("UserApplications")
 
   @@map("users")
 }
@@ -68,6 +69,7 @@ model Community {
   college       College?          @relation(fields: [collegeId], references: [id], onDelete: Cascade)
   members       CommunityMember[]
   events        Event[]
+  applications  ApplicationForm[] @relation("CommunityApplications")
 
   @@map("communities")
 }
@@ -180,7 +182,7 @@ model Location {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  eventId   String
+  eventId   String?
   type      NotificationType
   message   String
   read      Boolean  @default(false)
@@ -188,7 +190,7 @@ model Notification {
   
   // Relations
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
@@ -199,6 +201,8 @@ enum NotificationType {
   EVENT_REJECTED
   EVENT_REMINDER_1_DAY
   EVENT_REMINDER_1_HOUR
+  APPLICATION_APPROVED
+  APPLICATION_REJECTED
 }
 
 enum Role {
@@ -221,9 +225,15 @@ model ApplicationForm {
   phoneNumber   String
   city          String
   status        ApplicationStatus @default(PENDING)
+  rejectionReason String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Relations
+  user      User      @relation("UserApplications", fields: [userId], references: [id], onDelete: Cascade)
+  community Community @relation("CommunityApplications", fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
   @@map("application_forms")
 }
 

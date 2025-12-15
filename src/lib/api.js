@@ -319,10 +319,14 @@ class ApiClient {
     return this.request('/applications');
   }
 
-  async updateApplicationStatus(id, status) {
+  async getMyApplications() {
+    return this.request('/applications/my-applications');
+  }
+
+  async updateApplicationStatus(id, status, rejectionReason = null) {
     return this.request(`/applications/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, rejectionReason }),
     });
   }
 

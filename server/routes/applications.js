@@ -1,7 +1,8 @@
 import express from 'express';
 import { 
   createApplication, 
-  getAllApplications, 
+  getAllApplications,
+  getMyApplications,
   updateApplicationStatus,
   deleteApplication 
 } from '../controllers/applicationController.js';
@@ -14,6 +15,9 @@ router.post('/', authenticate, createApplication);
 
 // Get all applications (admin only)
 router.get('/', authenticate, requireAdmin, getAllApplications);
+
+// Get user's own applications (authenticated users)
+router.get('/my-applications', authenticate, getMyApplications);
 
 // Update application status (admin only)
 router.patch('/:id/status', authenticate, requireAdmin, updateApplicationStatus);

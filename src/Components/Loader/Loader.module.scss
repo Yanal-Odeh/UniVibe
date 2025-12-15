@@ -56,6 +56,9 @@
 
 // Size variants
 .small {
+  padding: 0;
+  gap: 0.5rem;
+
   .bounce1,
   .bounce2,
   .bounce3 {
@@ -65,6 +68,10 @@
 
   .loadingText {
     font-size: 0.875rem;
+  }
+
+  .spinner {
+    gap: 0.3rem;
   }
 }
 

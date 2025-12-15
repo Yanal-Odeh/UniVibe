@@ -26,8 +26,9 @@ function FormsApplications() {
   const { currentAdmin, isAuthenticated } = useAdminAuth();
 
   useEffect(() => {
+    // Refresh communities on mount and when authentication changes
     refreshCommunities();
-  }, []);
+  }, [isAuthenticated, currentAdmin]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +61,7 @@ function FormsApplications() {
         city: formData.city
       });
 
-      // Close modal and show success message
+      // Close modal and refresh
       setFormData({
         name: '',
         studentNumber: '',
@@ -72,11 +73,11 @@ function FormsApplications() {
       setSelectedCommunity(null);
       setMessage({ type: '', text: '' });
       
-      // Show success message that persists outside modal
-      setSuccessMessage('Application submitted successfully! Waiting for admin approval.');
-      setTimeout(() => setSuccessMessage(''), 5000); // Hide after 5 seconds
+      // Show brief success message
+      setSuccessMessage('Application submitted successfully! You will be notified once reviewed.');
+      setTimeout(() => setSuccessMessage(''), 4000);
       
-      // Refresh communities to update member count
+      // Refresh communities
       refreshCommunities();
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Failed to submit application. Please try again.' });
@@ -169,10 +170,11 @@ function FormsApplications() {
               </div>
               <div className={styles.communityActions}>
                 <button 
-                  className={styles.joinBtn}
-                  onClick={() => openForm(community)}
+                  className={community.isMember ? `${styles.joinBtn} ${styles.joined}` : styles.joinBtn}
+                  onClick={() => !community.isMember && openForm(community)}
+                  disabled={community.isMember}
                 >
-                  Join Community
+                  {community.isMember ? 'Joined' : 'Join Community'}
                 </button>
               </div>
             </div>

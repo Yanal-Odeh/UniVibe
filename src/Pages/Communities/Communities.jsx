@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Search, X, Crown, Shield } from 'lucide-react';
 import { useCommunities } from '../../contexts/CommunitiesContext';
 import Loader from '../../Components/Loader/Loader';
 import styles from './Communities.module.scss';
 
 function Communities() {
+  const navigate = useNavigate();
   const { communities, loading, error } = useCommunities();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCommunity, setSelectedCommunity] = useState(null);
@@ -113,7 +115,7 @@ function Communities() {
                 </div>
                 <button className={styles.joinBtn} onClick={(e) => {
                   e.stopPropagation();
-                  alert('Join functionality coming soon!');
+                  navigate('/forms');
                 }}>
                   Join
                 </button>

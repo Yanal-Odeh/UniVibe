@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 export const getAllCommunities = async (req, res) => {
   try {
     const { search } = req.query;
+    const userId = req.user?.id; // Get userId if authenticated
 
     const where = search
       ? {
@@ -58,6 +59,7 @@ export const getAllCommunities = async (req, res) => {
       color: community.color,
       collegeId: community.collegeId,
       memberCount: community._count.members,
+      isMember: userId ? community.members.some(member => member.user.id === userId) : false,
       members: community.members.map(member => ({
         id: member.user.id,
         name: `${member.user.firstName} ${member.user.lastName}`,
