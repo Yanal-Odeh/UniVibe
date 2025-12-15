@@ -22,7 +22,7 @@ function FormsApplications() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [successMessage, setSuccessMessage] = useState('');
   
-  const { communities, refreshCommunities } = useCommunities();
+  const { communities, refreshCommunities, loading } = useCommunities();
   const { currentAdmin, isAuthenticated } = useAdminAuth();
 
   useEffect(() => {
@@ -150,41 +150,47 @@ function FormsApplications() {
           </div>
         </div>
 
-        <div className={styles.communitiesGrid}>
-          {filteredCommunities.map(community => (
-            <div key={community.id} className={styles.communityCard}>
-              <div 
-                className={styles.communityIcon}
-                style={{ backgroundColor: community.color }}
-              >
-                {community.avatar}
-              </div>
-              <div className={styles.communityContent}>
-                <h3>{community.name}</h3>
-                <p>{community.description}</p>
-                <div className={styles.communityMeta}>
-                  <span className={styles.members}>
-                    👥 {community.members?.length || 0} members
-                  </span>
+        {loading ? (
+          <Loader text="Loading communities..." />
+        ) : (
+          <>
+            <div className={styles.communitiesGrid}>
+              {filteredCommunities.map(community => (
+                <div key={community.id} className={styles.communityCard}>
+                  <div 
+                    className={styles.communityIcon}
+                    style={{ backgroundColor: community.color }}
+                  >
+                    {community.avatar}
+                  </div>
+                  <div className={styles.communityContent}>
+                    <h3>{community.name}</h3>
+                    <p>{community.description}</p>
+                    <div className={styles.communityMeta}>
+                      <span className={styles.members}>
+                        👥 {community.members?.length || 0} members
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.communityActions}>
+                    <button 
+                      className={community.isMember ? `${styles.joinBtn} ${styles.joined}` : styles.joinBtn}
+                      onClick={() => !community.isMember && openForm(community)}
+                      disabled={community.isMember}
+                    >
+                      {community.isMember ? 'Joined' : 'Join Community'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className={styles.communityActions}>
-                <button 
-                  className={community.isMember ? `${styles.joinBtn} ${styles.joined}` : styles.joinBtn}
-                  onClick={() => !community.isMember && openForm(community)}
-                  disabled={community.isMember}
-                >
-                  {community.isMember ? 'Joined' : 'Join Community'}
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {filteredCommunities.length === 0 && (
-          <div className={styles.emptyState}>
-            <p>No communities found matching your search.</p>
-          </div>
+            {filteredCommunities.length === 0 && (
+              <div className={styles.emptyState}>
+                <p>No communities found matching your search.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

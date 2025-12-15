@@ -71,23 +71,51 @@ export function CommunitiesProvider({ children }) {
   }, [fetchCommunities]);
 
   const removeMember = useCallback(async (communityId, userId) => {
+    // Optimistic update - update UI immediately
+    setCommunities(prev => prev.map(community => {
+      if (community.id === communityId) {
+        return {
+          ...community,
+          members: community.members.filter(m => m.id !== userId),
+          memberCount: community.memberCount - 1
+        };
+      }
+      return community;
+    }));
+
     try {
       await api.removeMemberFromCommunity(communityId, userId);
-      // Refresh communities to get updated member count
-      await fetchCommunities();
     } catch (err) {
       console.error('Failed to remove member:', err);
+      // Revert on error
+      await fetchCommunities();
       throw err;
     }
   }, [fetchCommunities]);
 
   const updateMemberRole = useCallback(async (communityId, userId, newRole) => {
+    // Optimistic update - update UI immediately
+    setCommunities(prev => prev.map(community => {
+      if (community.id === communityId) {
+        return {
+          ...community,
+          members: community.members.map(member => {
+            if (member.id === userId) {
+              return { ...member, role: newRole.toLowerCase() };
+            }
+            return member;
+          })
+        };
+      }
+      return community;
+    }));
+
     try {
       await api.updateCommunityMemberRole(communityId, userId, newRole);
-      // Refresh communities to get updated data
-      await fetchCommunities();
     } catch (err) {
       console.error('Failed to update member role:', err);
+      // Revert on error
+      await fetchCommunities();
       throw err;
     }
   }, [fetchCommunities]);
