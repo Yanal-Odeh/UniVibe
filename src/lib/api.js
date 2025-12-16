@@ -223,13 +223,17 @@ class ApiClient {
   }
 
   // Event endpoints
-  async getEvents(params = {}) {
+  async getEvents(params = {}, skipCache = false) {
     const query = new URLSearchParams(params).toString();
-    return this.requestWithDeduplication(`/events${query ? `?${query}` : ''}`);
+    const endpoint = `/events${query ? `?${query}` : ''}`;
+    // For real-time updates, bypass cache and deduplication
+    return skipCache ? this.request(endpoint) : this.requestWithDeduplication(endpoint);
   }
 
-  async getEvent(id) {
-    return this.requestWithDeduplication(`/events/${id}`);
+  async getEvent(id, skipCache = false) {
+    const endpoint = `/events/${id}`;
+    // For real-time updates, bypass cache and deduplication
+    return skipCache ? this.request(endpoint) : this.requestWithDeduplication(endpoint);
   }
 
   async createEvent(eventData) {

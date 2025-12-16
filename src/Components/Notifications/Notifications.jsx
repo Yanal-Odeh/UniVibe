@@ -9,6 +9,7 @@ function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [processingId, setProcessingId] = useState(null);
+  const [processedIds, setProcessedIds] = useState(new Set());
   const [denyReason, setDenyReason] = useState({});
   const [showReasonInput, setShowReasonInput] = useState({});
   const btnRef = useRef(null);
@@ -28,11 +29,11 @@ function Notifications() {
     if (currentAdmin) {
       fetchNotifications();
       fetchUnreadCount();
-      // Poll for new notifications every 30 seconds
+      // Poll for new notifications every 5 seconds for faster updates
       const interval = setInterval(() => {
         fetchNotifications();
         fetchUnreadCount();
-      }, 30000);
+      }, 5000);
       return () => clearInterval(interval);
     } else {
       // Clear notifications when user logs out
@@ -78,6 +79,8 @@ function Notifications() {
     if (!notification.eventId) return;
     
     setProcessingId(notification.id);
+    setProcessedIds(prev => new Set(prev).add(notification.id));
+    
     try {
       // Determine which approval endpoint to use based on user role
       const userRole = currentAdmin?.role?.toUpperCase();
@@ -99,10 +102,22 @@ function Notifications() {
       // Update unread count
       await fetchUnreadCount();
       
+      // Clear cache and trigger immediate refresh in all components
+      api.clearCache();
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('eventApprovalChanged'));
+      
       alert('Event approved successfully!');
     } catch (error) {
       console.error('Error approving event:', error);
       alert(error.message || 'Failed to approve event');
+      // Remove from processed set if failed
+      setProcessedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notification.id);
+        return newSet;
+      });
     } finally {
       setProcessingId(null);
     }
@@ -132,6 +147,8 @@ function Notifications() {
     }
     
     setProcessingId(notification.id);
+    setProcessedIds(prev => new Set(prev).add(notification.id));
+    
     try {
       // Determine which approval endpoint to use based on user role
       const userRole = currentAdmin?.role?.toUpperCase();
@@ -153,6 +170,12 @@ function Notifications() {
       // Update unread count
       await fetchUnreadCount();
       
+      // Clear cache and trigger immediate refresh in all components
+      api.clearCache();
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('eventApprovalChanged'));
+      
       // Clear reason input
       setDenyReason(prev => ({ ...prev, [notification.id]: '' }));
       setShowReasonInput(prev => ({ ...prev, [notification.id]: false }));
@@ -161,6 +184,12 @@ function Notifications() {
     } catch (error) {
       console.error('Error denying event:', error);
       alert(error.message || 'Failed to deny event');
+      // Remove from processed set if failed
+      setProcessedIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(notification.id);
+        return newSet;
+      });
     } finally {
       setProcessingId(null);
     }
@@ -230,7 +259,7 @@ function Notifications() {
                       {new Date(n.createdAt).toLocaleString()}
                     </div>
                     
-                    {n.type === 'EVENT_PENDING_APPROVAL' && n.eventId && (
+                    {n.type === 'EVENT_PENDING_APPROVAL' && n.eventId && !processedIds.has(n.id) && (
                       <div className={styles.actions}>
                         {processingId !== n.id ? (
                           <>

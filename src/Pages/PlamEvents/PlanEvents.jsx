@@ -41,37 +41,26 @@ const PlanEvents = () => {
       // Clear API cache before fetching to ensure fresh data
       api.clearCache();
       
-      const response = await api.getEvents();
+      // Force fresh data by skipping cache and deduplication
+      const response = await api.getEvents({}, true);
       const eventsData = response.events || [];
-      
-      console.log('All events from API:', eventsData);
-      console.log('Current admin ID:', currentAdmin?.id);
       
       // Filter to only show events created by the current user
       const myEvents = eventsData.filter(event => {
-        console.log(`Event ${event.id}: createdBy=${event.createdBy}, matches=${event.createdBy === currentAdmin?.id}`);
         return event.createdBy === currentAdmin?.id;
       });
       
-      console.log('My events after filtering:', myEvents);
-      
       // Map events to include approval status
       const mappedEvents = myEvents.map(event => {
-        console.log('Event approval data:', {
-          id: event.id,
-          facultyLeaderApproval: event.facultyLeaderApproval,
-          deanOfFacultyApproval: event.deanOfFacultyApproval,
-          deanshipApproval: event.deanshipApproval,
-          status: event.status
-        });
+        const approvalStatus = {
+          facultyLeader: event.facultyLeaderApproval?.toLowerCase() || 'pending',
+          deanOfFaculty: event.deanOfFacultyApproval?.toLowerCase() || 'pending',
+          deanshipOfStudentAffairs: event.deanshipApproval?.toLowerCase() || 'pending'
+        };
         
         return {
           ...event,
-          approvalStatus: {
-            facultyLeader: event.facultyLeaderApproval?.toLowerCase() || 'pending',
-            deanOfFaculty: event.deanOfFacultyApproval?.toLowerCase() || 'pending',
-            deanshipOfStudentAffairs: event.deanshipApproval?.toLowerCase() || 'pending'
-          },
+          approvalStatus,
           communityName: event.community?.name || 'Unknown Community'
         };
       });
@@ -87,6 +76,26 @@ const PlanEvents = () => {
     if (!isLoading && currentAdmin) {
       fetchEvents();
     }
+    
+    // Set up interval to refresh events every 1 second for instant real-time updates
+    const interval = setInterval(() => {
+      if (!isLoading && currentAdmin) {
+        fetchEvents();
+      }
+    }, 1000); // Refresh every 1 second for instant updates
+    
+    // Listen for approval events from other components
+    const handleApprovalChange = () => {
+      console.log('Approval change detected, refreshing events immediately...');
+      fetchEvents();
+    };
+    
+    window.addEventListener('eventApprovalChanged', handleApprovalChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('eventApprovalChanged', handleApprovalChange);
+    };
   }, [isLoading, currentAdmin]);
 
   // Fetch communities from database
