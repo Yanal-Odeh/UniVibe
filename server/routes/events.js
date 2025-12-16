@@ -10,12 +10,12 @@ import {
   deanshipApproval,
   getPendingApprovals
 } from '../controllers/eventController.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllEvents);
+// Public routes - optionalAuth allows showing user's own pending events
+router.get('/', optionalAuth, getAllEvents);
 router.get('/:id', getEventById);
 
 // Authenticated routes - Club Leaders can create events

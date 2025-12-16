@@ -23,16 +23,37 @@ export const getAllEvents = async (req, res) => {
   try {
     const { search, communityId, upcoming } = req.query;
 
-    const where = {
-      status: 'APPROVED' // Only show approved events to public
-    };
+    // Build where clause - show approved events OR events created by the authenticated user
+    const where = {};
+    
+    // If user is authenticated, show approved events OR their own events (regardless of status)
+    if (req.user) {
+      where.OR = [
+        { status: 'APPROVED' },
+        { createdBy: req.user.id } // Include user's own events
+      ];
+    } else {
+      // For public access, only show approved events
+      where.status = 'APPROVED';
+    }
     
     if (search) {
-      where.OR = [
+      const searchConditions = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
         { location: { contains: search, mode: 'insensitive' } }
       ];
+      
+      // Combine with existing OR conditions if user is authenticated
+      if (req.user) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: searchConditions }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = searchConditions;
+      }
     }
 
     if (communityId) {
@@ -57,6 +78,10 @@ export const getAllEvents = async (req, res) => {
         endDate: true,
         status: true,
         capacity: true,
+        createdBy: true,
+        facultyLeaderApproval: true,
+        deanOfFacultyApproval: true,
+        deanshipApproval: true,
         creator: {
           select: {
             id: true,

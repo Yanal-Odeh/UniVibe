@@ -36,14 +36,36 @@ const PlanEvents = () => {
   const canPlanEvents = userRole === 'CLUB_LEADER';
 
   // Fetch events on component mount
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await api.getEvents();
-        const eventsData = response.events || [];
+  const fetchEvents = async () => {
+    try {
+      // Clear API cache before fetching to ensure fresh data
+      api.clearCache();
+      
+      const response = await api.getEvents();
+      const eventsData = response.events || [];
+      
+      console.log('All events from API:', eventsData);
+      console.log('Current admin ID:', currentAdmin?.id);
+      
+      // Filter to only show events created by the current user
+      const myEvents = eventsData.filter(event => {
+        console.log(`Event ${event.id}: createdBy=${event.createdBy}, matches=${event.createdBy === currentAdmin?.id}`);
+        return event.createdBy === currentAdmin?.id;
+      });
+      
+      console.log('My events after filtering:', myEvents);
+      
+      // Map events to include approval status
+      const mappedEvents = myEvents.map(event => {
+        console.log('Event approval data:', {
+          id: event.id,
+          facultyLeaderApproval: event.facultyLeaderApproval,
+          deanOfFacultyApproval: event.deanOfFacultyApproval,
+          deanshipApproval: event.deanshipApproval,
+          status: event.status
+        });
         
-        // Map events to include approval status
-        const mappedEvents = eventsData.map(event => ({
+        return {
           ...event,
           approvalStatus: {
             facultyLeader: event.facultyLeaderApproval?.toLowerCase() || 'pending',
@@ -51,15 +73,17 @@ const PlanEvents = () => {
             deanshipOfStudentAffairs: event.deanshipApproval?.toLowerCase() || 'pending'
           },
           communityName: event.community?.name || 'Unknown Community'
-        }));
-        
-        setEvents(mappedEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        showToast('Failed to load events', 'error');
-      }
-    };
+        };
+      });
+      
+      setEvents(mappedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      showToast('Failed to load events', 'error');
+    }
+  };
 
+  useEffect(() => {
     if (!isLoading && currentAdmin) {
       fetchEvents();
     }
@@ -251,9 +275,15 @@ const PlanEvents = () => {
     }
 
     try {
+      console.log('Deleting event:', eventId);
       await api.deleteEvent(eventId);
-      // Remove event from local state
-      setEvents(events.filter(event => event.id !== eventId));
+      
+      // Clear API cache to ensure fresh data on next fetch
+      api.clearCache();
+      
+      // Refetch events from server to ensure we have the latest data
+      await fetchEvents();
+      
       showToast('Event deleted successfully', 'success');
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -330,8 +360,8 @@ const PlanEvents = () => {
                     
                     <p className={styles.eventDescription}>{event.description}</p>
                     
-                    {/* Approval Progress */}
-                    {event.status !== 'approved' && event.status !== 'rejected' && event.approvalStatus && (
+                    {/* Approval Progress - Show for all events except rejected */}
+                    {event.status?.toUpperCase() !== 'REJECTED' && event.approvalStatus && (
                       <div className={styles.approvalProgress}>
                         <h4 className={styles.approvalTitle}>Approval Progress:</h4>
                         <div className={styles.approvalSteps}>
@@ -369,7 +399,7 @@ const PlanEvents = () => {
                     </div>
                   </div>
                   
-                  {canPlanEvents && event.createdBy === currentAdmin?.id && (
+                  {canPlanEvents && (
                     <div className={styles.eventActions}>
                       <button 
                         onClick={() => handleDeleteEvent(event.id)}

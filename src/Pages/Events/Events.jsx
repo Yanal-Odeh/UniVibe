@@ -96,12 +96,17 @@ function Events() {
         const response = await api.getEvents();
         const events = response.events || [];
         
+        // Filter to only show approved events on the Events page
+        const approvedEvents = events.filter(event => 
+          event.status === 'APPROVED' || event.status === 'approved'
+        );
+        
         // Separate events into upcoming and past
         const now = new Date();
-        const upcoming = events.filter(event => new Date(event.endDate || event.startDate) >= now);
-        const past = events.filter(event => new Date(event.endDate || event.startDate) < now);
+        const upcoming = approvedEvents.filter(event => new Date(event.endDate || event.startDate) >= now);
+        const past = approvedEvents.filter(event => new Date(event.endDate || event.startDate) < now);
         
-        setAllEvents(events);
+        setAllEvents(approvedEvents);
         setUpcomingEvents(upcoming);
         setPastEvents(past);
 

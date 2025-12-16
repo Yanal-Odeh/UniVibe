@@ -19,17 +19,8 @@ function Notifications() {
     const newOpenState = !open;
     setOpen(newOpenState);
     
-    // When opening the dropdown, mark all notifications as read
-    if (newOpenState && unreadCount > 0) {
-      try {
-        await api.markAllNotificationsAsRead();
-        setUnreadCount(0);
-        // Update local notifications to mark them as read
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      } catch (error) {
-        console.error('Error marking notifications as read:', error);
-      }
-    }
+    // Don't auto-mark as read when opening - let users take action first
+    // Notifications will be marked as read after approval/denial or manual dismissal
   };
 
   // Fetch notifications and unread count
@@ -102,8 +93,10 @@ function Notifications() {
       // Mark notification as read
       await api.markNotificationAsRead(notification.id);
       
-      // Refresh notifications and count
-      await fetchNotifications();
+      // Remove notification from local state immediately
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      
+      // Update unread count
       await fetchUnreadCount();
       
       alert('Event approved successfully!');
@@ -112,6 +105,20 @@ function Notifications() {
       alert(error.message || 'Failed to approve event');
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const handleDismiss = async (notificationId) => {
+    try {
+      await api.markNotificationAsRead(notificationId);
+      // Update local state
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
+      ));
+      // Update unread count
+      await fetchUnreadCount();
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
     }
   };
 
@@ -140,8 +147,10 @@ function Notifications() {
       // Mark notification as read
       await api.markNotificationAsRead(notification.id);
       
-      // Refresh notifications and count
-      await fetchNotifications();
+      // Remove notification from local state immediately
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+      
+      // Update unread count
       await fetchUnreadCount();
       
       // Clear reason input
@@ -196,40 +205,58 @@ function Notifications() {
               <ul className={styles.list}>
                 {notifications.map((n) => (
                   <li key={n.id} className={`${styles.item} ${!n.read ? styles.unread : ''}`}>
-                    <div className={styles.message}>
-                      {n.message || 'Notification'}
-                      {n.event && (
-                        <div className={styles.eventDetails}>
-                          <strong>{n.event.title}</strong>
-                          {n.event.community && <span> - {n.event.community.name}</span>}
-                        </div>
+                    <div className={styles.notificationHeader}>
+                      <div className={styles.message}>
+                        {n.message || 'Notification'}
+                        {n.event && (
+                          <div className={styles.eventDetails}>
+                            <strong>{n.event.title}</strong>
+                            {n.event.community && <span> - {n.event.community.name}</span>}
+                          </div>
+                        )}
+                      </div>
+                      {!n.read && (
+                        <button
+                          onClick={() => handleDismiss(n.id)}
+                          className={styles.dismissBtn}
+                          title="Mark as read"
+                          aria-label="Mark as read"
+                        >
+                          <X size={14} />
+                        </button>
                       )}
                     </div>
                     <div className={styles.time}>
                       {new Date(n.createdAt).toLocaleString()}
                     </div>
                     
-                    {n.type === 'EVENT_PENDING_APPROVAL' && !n.read && n.eventId && (
+                    {n.type === 'EVENT_PENDING_APPROVAL' && n.eventId && (
                       <div className={styles.actions}>
-                        <button
-                          onClick={() => handleApprove(n)}
-                          disabled={processingId === n.id}
-                          className={styles.approveBtn}
-                          title="Approve event"
-                        >
-                          <Check size={16} />
-                          Approve
-                        </button>
-                        
-                        <button
-                          onClick={() => toggleReasonInput(n.id)}
-                          disabled={processingId === n.id}
-                          className={styles.denyBtn}
-                          title="Deny event"
-                        >
-                          <XCircle size={16} />
-                          Deny
-                        </button>
+                        {processingId !== n.id ? (
+                          <>
+                            <button
+                              onClick={() => handleApprove(n)}
+                              disabled={processingId === n.id}
+                              className={styles.approveBtn}
+                              title="Approve event"
+                            >
+                              <Check size={16} />
+                              Approve
+                            </button>
+                            
+                            <button
+                              onClick={() => toggleReasonInput(n.id)}
+                              disabled={processingId === n.id}
+                              className={styles.denyBtn}
+                              title="Deny event"
+                            >
+                              <XCircle size={16} />
+                              Deny
+                            </button>
+                          </>
+                        ) : (
+                          <div className={styles.processing}>Processing...</div>
+                        )}
                         
                         {showReasonInput[n.id] && (
                           <div className={styles.reasonInput}>

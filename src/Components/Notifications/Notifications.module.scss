@@ -83,11 +83,37 @@
   }
 }
 
-.message {
+.notificationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.message {
+  flex: 1;
   font-weight: 500;
   font-size: 14px;
   line-height: 1.4;
+}
+
+.dismissBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+  }
 }
 
 .eventDetails {
@@ -118,6 +144,13 @@
   gap: 8px;
   margin-top: 10px;
   flex-wrap: wrap;
+}
+
+.processing {
+  padding: 8px 12px;
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
 }
 
 .approveBtn,

@@ -37,6 +37,42 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+// Optional authentication - doesn't fail if no token, but sets req.user if token is valid
+export const optionalAuth = async (req, res, next) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      // No token, continue without setting req.user
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Fetch full user data including collegeId
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        collegeId: true
+      }
+    });
+
+    if (user) {
+      req.user = user;
+    }
+    
+    next();
+  } catch (error) {
+    // Invalid token, continue without setting req.user
+    next();
+  }
+};
+
 export const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Admin access required' });
@@ -51,45 +87,4 @@ export const requireRole = (...roles) => {
     }
     next();
   };
-};
-
-// Optional authentication - tries to authenticate but doesn't fail if no token
-export const optionalAuth = async (req, res, next) => {
-  try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-
-    if (!token) {
-      // No token, but continue without user
-      req.user = null;
-      return next();
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Fetch full user data
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        collegeId: true
-      }
-    });
-
-    if (!user) {
-      // Invalid user, but continue without user
-      req.user = null;
-      return next();
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    // Token invalid, but continue without user
-    req.user = null;
-    next();
-  }
 };
