@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react'
 import './App.css'
 import Root from './routes/Root';
 import Loader from './Components/Loader/Loader';
+import ErrorBoundary from './Components/ErrorBoundary/ErrorBoundary';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { CommunitiesProvider } from './contexts/CommunitiesContext';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -127,11 +128,13 @@ const router = createBrowserRouter([
 function App() {
 
   return (
-    <AdminAuthProvider>
-      <CommunitiesProvider>
-        <RouterProvider router={router} />
-      </CommunitiesProvider>
-    </AdminAuthProvider>
+    <ErrorBoundary>
+      <AdminAuthProvider>
+        <CommunitiesProvider>
+          <RouterProvider router={router} />
+        </CommunitiesProvider>
+      </AdminAuthProvider>
+    </ErrorBoundary>
   )
 }
 

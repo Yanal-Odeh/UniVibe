@@ -304,10 +304,38 @@ class ApiClient {
     });
   }
 
+  async rejectDeanEvent(eventId, reason = '') {
+    return this.request(`/events/${eventId}/reject/dean`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
   async approveDeanshipEvent(eventId, approved, reason = '') {
     return this.request(`/events/${eventId}/approve/deanship`, {
       method: 'POST',
       body: JSON.stringify({ approved, reason }),
+    });
+  }
+
+  async rejectDeanshipEvent(eventId, reason = '') {
+    return this.request(`/events/${eventId}/reject/deanship`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async respondToRevision(eventId, response) {
+    return this.request(`/events/${eventId}/respond-revision`, {
+      method: 'POST',
+      body: JSON.stringify({ response }),
+    });
+  }
+
+  async respondToDeanshipRevision(eventId, response) {
+    return this.request(`/events/${eventId}/respond-deanship-revision`, {
+      method: 'POST',
+      body: JSON.stringify({ response }),
     });
   }
 

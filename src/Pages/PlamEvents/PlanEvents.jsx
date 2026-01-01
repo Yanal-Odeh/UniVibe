@@ -1,13 +1,26 @@
 // src/Pages/PlanEvents/PlanEvents.jsx
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { X, Calendar, MapPin, Users, Clock, MessageSquare } from 'lucide-react';
 import styles from './PlanEvents.module.scss';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import api from '../../lib/api';
+import { 
+  getStatusLabel, 
+  getStatusClass, 
+  formatEventDate,
+  mapEventWithApprovalStatus
+} from '../../utils/eventHelpers';
+import { canPlanEvents as checkCanPlanEvents } from '../../utils/roleHelpers';
+import { createToast } from '../../utils/toastHelpers';
+import { StatusBadge, RevisionSection } from '../../Components/common';
 
 const PlanEvents = () => {
   const [showModal, setShowModal] = useState(false);
   const [events, setEvents] = useState([]);
+  const [revisionResponse, setRevisionResponse] = useState({});
+  const [submittingRevision, setSubmittingRevision] = useState(null);
+  const [deanshipRevisionResponse, setDeanshipRevisionResponse] = useState({});
+  const [submittingDeanshipRevision, setSubmittingDeanshipRevision] = useState(null);
   
   const [colleges, setColleges] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -27,13 +40,14 @@ const PlanEvents = () => {
   });
   
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
+  const showToast = createToast(setToast);
 
   // Get real user from auth context
   const { currentAdmin, isLoading } = useAdminAuth();
 
   // Check if user has permission to plan events (ONLY CLUB_LEADER)
   const userRole = currentAdmin?.role || 'STUDENT';
-  const canPlanEvents = userRole === 'CLUB_LEADER';
+  const canPlanEvents = checkCanPlanEvents(userRole);
 
   // Fetch events on component mount
   const fetchEvents = async () => {
@@ -51,19 +65,7 @@ const PlanEvents = () => {
       });
       
       // Map events to include approval status
-      const mappedEvents = myEvents.map(event => {
-        const approvalStatus = {
-          facultyLeader: event.facultyLeaderApproval?.toLowerCase() || 'pending',
-          deanOfFaculty: event.deanOfFacultyApproval?.toLowerCase() || 'pending',
-          deanshipOfStudentAffairs: event.deanshipApproval?.toLowerCase() || 'pending'
-        };
-        
-        return {
-          ...event,
-          approvalStatus,
-          communityName: event.community?.name || 'Unknown Community'
-        };
-      });
+      const mappedEvents = myEvents.map(mapEventWithApprovalStatus);
       
       setEvents(mappedEvents);
     } catch (error) {
@@ -155,11 +157,6 @@ const PlanEvents = () => {
     }
   }, [formData.collegeId]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => {
@@ -209,15 +206,7 @@ const PlanEvents = () => {
       const newEvent = response.event;
       
       // Map the event to include approval status
-      const mappedEvent = {
-        ...newEvent,
-        approvalStatus: {
-          facultyLeader: newEvent.facultyLeaderApproval?.toLowerCase() || 'pending',
-          deanOfFaculty: newEvent.deanOfFacultyApproval?.toLowerCase() || 'pending',
-          deanshipOfStudentAffairs: newEvent.deanshipApproval?.toLowerCase() || 'pending'
-        },
-        communityName: newEvent.community?.name || mockCommunities.find(c => c.id === formData.communityId)?.name
-      };
+      const mappedEvent = mapEventWithApprovalStatus(newEvent);
       
       setEvents(prev => [mappedEvent, ...prev]);
       showToast('Event submitted for approval!', 'success');
@@ -241,42 +230,7 @@ const PlanEvents = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusLabel = (status) => {
-    const statusLabels = {
-      'PENDING_FACULTY_APPROVAL': 'Pending Faculty Leader',
-      'PENDING_DEAN_APPROVAL': 'Pending Dean of Faculty',
-      'PENDING_DEANSHIP_APPROVAL': 'Pending Deanship',
-      'APPROVED': 'Approved',
-      'REJECTED': 'Rejected',
-      'pending_faculty_approval': 'Pending Faculty Leader',
-      'pending_dean_approval': 'Pending Dean of Faculty',
-      'pending_deanship_approval': 'Pending Deanship',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'draft': 'Draft'
-    };
-    return statusLabels[status] || status;
-  };
-
-  const getStatusClass = (status) => {
-    const normalizedStatus = status?.toLowerCase() || '';
-    if (normalizedStatus === 'approved') return 'approved';
-    if (normalizedStatus === 'rejected') return 'rejected';
-    if (normalizedStatus.includes('pending')) return 'pending';
-    return 'draft';
-  };
+  const formatDate = formatEventDate;
 
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) {
@@ -297,6 +251,60 @@ const PlanEvents = () => {
     } catch (error) {
       console.error('Error deleting event:', error);
       showToast(error.message || 'Failed to delete event', 'error');
+    }
+  };
+
+  const handleRespondToRevision = async (eventId) => {
+    const response = revisionResponse[eventId];
+    if (!response || response.trim() === '') {
+      showToast('Please provide a response to the dean', 'error');
+      return;
+    }
+
+    setSubmittingRevision(eventId);
+    try {
+      await api.respondToRevision(eventId, response);
+      
+      // Clear API cache and refetch
+      api.clearCache();
+      await fetchEvents();
+      
+      // Clear the response field
+      setRevisionResponse(prev => ({ ...prev, [eventId]: '' }));
+      
+      showToast('Response sent and event resubmitted to Dean successfully', 'success');
+    } catch (error) {
+      console.error('Error responding to revision:', error);
+      showToast(error.message || 'Failed to respond to revision request', 'error');
+    } finally {
+      setSubmittingRevision(null);
+    }
+  };
+
+  const handleRespondToDeanshipRevision = async (eventId) => {
+    const response = deanshipRevisionResponse[eventId];
+    if (!response || response.trim() === '') {
+      showToast('Please provide a response to the deanship', 'error');
+      return;
+    }
+
+    setSubmittingDeanshipRevision(eventId);
+    try {
+      await api.respondToDeanshipRevision(eventId, response);
+      
+      // Clear API cache and refetch
+      api.clearCache();
+      await fetchEvents();
+      
+      // Clear the response field
+      setDeanshipRevisionResponse(prev => ({ ...prev, [eventId]: '' }));
+      
+      showToast('Response sent and event resubmitted to Deanship successfully', 'success');
+    } catch (error) {
+      console.error('Error responding to deanship revision:', error);
+      showToast(error.message || 'Failed to respond to deanship revision request', 'error');
+    } finally {
+      setSubmittingDeanshipRevision(null);
     }
   };
 
@@ -368,6 +376,82 @@ const PlanEvents = () => {
                     </div>
                     
                     <p className={styles.eventDescription}>{event.description}</p>
+                    
+                    {/* Revision Request Section */}
+                    {event.status === 'NEEDS_REVISION_DEAN' && event.deanOfFacultyRevisionMessage && (
+                      <div className={styles.revisionSection}>
+                        <div className={styles.revisionHeader}>
+                          <MessageSquare size={18} />
+                          <h4>Dean's Revision Request</h4>
+                        </div>
+                        <div className={styles.revisionMessage}>
+                          {event.deanOfFacultyRevisionMessage}
+                        </div>
+                        {event.facultyLeaderRevisionResponse && (
+                          <div className={styles.previousResponse}>
+                            <strong>Your Previous Response:</strong>
+                            <p>{event.facultyLeaderRevisionResponse}</p>
+                          </div>
+                        )}
+                        <div className={styles.revisionResponseForm}>
+                          <textarea
+                            value={revisionResponse[event.id] || ''}
+                            onChange={(e) => setRevisionResponse(prev => ({
+                              ...prev,
+                              [event.id]: e.target.value
+                            }))}
+                            placeholder="Write your response to address the dean's concerns..."
+                            rows={4}
+                            className={styles.revisionTextarea}
+                          />
+                          <button
+                            onClick={() => handleRespondToRevision(event.id)}
+                            disabled={submittingRevision === event.id}
+                            className={styles.submitRevisionBtn}
+                          >
+                            {submittingRevision === event.id ? 'Submitting...' : 'Submit Response & Resubmit to Dean'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Deanship Revision Request Section */}
+                    {event.status === 'NEEDS_REVISION_DEANSHIP' && event.deanshipRevisionMessage && (
+                      <div className={styles.revisionSection}>
+                        <div className={styles.revisionHeader}>
+                          <MessageSquare size={18} />
+                          <h4>Deanship's Revision Request</h4>
+                        </div>
+                        <div className={styles.revisionMessage}>
+                          {event.deanshipRevisionMessage}
+                        </div>
+                        {event.deanOfFacultyRevisionResponse && (
+                          <div className={styles.previousResponse}>
+                            <strong>Your Previous Response:</strong>
+                            <p>{event.deanOfFacultyRevisionResponse}</p>
+                          </div>
+                        )}
+                        <div className={styles.revisionResponseForm}>
+                          <textarea
+                            value={deanshipRevisionResponse[event.id] || ''}
+                            onChange={(e) => setDeanshipRevisionResponse(prev => ({
+                              ...prev,
+                              [event.id]: e.target.value
+                            }))}
+                            placeholder="Write your response to address the deanship's concerns..."
+                            rows={4}
+                            className={styles.revisionTextarea}
+                          />
+                          <button
+                            onClick={() => handleRespondToDeanshipRevision(event.id)}
+                            disabled={submittingDeanshipRevision === event.id}
+                            className={styles.submitRevisionBtn}
+                          >
+                            {submittingDeanshipRevision === event.id ? 'Submitting...' : 'Submit Response & Resubmit to Deanship'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Approval Progress - Show for all events except rejected */}
                     {event.status?.toUpperCase() !== 'REJECTED' && event.approvalStatus && (

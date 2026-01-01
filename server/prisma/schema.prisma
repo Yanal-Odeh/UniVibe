@@ -113,10 +113,14 @@ model Event {
   deanOfFacultyApprovedBy     String?
   deanOfFacultyApprovedAt     DateTime?
   deanOfFacultyRejectionReason String?
+  deanOfFacultyRevisionMessage String? // Dean's message when sending back for revision
+  facultyLeaderRevisionResponse String? // Faculty leader's response to dean's revision request
   deanshipApproval            ApprovalStatus @default(PENDING)
   deanshipApprovedBy          String?
   deanshipApprovedAt          DateTime?
   deanshipRejectionReason     String?
+  deanshipRevisionMessage     String? // Deanship's message when sending back for revision
+  deanOfFacultyRevisionResponse String? // Dean's response to deanship's revision request
   
   // Relations
   creator       User               @relation("EventCreator", fields: [createdBy], references: [id])
@@ -137,7 +141,9 @@ model Event {
 enum EventStatus {
   PENDING_FACULTY_APPROVAL
   PENDING_DEAN_APPROVAL
+  NEEDS_REVISION_DEAN  // Dean sent event back for revision to faculty leader
   PENDING_DEANSHIP_APPROVAL
+  NEEDS_REVISION_DEANSHIP  // Deanship sent event back for revision to dean
   APPROVED
   REJECTED
 }
@@ -198,6 +204,7 @@ model Notification {
 enum NotificationType {
   EVENT_PENDING_APPROVAL
   EVENT_APPROVED
+  EVENT_NEEDS_REVISION  // Dean sent event back for revision
   EVENT_REJECTED
   EVENT_REMINDER_1_DAY
   EVENT_REMINDER_1_HOUR

@@ -19,6 +19,10 @@ export const getNotifications = async (req, res) => {
             description: true,
             startDate: true,
             status: true,
+            deanOfFacultyRevisionMessage: true,
+            facultyLeaderRevisionResponse: true,
+            deanshipRevisionMessage: true,
+            deanOfFacultyRevisionResponse: true,
             community: {
               select: {
                 id: true,

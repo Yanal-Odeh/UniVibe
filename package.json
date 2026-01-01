@@ -27,6 +27,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "express-slow-down": "^3.0.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",

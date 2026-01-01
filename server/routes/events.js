@@ -7,7 +7,11 @@ import {
   deleteEvent,
   facultyApproval,
   deanApproval,
+  deanReject,
   deanshipApproval,
+  deanshipReject,
+  respondToRevision,
+  respondToDeanshipRevision,
   getPendingApprovals
 } from '../controllers/eventController.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
@@ -27,6 +31,10 @@ router.delete('/:id', authenticate, deleteEvent);
 router.get('/pending/approvals', authenticate, getPendingApprovals);
 router.post('/:id/approve/faculty', authenticate, facultyApproval);
 router.post('/:id/approve/dean', authenticate, deanApproval);
+router.post('/:id/reject/dean', authenticate, deanReject);
 router.post('/:id/approve/deanship', authenticate, deanshipApproval);
+router.post('/:id/reject/deanship', authenticate, deanshipReject);
+router.post('/:id/respond-revision', authenticate, respondToRevision);
+router.post('/:id/respond-deanship-revision', authenticate, respondToDeanshipRevision);
 
 export default router;
