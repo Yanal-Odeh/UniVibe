@@ -35,6 +35,9 @@ model User {
   savedEvents        SavedEvent[]
   applications       ApplicationForm[]  @relation("UserApplications")
 
+  // Performance indexes
+  @@index([role, collegeId]) // For finding faculty/dean by college
+  @@index([email]) // Already unique, but explicit for auth queries
   @@map("users")
 }
 
@@ -131,10 +134,15 @@ model Event {
   registrations EventRegistration[]
   savedByUsers  SavedEvent[]
 
-  @@index([status, startDate])
-  @@index([communityId])
-  @@index([collegeId])
-  @@index([createdBy])
+  // Performance indexes
+  @@index([status, startDate]) // Already exists - for filtering approved/pending events by date
+  @@index([communityId]) // Already exists
+  @@index([collegeId]) // Already exists  
+  @@index([createdBy]) // Already exists
+  @@index([status, collegeId]) // For college-specific approval queries
+  @@index([facultyLeaderApproval, collegeId]) // For faculty leader pending approvals
+  @@index([deanOfFacultyApproval, collegeId]) // For dean pending approvals
+  @@index([deanshipApproval]) // For deanship pending approvals
   @@map("events")
 }
 
@@ -167,6 +175,8 @@ model College {
   communities  Community[]
   users        User[]      // Faculty leaders and deans assigned to this college
 
+  // Performance index
+  @@index([code]) // For quick lookups by college code
   @@map("colleges")
 }
 
@@ -198,6 +208,10 @@ model Notification {
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
+  // Performance indexes
+  @@index([userId, read]) // For fetching unread notifications per user
+  @@index([eventId]) // For event-related notification queries
+  @@index([userId, createdAt]) // For chronological user notifications
   @@map("notifications")
 }
 

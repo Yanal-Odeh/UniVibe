@@ -129,11 +129,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AdminAuthProvider>
-        <CommunitiesProvider>
-          <RouterProvider router={router} />
-        </CommunitiesProvider>
-      </AdminAuthProvider>
+      <RouterProvider router={router} />
     </ErrorBoundary>
   )
 }

@@ -22,7 +22,9 @@ export function AdminAuthProvider({ children }) {
               id: user.id,
               email: user.email,
               name: `${user.firstName} ${user.lastName}`,
-              role: user.role
+              role: user.role,
+              collegeId: user.collegeId,
+              ledCommunities: user.ledCommunities || []
             });
             console.log('User authenticated successfully:', user.role);
           } else {
@@ -55,7 +57,9 @@ export function AdminAuthProvider({ children }) {
           id: data.user.id,
           email: data.user.email,
           name: `${data.user.firstName} ${data.user.lastName}`,
-          role: data.user.role
+          role: data.user.role,
+          collegeId: data.user.collegeId,
+          ledCommunities: data.user.ledCommunities || []
         };
         setCurrentAdmin(userData);
         return { success: true, user: userData };

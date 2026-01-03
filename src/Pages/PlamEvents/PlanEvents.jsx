@@ -49,14 +49,32 @@ const PlanEvents = () => {
   const userRole = currentAdmin?.role || 'STUDENT';
   const canPlanEvents = checkCanPlanEvents(userRole);
 
-  // Fetch events on component mount
-  const fetchEvents = async () => {
+  // Performance: Track fetch metrics
+  const fetchMetrics = React.useRef({ count: 0, startTime: Date.now() });
+  const isFetchingRef = React.useRef(false);
+
+  // Fetch events - OPTIMIZED: No aggressive cache clearing
+  const fetchEvents = async (forceRefresh = false) => {
+    // Guard against duplicate requests
+    if (isFetchingRef.current) {
+      console.log('[Performance] Fetch already in progress, skipping');
+      return;
+    }
+
+    isFetchingRef.current = true;
+    const fetchStart = performance.now();
+    fetchMetrics.current.count++;
+
     try {
-      // Clear API cache before fetching to ensure fresh data
-      api.clearCache();
+      // Only clear cache when explicitly needed (after mutations)
+      // Don't clear cache on routine polling
+      if (forceRefresh) {
+        api.clearCache();
+      }
       
-      // Force fresh data by skipping cache and deduplication
-      const response = await api.getEvents({}, true);
+      // Use normal caching - respect Cache-Control headers
+      // Only force fresh on explicit refresh
+      const response = await api.getEvents({}, forceRefresh);
       const eventsData = response.events || [];
       
       // Filter to only show events created by the current user
@@ -68,30 +86,42 @@ const PlanEvents = () => {
       const mappedEvents = myEvents.map(mapEventWithApprovalStatus);
       
       setEvents(mappedEvents);
+
+      // Performance logging
+      const duration = (performance.now() - fetchStart).toFixed(1);
+      const elapsed = (Date.now() - fetchMetrics.current.startTime) / 60000;
+      const rpm = (fetchMetrics.current.count / Math.max(elapsed, 0.1)).toFixed(1);
+      console.log(`[Performance] Fetch #${fetchMetrics.current.count}: ${duration}ms | ${rpm} req/min | Cache: ${forceRefresh ? 'BYPASS' : 'USE'}`);
     } catch (error) {
       console.error('Error fetching events:', error);
       showToast('Failed to load events', 'error');
+    } finally {
+      isFetchingRef.current = false;
     }
   };
 
   useEffect(() => {
     if (!isLoading && currentAdmin) {
-      fetchEvents();
+      // Initial fetch with force to get fresh data
+      fetchEvents(true);
     }
     
-    // Set up interval to refresh events every 1 second for instant real-time updates
+    // OPTIMIZED: Poll every 30 seconds instead of 1 second
+    // This reduces requests by 97% while still feeling responsive
     const interval = setInterval(() => {
       if (!isLoading && currentAdmin) {
-        fetchEvents();
+        // Use cache on routine polls - respect server Cache-Control headers
+        fetchEvents(false);
       }
-    }, 1000); // Refresh every 1 second for instant updates
+    }, 30000); // 30 seconds - balances freshness with performance
     
     // Listen for approval events from other components
+    // This provides instant updates after user actions
     const handleApprovalChange = () => {
-      console.log('Approval change detected, refreshing events immediately...');
-      fetchEvents();
+      console.log('[Performance] Approval event detected - refreshing immediately');
+      fetchEvents(true);
     };
-    
+
     window.addEventListener('eventApprovalChanged', handleApprovalChange);
     
     return () => {
@@ -136,12 +166,15 @@ const PlanEvents = () => {
   // Fetch locations when college is selected
   useEffect(() => {
     if (formData.collegeId) {
+      console.log('📍 Fetching locations for college:', formData.collegeId);
+      
       const fetchLocations = async () => {
         setLoadingLocations(true);
         try {
           const response = await fetch(`http://localhost:5000/api/colleges/${formData.collegeId}/locations`);
           if (!response.ok) throw new Error('Failed to fetch locations');
           const data = await response.json();
+          console.log('📍 Locations fetched:', data.length, 'locations');
           setLocations(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error('Error fetching locations:', error);
@@ -153,6 +186,7 @@ const PlanEvents = () => {
       };
       fetchLocations();
     } else {
+      console.log('📍 No college selected, clearing locations');
       setLocations([]);
     }
   }, [formData.collegeId]);
@@ -205,10 +239,13 @@ const PlanEvents = () => {
 
       const newEvent = response.event;
       
-      // Map the event to include approval status
+      // Optimistic UI: Map the event and add it immediately to state
       const mappedEvent = mapEventWithApprovalStatus(newEvent);
-      
       setEvents(prev => [mappedEvent, ...prev]);
+      
+      // Clear cache so next poll gets fresh data
+      api.clearCache();
+      
       showToast('Event submitted for approval!', 'success');
       setShowModal(false);
       
@@ -241,11 +278,11 @@ const PlanEvents = () => {
       console.log('Deleting event:', eventId);
       await api.deleteEvent(eventId);
       
-      // Clear API cache to ensure fresh data on next fetch
-      api.clearCache();
+      // Optimistic UI: Remove from state immediately
+      setEvents(prev => prev.filter(e => e.id !== eventId));
       
-      // Refetch events from server to ensure we have the latest data
-      await fetchEvents();
+      // Clear cache so next poll gets fresh data
+      api.clearCache();
       
       showToast('Event deleted successfully', 'success');
     } catch (error) {
@@ -608,14 +645,12 @@ const PlanEvents = () => {
                   value={formData.locationId}
                   onChange={handleInputChange}
                   className={styles.select}
-                  disabled={!formData.collegeId || loadingLocations}
+                  disabled={loadingLocations}
                 >
                   <option value="">
-                    {!formData.collegeId 
-                      ? 'Select a college first' 
-                      : loadingLocations 
-                        ? 'Loading locations...' 
-                        : 'Select a location'}
+                    {loadingLocations 
+                      ? 'Loading locations...' 
+                      : 'Select a location'}
                   </option>
                   {locations.map(location => (
                     <option key={location.id} value={location.id}>

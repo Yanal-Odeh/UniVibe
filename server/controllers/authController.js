@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../utils/prisma.js';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../utils/jwt.js';
-
-const prisma = new PrismaClient();
 
 export const signup = async (req, res) => {
   try {
@@ -136,7 +134,15 @@ export const getCurrentUser = async (req, res) => {
         firstName: true,
         lastName: true,
         role: true,
-        createdAt: true
+        collegeId: true,
+        createdAt: true,
+        ledCommunities: {
+          select: {
+            id: true,
+            name: true,
+            collegeId: true
+          }
+        }
       }
     });
 

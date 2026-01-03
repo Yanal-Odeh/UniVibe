@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../utils/prisma.js';
+import Profiler from '../utils/profiler.js';
 
 // Cache for frequently accessed data
 const cache = new Map();
@@ -110,8 +109,16 @@ export const getAllEvents = async (req, res) => {
       take: 100 // Limit results for better performance
     });
 
-    // Set cache headers for client-side caching
-    res.set('Cache-Control', 'public, max-age=300'); // 5 minutes
+    // Set cache headers based on user context
+    if (req.user) {
+      // For authenticated users showing their own events: short cache (30 seconds)
+      // This allows approval status to update relatively quickly
+      res.set('Cache-Control', 'private, max-age=30');
+    } else {
+      // For public approved events: longer cache (5 minutes)
+      res.set('Cache-Control', 'public, max-age=300');
+    }
+    
     res.json({ events });
   } catch (error) {
     console.error('Get events error:', error);
@@ -182,6 +189,8 @@ export const getEventById = async (req, res) => {
 };
 
 export const createEvent = async (req, res) => {
+  const profiler = new Profiler('Create Event');
+  
   try {
     const { title, description, collegeId, locationId, startDate, endDate, communityId } = req.body;
 
@@ -288,6 +297,7 @@ export const createEvent = async (req, res) => {
     }
 
     // Create event with approval workflow
+    profiler.start('create_event_transaction');
     const event = await prisma.event.create({
       data: {
         title,
@@ -304,7 +314,19 @@ export const createEvent = async (req, res) => {
         deanOfFacultyApproval: 'PENDING',
         deanshipApproval: 'PENDING'
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        capacity: true,
+        createdBy: true,
+        facultyLeaderApproval: true,
+        deanOfFacultyApproval: true,
+        deanshipApproval: true,
         creator: {
           select: {
             id: true,
@@ -321,16 +343,25 @@ export const createEvent = async (req, res) => {
             color: true
           }
         },
-        college: true
+        college: {
+          select: {
+            id: true,
+            name: true,
+            code: true
+          }
+        }
       }
     });
+    profiler.end('create_event_transaction');
 
     // Send notification to Faculty Leader of this college
+    profiler.start('create_notification');
     const facultyLeader = await prisma.user.findFirst({
       where: {
         role: 'FACULTY_LEADER',
         collegeId: community.collegeId
-      }
+      },
+      select: { id: true }
     });
 
     if (facultyLeader) {
@@ -343,10 +374,13 @@ export const createEvent = async (req, res) => {
         }
       });
     }
+    profiler.end('create_notification');
 
+    profiler.log();
     res.status(201).json({ event });
   } catch (error) {
     console.error('Create event error:', error);
+    profiler.log();
     res.status(500).json({ error: 'Failed to create event' });
   }
 };
@@ -415,8 +449,10 @@ export const deleteEvent = async (req, res) => {
   }
 };
 
-// Faculty Leader Approval
+// Faculty Leader Approval - OPTIMIZED
 export const facultyApproval = async (req, res) => {
+  const profiler = new Profiler('Faculty Approval');
+  
   try {
     const { id } = req.params;
     const { approved, reason } = req.body;
@@ -427,11 +463,20 @@ export const facultyApproval = async (req, res) => {
       return res.status(403).json({ error: 'Only Faculty Leaders can approve at this stage' });
     }
 
-    // Get event with college
+    profiler.start('fetch_event');
+    // Optimized: Use select instead of include to reduce payload
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { college: true, community: true }
+      select: {
+        id: true,
+        title: true,
+        collegeId: true,
+        createdBy: true,
+        status: true,
+        facultyLeaderApproval: true
+      }
     });
+    profiler.end('fetch_event');
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
@@ -443,70 +488,109 @@ export const facultyApproval = async (req, res) => {
     }
 
     if (approved) {
-      // Approve and move to next stage
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          facultyLeaderApproval: 'APPROVED',
-          facultyLeaderApprovedBy: user.id,
-          facultyLeaderApprovedAt: new Date(),
-          status: 'PENDING_DEAN_APPROVAL'
-        }
-      });
-
-      // Notify Dean of Faculty
-      const dean = await prisma.user.findFirst({
-        where: {
-          role: 'DEAN_OF_FACULTY',
-          collegeId: event.collegeId
-        }
-      });
-
-      if (dean) {
-        await prisma.notification.create({
+      profiler.start('approval_transaction');
+      // Optimized: Use transaction to combine update + notification lookup + notification creation
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
           data: {
-            userId: dean.id,
-            eventId: event.id,
-            type: 'EVENT_PENDING_APPROVAL',
-            message: `Event "${event.title}" has been approved by Faculty Leader and is pending your approval`
+            facultyLeaderApproval: 'APPROVED',
+            facultyLeaderApprovedBy: user.id,
+            facultyLeaderApprovedAt: new Date(),
+            status: 'PENDING_DEAN_APPROVAL'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            facultyLeaderApproval: true,
+            facultyLeaderApprovedBy: true,
+            facultyLeaderApprovedAt: true
           }
         });
-      }
 
-      res.json({ event: updatedEvent, message: 'Event approved and forwarded to Dean of Faculty' });
+        // 2. Find dean and create notification in parallel would be ideal,
+        // but we need dean.id first. However, we can optimize the query.
+        const dean = await tx.user.findFirst({
+          where: {
+            role: 'DEAN_OF_FACULTY',
+            collegeId: event.collegeId
+          },
+          select: { id: true } // Only select what we need
+        });
+
+        // 3. Create notification if dean exists
+        if (dean) {
+          await tx.notification.create({
+            data: {
+              userId: dean.id,
+              eventId: event.id,
+              type: 'EVENT_PENDING_APPROVAL',
+              message: `Event "${event.title}" has been approved by Faculty Leader and is pending your approval`
+            }
+          });
+        }
+
+        return updatedEvent;
+      });
+      profiler.end('approval_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event approved and forwarded to Dean of Faculty' });
     } else {
-      // Reject
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          facultyLeaderApproval: 'REJECTED',
-          facultyLeaderApprovedBy: user.id,
-          facultyLeaderApprovedAt: new Date(),
-          facultyLeaderRejectionReason: reason || 'No reason provided',
-          status: 'REJECTED'
-        }
-      });
+      profiler.start('rejection_transaction');
+      // Optimized: Use transaction for rejection flow
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
+          data: {
+            facultyLeaderApproval: 'REJECTED',
+            facultyLeaderApprovedBy: user.id,
+            facultyLeaderApprovedAt: new Date(),
+            facultyLeaderRejectionReason: reason || 'No reason provided',
+            status: 'REJECTED'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            facultyLeaderApproval: true,
+            facultyLeaderApprovedBy: true,
+            facultyLeaderApprovedAt: true,
+            facultyLeaderRejectionReason: true
+          }
+        });
 
-      // Notify event creator
-      await prisma.notification.create({
-        data: {
-          userId: event.createdBy,
-          eventId: event.id,
-          type: 'EVENT_REJECTED',
-          message: `Your event "${event.title}" was rejected by Faculty Leader${reason ? `: ${reason}` : ''}`
-        }
-      });
+        // 2. Notify event creator
+        await tx.notification.create({
+          data: {
+            userId: event.createdBy,
+            eventId: event.id,
+            type: 'EVENT_REJECTED',
+            message: `Your event "${event.title}" was rejected by Faculty Leader${reason ? `: ${reason}` : ''}`
+          }
+        });
 
-      res.json({ event: updatedEvent, message: 'Event rejected' });
+        return updatedEvent;
+      });
+      profiler.end('rejection_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event rejected' });
     }
   } catch (error) {
     console.error('Faculty approval error:', error);
+    profiler.log();
     res.status(500).json({ error: 'Failed to process approval' });
   }
 };
 
-// Dean of Faculty Approval
+// Dean of Faculty Approval - OPTIMIZED
 export const deanApproval = async (req, res) => {
+  const profiler = new Profiler('Dean Approval');
+  
   try {
     const { id } = req.params;
     const { approved, reason } = req.body;
@@ -517,11 +601,24 @@ export const deanApproval = async (req, res) => {
       return res.status(403).json({ error: 'Only Dean of Faculty can approve at this stage' });
     }
 
-    // Get event
+    profiler.start('fetch_event');
+    // Optimized: Use select instead of include
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { college: true }
+      select: {
+        id: true,
+        title: true,
+        collegeId: true,
+        createdBy: true,
+        status: true,
+        facultyLeaderApproval: true,
+        deanOfFacultyApproval: true,
+        college: {
+          select: { name: true } // Only get college name for notification
+        }
+      }
     });
+    profiler.end('fetch_event');
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
@@ -538,73 +635,109 @@ export const deanApproval = async (req, res) => {
     }
 
     if (approved) {
-      // Approve and move to final stage
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          deanOfFacultyApproval: 'APPROVED',
-          deanOfFacultyApprovedBy: user.id,
-          deanOfFacultyApprovedAt: new Date(),
-          status: 'PENDING_DEANSHIP_APPROVAL'
-        }
-      });
-
-      // Notify Deanship of Student Affairs
-      const deanship = await prisma.user.findFirst({
-        where: {
-          role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
-        }
-      });
-
-      if (deanship) {
-        await prisma.notification.create({
+      profiler.start('approval_transaction');
+      // Optimized: Use transaction
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
           data: {
-            userId: deanship.id,
-            eventId: event.id,
-            type: 'EVENT_PENDING_APPROVAL',
-            message: `Event "${event.title}" from ${event.college.name} is pending your final approval`
+            deanOfFacultyApproval: 'APPROVED',
+            deanOfFacultyApprovedBy: user.id,
+            deanOfFacultyApprovedAt: new Date(),
+            status: 'PENDING_DEANSHIP_APPROVAL'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            deanOfFacultyApproval: true,
+            deanOfFacultyApprovedBy: true,
+            deanOfFacultyApprovedAt: true
           }
         });
-      }
 
-      res.json({ event: updatedEvent, message: 'Event approved and forwarded to Deanship of Student Affairs' });
+        // 2. Find deanship and create notification
+        const deanship = await tx.user.findFirst({
+          where: {
+            role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
+          },
+          select: { id: true }
+        });
+
+        if (deanship) {
+          await tx.notification.create({
+            data: {
+              userId: deanship.id,
+              eventId: event.id,
+              type: 'EVENT_PENDING_APPROVAL',
+              message: `Event "${event.title}" from ${event.college.name} is pending your final approval`
+            }
+          });
+        }
+
+        return updatedEvent;
+      });
+      profiler.end('approval_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event approved and forwarded to Deanship of Student Affairs' });
     } else {
+      profiler.start('revision_transaction');
       // Send back for revision instead of rejecting
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          deanOfFacultyApproval: 'PENDING',
-          deanOfFacultyApprovedBy: user.id,
-          deanOfFacultyApprovedAt: new Date(),
-          deanOfFacultyRevisionMessage: reason || 'Please revise your event',
-          facultyLeaderRevisionResponse: null, // Clear previous response
-          status: 'NEEDS_REVISION_DEAN'
-        }
-      });
-
-      // Notify faculty leader for revision (not rejection)
-      const facultyLeader = await prisma.user.findFirst({
-        where: {
-          role: 'FACULTY_LEADER',
-          collegeId: event.collegeId
-        }
-      });
-
-      if (facultyLeader) {
-        await prisma.notification.create({
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
           data: {
-            userId: facultyLeader.id,
-            eventId: event.id,
-            type: 'EVENT_NEEDS_REVISION',
-            message: `The Dean of Faculty requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+            deanOfFacultyApproval: 'PENDING',
+            deanOfFacultyApprovedBy: user.id,
+            deanOfFacultyApprovedAt: new Date(),
+            deanOfFacultyRevisionMessage: reason || 'Please revise your event',
+            facultyLeaderRevisionResponse: null, // Clear previous response
+            status: 'NEEDS_REVISION_DEAN'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            deanOfFacultyApproval: true,
+            deanOfFacultyApprovedBy: true,
+            deanOfFacultyApprovedAt: true,
+            deanOfFacultyRevisionMessage: true
           }
         });
-      }
 
-      res.json({ event: updatedEvent, message: 'Event sent back for revision' });
+        // 2. Notify faculty leader for revision
+        const facultyLeader = await tx.user.findFirst({
+          where: {
+            role: 'FACULTY_LEADER',
+            collegeId: event.collegeId
+          },
+          select: { id: true }
+        });
+
+        if (facultyLeader) {
+          await tx.notification.create({
+            data: {
+              userId: facultyLeader.id,
+              eventId: event.id,
+              type: 'EVENT_NEEDS_REVISION',
+              message: `The Dean of Faculty requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+            }
+          });
+        }
+
+        return updatedEvent;
+      });
+      profiler.end('revision_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event sent back for revision' });
     }
   } catch (error) {
     console.error('Dean approval error:', error);
+    profiler.log();
     res.status(500).json({ error: 'Failed to process approval' });
   }
 };
@@ -662,8 +795,10 @@ export const deanReject = async (req, res) => {
   }
 };
 
-// Deanship of Student Affairs Approval (Final)
+// Deanship of Student Affairs Approval (Final) - OPTIMIZED
 export const deanshipApproval = async (req, res) => {
+  const profiler = new Profiler('Deanship Approval');
+  
   try {
     const { id } = req.params;
     const { approved, reason } = req.body;
@@ -674,10 +809,22 @@ export const deanshipApproval = async (req, res) => {
       return res.status(403).json({ error: 'Only Deanship of Student Affairs can approve at this stage' });
     }
 
-    // Get event
+    profiler.start('fetch_event');
+    // Optimized: Use select instead of full fetch
     const event = await prisma.event.findUnique({
-      where: { id }
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        collegeId: true,
+        createdBy: true,
+        status: true,
+        facultyLeaderApproval: true,
+        deanOfFacultyApproval: true,
+        deanshipApproval: true
+      }
     });
+    profiler.end('fetch_event');
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
@@ -689,65 +836,100 @@ export const deanshipApproval = async (req, res) => {
     }
 
     if (approved) {
-      // Final approval
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          deanshipApproval: 'APPROVED',
-          deanshipApprovedBy: user.id,
-          deanshipApprovedAt: new Date(),
-          status: 'APPROVED'
-        }
-      });
-
-      // Notify event creator
-      await prisma.notification.create({
-        data: {
-          userId: event.createdBy,
-          eventId: event.id,
-          type: 'EVENT_APPROVED',
-          message: `Congratulations! Your event "${event.title}" has been fully approved and is now published`
-        }
-      });
-
-      res.json({ event: updatedEvent, message: 'Event fully approved and published' });
-    } else {
-      // Send back for revision instead of rejecting
-      const updatedEvent = await prisma.event.update({
-        where: { id },
-        data: {
-          deanshipApproval: 'PENDING',
-          deanshipApprovedBy: user.id,
-          deanshipApprovedAt: new Date(),
-          deanshipRevisionMessage: reason || 'Please revise your event',
-          deanOfFacultyRevisionResponse: null, // Clear previous response
-          status: 'NEEDS_REVISION_DEANSHIP'
-        }
-      });
-
-      // Notify Dean of Faculty for revision (not rejection)
-      const dean = await prisma.user.findFirst({
-        where: {
-          role: 'DEAN_OF_FACULTY',
-          collegeId: event.collegeId
-        }
-      });
-
-      if (dean) {
-        await prisma.notification.create({
+      profiler.start('approval_transaction');
+      // Optimized: Use transaction for final approval
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
           data: {
-            userId: dean.id,
-            eventId: event.id,
-            type: 'EVENT_NEEDS_REVISION',
-            message: `The Deanship of Student Affairs requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+            deanshipApproval: 'APPROVED',
+            deanshipApprovedBy: user.id,
+            deanshipApprovedAt: new Date(),
+            status: 'APPROVED'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            deanshipApproval: true,
+            deanshipApprovedBy: true,
+            deanshipApprovedAt: true
           }
         });
-      }
 
-      res.json({ event: updatedEvent, message: 'Event sent back for revision' });
+        // 2. Notify event creator
+        await tx.notification.create({
+          data: {
+            userId: event.createdBy,
+            eventId: event.id,
+            type: 'EVENT_APPROVED',
+            message: `Congratulations! Your event "${event.title}" has been fully approved and is now published`
+          }
+        });
+
+        return updatedEvent;
+      });
+      profiler.end('approval_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event fully approved and published' });
+    } else {
+      profiler.start('revision_transaction');
+      // Send back for revision instead of rejecting
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Update event
+        const updatedEvent = await tx.event.update({
+          where: { id },
+          data: {
+            deanshipApproval: 'PENDING',
+            deanshipApprovedBy: user.id,
+            deanshipApprovedAt: new Date(),
+            deanshipRevisionMessage: reason || 'Please revise your event',
+            deanOfFacultyRevisionResponse: null, // Clear previous response
+            status: 'NEEDS_REVISION_DEANSHIP'
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            deanshipApproval: true,
+            deanshipApprovedBy: true,
+            deanshipApprovedAt: true,
+            deanshipRevisionMessage: true
+          }
+        });
+
+        // 2. Notify Dean of Faculty for revision
+        const dean = await tx.user.findFirst({
+          where: {
+            role: 'DEAN_OF_FACULTY',
+            collegeId: event.collegeId
+          },
+          select: { id: true }
+        });
+
+        if (dean) {
+          await tx.notification.create({
+            data: {
+              userId: dean.id,
+              eventId: event.id,
+              type: 'EVENT_NEEDS_REVISION',
+              message: `The Deanship of Student Affairs requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+            }
+          });
+        }
+
+        return updatedEvent;
+      });
+      profiler.end('revision_transaction');
+
+      profiler.log();
+      res.json({ event: result, message: 'Event sent back for revision' });
     }
   } catch (error) {
     console.error('Deanship approval error:', error);
+    profiler.log();
     res.status(500).json({ error: 'Failed to process approval' });
   }
 };
@@ -941,8 +1123,10 @@ export const respondToDeanshipRevision = async (req, res) => {
   }
 };
 
-// Get events pending approval for current user
+// Get events pending approval for current user - OPTIMIZED
 export const getPendingApprovals = async (req, res) => {
+  const profiler = new Profiler('Get Pending Approvals');
+  
   try {
     const user = req.user;
     let where = {};
@@ -969,9 +1153,28 @@ export const getPendingApprovals = async (req, res) => {
       return res.json({ events: [] });
     }
 
+    profiler.start('fetch_pending_events');
+    // OPTIMIZED: Use select instead of include to reduce payload size
     const events = await prisma.event.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        capacity: true,
+        createdBy: true,
+        createdAt: true,
+        facultyLeaderApproval: true,
+        deanOfFacultyApproval: true,
+        deanshipApproval: true,
+        deanOfFacultyRevisionMessage: true,
+        facultyLeaderRevisionResponse: true,
+        deanshipRevisionMessage: true,
+        deanOfFacultyRevisionResponse: true,
         creator: {
           select: {
             id: true,
@@ -988,15 +1191,33 @@ export const getPendingApprovals = async (req, res) => {
             color: true
           }
         },
-        college: true,
-        eventLocation: true
+        college: {
+          select: {
+            id: true,
+            name: true,
+            code: true
+          }
+        },
+        eventLocation: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
+    profiler.end('fetch_pending_events');
 
+    profiler.log();
+    
+    // Don't cache pending approvals - needs to be fresh
+    res.set('Cache-Control', 'no-store');
     res.json({ events });
   } catch (error) {
     console.error('Get pending approvals error:', error);
+    profiler.log();
     res.status(500).json({ error: 'Failed to fetch pending approvals' });
   }
 };

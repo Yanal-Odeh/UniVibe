@@ -18,6 +18,12 @@ import { authenticate, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// IMPORTANT: Order matters! Specific routes MUST come before parameterized routes
+// Otherwise /:id will capture "/pending" as an id parameter
+
+// Authenticated specific routes (must be before /:id)
+router.get('/pending/approvals', authenticate, getPendingApprovals);
+
 // Public routes - optionalAuth allows showing user's own pending events
 router.get('/', optionalAuth, getAllEvents);
 router.get('/:id', getEventById);
@@ -28,7 +34,6 @@ router.patch('/:id', authenticate, updateEvent);
 router.delete('/:id', authenticate, deleteEvent);
 
 // Approval routes
-router.get('/pending/approvals', authenticate, getPendingApprovals);
 router.post('/:id/approve/faculty', authenticate, facultyApproval);
 router.post('/:id/approve/dean', authenticate, deanApproval);
 router.post('/:id/reject/dean', authenticate, deanReject);
