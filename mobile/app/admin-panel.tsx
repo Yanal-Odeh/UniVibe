@@ -17,8 +17,10 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [rejectionModal, setRejectionModal] = useState<any>({ isOpen: false, application: null, reason: '' });
+  const [eventRevisionModal, setEventRevisionModal] = useState<any>({ isOpen: false, event: null, reason: '' });
   const [loading, setLoading] = useState(true);
   
   const [newCommunity, setNewCommunity] = useState({
@@ -59,10 +61,11 @@ export default function AdminPanel() {
     try {
       setLoading(true);
       
-      const [communitiesData, studentsData, applicationsData] = await Promise.all([
+      const [communitiesData, studentsData, applicationsData, eventsData] = await Promise.all([
         api.getCommunities(),
         api.getStudents(),
-        api.getApplications().catch(() => ({ applications: [] }))
+        api.getApplications().catch(() => ({ applications: [] })),
+        api.getEvents().catch(() => ({ events: [] }))
       ]);
       
       const communitiesList = Array.isArray(communitiesData) ? communitiesData : (communitiesData?.communities || []);
@@ -72,6 +75,7 @@ export default function AdminPanel() {
       setStudents(Array.isArray(studentsList) ? studentsList : []);
       
       setApplications(applicationsData.applications || []);
+      setEvents(eventsData.events || eventsData || []);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -283,6 +287,14 @@ export default function AdminPanel() {
         >
           <Text style={[styles.navItemText, activeSection === 'applications' && styles.navItemTextActive]}>
             📋 Applications
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navItem, activeSection === 'events' && styles.navItemActive]}
+          onPress={() => setActiveSection('events')}
+        >
+          <Text style={[styles.navItemText, activeSection === 'events' && styles.navItemTextActive]}>
+            📅 Events
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -548,6 +560,128 @@ export default function AdminPanel() {
         </View>
       )}
 
+      {/* Events Section */}
+      {activeSection === 'events' && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Manage Events</Text>
+              <Text style={styles.sectionSubtitle}>Review and approve event proposals</Text>
+            </View>
+          </View>
+
+          {/* Search */}
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search events..."
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              placeholderTextColor="#999"
+            />
+          </View>
+
+          {/* Events List */}
+          <View style={styles.list}>
+            {events
+              .filter(event => {
+                const searchLower = searchTerm.toLowerCase();
+                return (
+                  event.title.toLowerCase().includes(searchLower) ||
+                  event.description?.toLowerCase().includes(searchLower) ||
+                  event.community?.name.toLowerCase().includes(searchLower) ||
+                  ''
+                );
+              })
+              .map(event => {
+                const getStatusColor = () => {
+                  if (event.status === 'APPROVED') return '#10b981';
+                  if (event.status.includes('REJECTED')) return '#ef4444';
+                  if (event.status.includes('REVISION')) return '#8b5cf6';
+                  return '#f59e0b';
+                };
+
+                const canApprove = () => {
+                  const role = (currentUser.role || '').toString().toUpperCase();
+                  if (role === 'FACULTY_LEADER' && event.status === 'PENDING_FACULTY_APPROVAL') return true;
+                  if (role === 'DEAN_OF_FACULTY' && event.status === 'PENDING_DEAN_APPROVAL') return true;
+                  if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS' && event.status === 'PENDING_DEANSHIP_APPROVAL') return true;
+                  return false;
+                };
+
+                return (
+                  <View key={event.id} style={styles.card}>
+                    <View style={styles.cardHeader}>
+                      <View style={[styles.communityAvatar, { backgroundColor: event.community?.color || '#667eea' }]}>
+                        <Text style={styles.communityAvatarText}>{event.community?.avatar || '📅'}</Text>
+                      </View>
+                      <View style={styles.cardInfo}>
+                        <Text style={styles.cardTitle}>{event.title}</Text>
+                        <Text style={styles.cardDescription}>{event.description}</Text>
+                        <Text style={styles.cardMeta}>
+                          📅 {new Date(event.startDate).toLocaleDateString()} • 📍 {event.location}
+                        </Text>
+                        {event.community && (
+                          <Text style={styles.cardMeta}>
+                            🎯 {event.community.name}
+                          </Text>
+                        )}
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+                          <Text style={styles.statusText}>{event.status.replace(/_/g, ' ')}</Text>
+                        </View>
+                      </View>
+                    </View>
+                    
+                    {canApprove() && (
+                      <View style={styles.cardActions}>
+                        <TouchableOpacity 
+                          style={[styles.actionBtn, styles.approveBtn]}
+                          onPress={async () => {
+                            try {
+                              const role = (currentUser.role || '').toString().toUpperCase();
+                              if (role === 'FACULTY_LEADER') {
+                                await api.approveFacultyLeader(event.id, { approved: true });
+                              } else if (role === 'DEAN_OF_FACULTY') {
+                                await api.approveDeanOfFaculty(event.id, { approved: true });
+                              } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+                                await api.approveDeanship(event.id, { approved: true });
+                              }
+                              Alert.alert('Success', 'Event approved successfully!');
+                              fetchData();
+                            } catch (err: any) {
+                              Alert.alert('Error', err.message || 'Failed to approve event');
+                            }
+                          }}
+                        >
+                          <Text style={[styles.actionBtnText, styles.approveBtnText]}>✓ Approve</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          style={[styles.actionBtn, styles.rejectBtn]}
+                          onPress={() => setEventRevisionModal({ isOpen: true, event, reason: '', type: 'reject' })}
+                        >
+                          <Text style={[styles.actionBtnText, styles.rejectBtnText]}>✕ Reject</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          style={[styles.actionBtn, styles.revisionBtn]}
+                          onPress={() => setEventRevisionModal({ isOpen: true, event, reason: '', type: 'revision' })}
+                        >
+                          <Text style={[styles.actionBtnText, styles.revisionBtnText]}>📝 Revision</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            {events.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No events submitted yet</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* Add Community Modal */}
       <Modal
         visible={isAddingCommunity}
@@ -738,6 +872,86 @@ export default function AdminPanel() {
                 onPress={handleRejectApplication}
               >
                 <Text style={styles.submitBtnText}>Reject Application</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Event Revision/Rejection Modal */}
+      <Modal
+        visible={eventRevisionModal.isOpen}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEventRevisionModal({ isOpen: false, event: null, reason: '', type: '' })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {eventRevisionModal.type === 'revision' ? '📝 Request Revision' : '✕ Reject Event'}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              {eventRevisionModal.event?.title}
+            </Text>
+            <TextInput
+              style={[styles.input, styles.textarea]}
+              placeholder={
+                eventRevisionModal.type === 'revision'
+                  ? 'Describe what needs to be changed...'
+                  : 'Provide rejection reason...'
+              }
+              value={eventRevisionModal.reason}
+              onChangeText={(text) => setEventRevisionModal({ ...eventRevisionModal, reason: text })}
+              multiline
+              numberOfLines={4}
+              placeholderTextColor="#999"
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.cancelBtn} 
+                onPress={() => setEventRevisionModal({ isOpen: false, event: null, reason: '', type: '' })}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.submitBtn, eventRevisionModal.type === 'reject' && styles.rejectSubmitBtn]} 
+                onPress={async () => {
+                  if (!eventRevisionModal.reason.trim()) {
+                    Alert.alert('Error', 'Please provide a reason');
+                    return;
+                  }
+                  
+                  try {
+                    const role = (currentUser.role || '').toString().toUpperCase();
+                    const data = {
+                      approved: false,
+                      [eventRevisionModal.type === 'revision' ? 'revisionRequest' : 'rejectionReason']: eventRevisionModal.reason
+                    };
+                    
+                    if (role === 'FACULTY_LEADER') {
+                      await api.approveFacultyLeader(eventRevisionModal.event.id, data);
+                    } else if (role === 'DEAN_OF_FACULTY') {
+                      await api.approveDeanOfFaculty(eventRevisionModal.event.id, data);
+                    } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+                      await api.approveDeanship(eventRevisionModal.event.id, data);
+                    }
+                    
+                    Alert.alert('Success', 
+                      eventRevisionModal.type === 'revision' 
+                        ? 'Revision request sent!' 
+                        : 'Event rejected'
+                    );
+                    setEventRevisionModal({ isOpen: false, event: null, reason: '', type: '' });
+                    fetchData();
+                  } catch (err: any) {
+                    Alert.alert('Error', err.message || 'Failed to process request');
+                  }
+                }}
+              >
+                <Text style={styles.submitBtnText}>
+                  {eventRevisionModal.type === 'revision' ? 'Request Revision' : 'Reject Event'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1021,6 +1235,13 @@ const styles = StyleSheet.create({
   },
   rejectBtnText: {
     color: '#dc2626',
+  },
+  revisionBtn: {
+    backgroundColor: '#ede9fe',
+    borderColor: '#ede9fe',
+  },
+  revisionBtnText: {
+    color: '#8b5cf6',
   },
   statusBadge: {
     alignSelf: 'flex-start',

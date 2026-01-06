@@ -78,10 +78,59 @@ class ApiClient {
     return this.request(`/events/${id}`);
   }
 
+  async createEvent(eventData: any) {
+    return this.request('/events', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async updateEvent(id: string, updates: any) {
+    return this.request(`/events/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async deleteEvent(id: string) {
+    return this.request(`/events/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async registerForEvent(eventId: number, userId: number) {
     return this.request(`/events/${eventId}/register`, {
       method: 'POST',
       body: JSON.stringify({ userId }),
+    });
+  }
+
+  // Event approval workflow
+  async approveFacultyLeader(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/approve/faculty`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveDeanOfFaculty(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/approve/dean`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async approveDeanship(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/approve/deanship`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async respondToRevision(eventId: string, responseData: any) {
+    return this.request(`/events/${eventId}/respond-revision`, {
+      method: 'POST',
+      body: JSON.stringify(responseData),
     });
   }
 
@@ -132,7 +181,7 @@ class ApiClient {
 
   async updateApplicationStatus(id: string, status: string, rejectionReason?: string) {
     return this.request(`/applications/${id}/status`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify({ status, rejectionReason }),
     });
   }
@@ -186,6 +235,39 @@ class ApiClient {
   async deleteCommunity(id: string) {
     return this.request(`/communities/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // College and Location endpoints
+  async getColleges() {
+    return this.request('/colleges');
+  }
+
+  async getLocations(collegeId?: string) {
+    if (!collegeId) {
+      return { locations: [] };
+    }
+    return this.request(`/colleges/${collegeId}/locations`);
+  }
+
+  // Notification endpoints
+  async getNotifications() {
+    return this.request('/notifications');
+  }
+
+  async getUnreadCount() {
+    return this.request('/notifications/unread-count');
+  }
+
+  async markNotificationAsRead(id: string) {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/mark-all-read', {
+      method: 'PATCH',
     });
   }
 }

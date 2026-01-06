@@ -1,13 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, StatusBar, Platform } from 'react-native';
 import { Link, useRouter, usePathname } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import api from '@/lib/api';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
   const { currentUser, isAuthenticated, logout } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await api.getUnreadCount();
+      setUnreadCount(data.count || 0);
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  };
 
   const menuItems = [
     {
@@ -75,6 +95,8 @@ export default function Navbar() {
         router.push('/policies');
       } else if (path === '/tour' || path === '/virtual-tour') {
         router.push('/virtual-tour');
+      } else if (path === '/plan-events') {
+        router.push('/plan-events');
       }
       // Add more routes as needed
     } catch (error) {
@@ -104,9 +126,24 @@ export default function Navbar() {
           {/* Right side: Notifications + User + Menu */}
           <View style={styles.authArea}>
             {/* Notifications */}
-            <TouchableOpacity style={styles.iconButton}>
-              <Text style={styles.iconText}>🔔</Text>
-            </TouchableOpacity>
+            {isAuthenticated && (
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={() => {
+                  router.push('/notifications');
+                  fetchUnreadCount();
+                }}
+              >
+                <Text style={styles.iconText}>🔔</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
             
             {/* User Profile */}
             {!isAuthenticated ? (
@@ -293,9 +330,27 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 6,
+    position: 'relative',
   },
   iconText: {
     fontSize: 18,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   userProfile: {
     flexDirection: 'row',

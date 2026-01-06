@@ -982,16 +982,16 @@ export const deanshipReject = async (req, res) => {
   }
 };
 
-// Faculty Leader responds to Dean's revision request and resubmits
+// Faculty Leader or Dean of Faculty responds to revision request and resubmits
 export const respondToRevision = async (req, res) => {
   try {
     const { id } = req.params;
     const { response } = req.body;
     const user = req.user;
 
-    // Verify user is Faculty Leader
-    if (user.role !== 'FACULTY_LEADER') {
-      return res.status(403).json({ error: 'Only Faculty Leaders can respond to revision requests' });
+    // Verify user is Faculty Leader or Dean of Faculty
+    if (user.role !== 'FACULTY_LEADER' && user.role !== 'DEAN_OF_FACULTY') {
+      return res.status(403).json({ error: 'Only Faculty Leaders and Dean of Faculty can respond to revision requests' });
     }
 
     // Get event
@@ -1004,49 +1004,86 @@ export const respondToRevision = async (req, res) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Verify Faculty Leader belongs to the same college
+    // Verify user belongs to the same college
     if (event.collegeId !== user.collegeId) {
       return res.status(403).json({ error: 'You can only respond to events from your college' });
     }
 
-    // Verify event is in revision status
-    if (event.status !== 'NEEDS_REVISION_DEAN') {
+    // Verify event is in revision status (either from Dean or Deanship)
+    if (event.status !== 'NEEDS_REVISION_DEAN' && event.status !== 'NEEDS_REVISION_DEANSHIP') {
       return res.status(400).json({ error: 'Event is not awaiting revision' });
     }
 
     if (!response || response.trim() === '') {
-      return res.status(400).json({ error: 'Please provide a response to the dean' });
+      return res.status(400).json({ error: 'Please provide a response' });
     }
 
-    // Update event with faculty leader's response and resubmit to dean
-    const updatedEvent = await prisma.event.update({
-      where: { id },
-      data: {
-        facultyLeaderRevisionResponse: response,
-        status: 'PENDING_DEAN_APPROVAL'
-      }
-    });
-
-    // Notify Dean of Faculty about the revision response
-    const dean = await prisma.user.findFirst({
-      where: {
-        role: 'DEAN_OF_FACULTY',
-        collegeId: event.collegeId
-      }
-    });
-
-    if (dean) {
-      await prisma.notification.create({
+    let updatedEvent;
+    
+    // If Faculty Leader responding to Dean's revision
+    if (user.role === 'FACULTY_LEADER' && event.status === 'NEEDS_REVISION_DEAN') {
+      // Update event with faculty leader's response and resubmit to dean
+      updatedEvent = await prisma.event.update({
+        where: { id },
         data: {
-          userId: dean.id,
-          eventId: event.id,
-          type: 'EVENT_PENDING_APPROVAL',
-          message: `Faculty Leader has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+          facultyLeaderRevisionResponse: response,
+          status: 'PENDING_DEAN_APPROVAL'
         }
       });
+
+      // Notify Dean of Faculty about the revision response
+      const dean = await prisma.user.findFirst({
+        where: {
+          role: 'DEAN_OF_FACULTY',
+          collegeId: event.collegeId
+        }
+      });
+
+      if (dean) {
+        await prisma.notification.create({
+          data: {
+            userId: dean.id,
+            eventId: event.id,
+            type: 'EVENT_PENDING_APPROVAL',
+            message: `Faculty Leader has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+          }
+        });
+      }
+    }
+    // If Dean of Faculty responding to Deanship's revision
+    else if (user.role === 'DEAN_OF_FACULTY' && event.status === 'NEEDS_REVISION_DEANSHIP') {
+      // Update event with dean's response and resubmit to deanship
+      updatedEvent = await prisma.event.update({
+        where: { id },
+        data: {
+          deanOfFacultyRevisionResponse: response,
+          status: 'PENDING_DEANSHIP_APPROVAL'
+        }
+      });
+
+      // Notify Deanship about the revision response
+      const deanship = await prisma.user.findFirst({
+        where: {
+          role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
+        }
+      });
+
+      if (deanship) {
+        await prisma.notification.create({
+          data: {
+            userId: deanship.id,
+            eventId: event.id,
+            type: 'EVENT_PENDING_APPROVAL',
+            message: `Dean of Faculty has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+          }
+        });
+      }
+    }
+    else {
+      return res.status(403).json({ error: 'Invalid role or status for this revision' });
     }
 
-    res.json({ event: updatedEvent, message: 'Response sent and event resubmitted to Dean' });
+    res.json({ event: updatedEvent, message: 'Response sent and event resubmitted' });
   } catch (error) {
     console.error('Respond to revision error:', error);
     res.status(500).json({ error: 'Failed to respond to revision request' });

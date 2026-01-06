@@ -1,0 +1,625 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+  Modal,
+  TextInput
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import api from '@/lib/api';
+import Layout from '@/components/Layout';
+
+export default function NotificationsScreen() {
+  const { currentUser, isAuthenticated } = useAuth();
+  const router = useRouter();
+  
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [actionModal, setActionModal] = useState<any>({ 
+    isOpen: false, 
+    notification: null, 
+    type: '', 
+    reason: '' 
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) {
+      router.push('/sign-in');
+      return;
+    }
+    
+    fetchNotifications();
+  }, [isAuthenticated, currentUser]);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getNotifications();
+      setNotifications(data.notifications || data || []);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchNotifications();
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await api.markNotificationAsRead(notificationId);
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark as read:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.markAllNotificationsAsRead();
+      Alert.alert('Success', 'All notifications marked as read');
+      fetchNotifications();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+      Alert.alert('Error', 'Failed to mark all as read');
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'EVENT_PENDING_APPROVAL':
+        return '📅';
+      case 'EVENT_APPROVED':
+        return '✅';
+      case 'EVENT_REJECTED':
+        return '❌';
+      case 'EVENT_NEEDS_REVISION':
+        return '📝';
+      case 'EVENT_REMINDER':
+        return '🔔';
+      case 'APPLICATION_APPROVED':
+        return '🎉';
+      case 'APPLICATION_REJECTED':
+        return '❌';
+      default:
+        return '📢';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const canApproveEvent = (notification: any) => {
+    if (!notification.eventId) return false;
+    
+    const role = (currentUser?.role || '').toString().toUpperCase();
+    
+    // Faculty Leader can approve pending events or events needing revision from Dean
+    if (role === 'FACULTY_LEADER') {
+      return notification.type === 'EVENT_PENDING_APPROVAL' || notification.type === 'EVENT_NEEDS_REVISION';
+    }
+    
+    // Dean of Faculty can approve pending events or events needing revision from Deanship
+    if (role === 'DEAN_OF_FACULTY') {
+      return notification.type === 'EVENT_PENDING_APPROVAL' || notification.type === 'EVENT_NEEDS_REVISION';
+    }
+    
+    // Deanship can only approve pending events
+    if (notification.type === 'EVENT_PENDING_APPROVAL') {
+      return role === 'DEANSHIP_OF_STUDENT_AFFAIRS';
+    }
+    
+    return false;
+  };
+
+  const canRespondToRevision = (notification: any) => {
+    // Club Leaders, Faculty Leaders, and Dean of Faculty can respond to revision requests
+    if (!notification.eventId) return false;
+    const role = (currentUser?.role || '').toString().toUpperCase();
+    const isRevisionNotification = notification.type === 'EVENT_NEEDS_REVISION';
+    return (role === 'CLUB_LEADER' || role === 'FACULTY_LEADER' || role === 'DEAN_OF_FACULTY') && isRevisionNotification;
+  };
+
+  const handleRevisionResponse = async (notification: any) => {
+    if (!notification || !notification.eventId) {
+      Alert.alert('Error', 'Invalid notification');
+      return;
+    }
+
+    // Open modal for club leader to respond
+    setActionModal({ 
+      isOpen: true, 
+      notification, 
+      type: 'respond', 
+      reason: '' 
+    });
+  };
+
+  const handleEventAction = async (action: 'approve' | 'reject' | 'revision' | 'respond', notification?: any) => {
+    const notif = notification || actionModal.notification;
+    const { reason } = actionModal;
+    
+    if (!notif || !notif.eventId) {
+      Alert.alert('Error', 'Invalid notification');
+      return;
+    }
+    
+    if ((action === 'reject' || action === 'revision' || action === 'respond') && !reason.trim()) {
+      Alert.alert('Error', 'Please provide a reason');
+      return;
+    }
+
+    try {
+      const role = (currentUser?.role || '').toString().toUpperCase();
+      
+      // Handle club leader responding to revision
+      if (action === 'respond') {
+        await api.respondToRevision(notif.eventId, { response: reason });
+        Alert.alert('Success', 'Response submitted successfully!');
+      } else {
+        // Handle approval workflow
+        const data = action === 'approve' 
+          ? { approved: true }
+          : {
+              approved: false,
+              [action === 'revision' ? 'revisionRequest' : 'rejectionReason']: reason
+            };
+
+        if (role === 'FACULTY_LEADER') {
+          await api.approveFacultyLeader(notif.eventId, data);
+        } else if (role === 'DEAN_OF_FACULTY') {
+          await api.approveDeanOfFaculty(notif.eventId, data);
+        } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+          await api.approveDeanship(notif.eventId, data);
+        }
+
+        Alert.alert(
+          'Success', 
+          action === 'approve' ? 'Event approved!' : 
+          action === 'revision' ? 'Revision requested!' : 
+          'Event rejected!'
+        );
+      }
+      
+      setActionModal({ isOpen: false, notification: null, type: '', reason: '' });
+      fetchNotifications();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to process action');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#667eea" />
+        </View>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Notifications</Text>
+          {notifications.some(n => !n.read) && (
+            <TouchableOpacity
+              style={styles.markAllButton}
+              onPress={handleMarkAllAsRead}
+            >
+              <Text style={styles.markAllText}>Mark all as read</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <ScrollView
+          style={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {notifications.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>🔔</Text>
+              <Text style={styles.emptyText}>No notifications yet</Text>
+              <Text style={styles.emptySubtext}>You'll see updates here</Text>
+            </View>
+          ) : (
+            notifications.map((notification) => (
+              <View
+                key={notification.id}
+                style={[
+                  styles.notificationCard,
+                  !notification.read && styles.notificationCardUnread
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.notificationMain}
+                  onPress={() => {
+                    if (!notification.read) {
+                      handleMarkAsRead(notification.id);
+                    }
+                    // Navigate to relevant screen if needed
+                    if (notification.eventId) {
+                      router.push('/admin-panel');
+                    }
+                  }}
+                >
+                  <View style={styles.notificationIcon}>
+                    <Text style={styles.iconText}>
+                      {getNotificationIcon(notification.type)}
+                    </Text>
+                  </View>
+                  
+                  <View style={styles.notificationContent}>
+                    <Text style={[
+                      styles.notificationMessage,
+                      !notification.read && styles.notificationMessageUnread
+                    ]}>
+                      {notification.message}
+                    </Text>
+                    <Text style={styles.notificationTime}>
+                      {formatDate(notification.createdAt)}
+                    </Text>
+                  </View>
+
+                  {!notification.read && (
+                    <View style={styles.unreadDot} />
+                  )}
+                </TouchableOpacity>
+
+                {/* Action buttons for event approvals */}
+                {canApproveEvent(notification) && (
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.approveBtn]}
+                      onPress={() => {
+                        if (notification && notification.eventId) {
+                          handleEventAction('approve', notification);
+                        }
+                      }}
+                    >
+                      <Text style={styles.approveBtnText}>✓ Approve</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.rejectBtn]}
+                      onPress={() => {
+                        if (notification && notification.eventId) {
+                          setActionModal({ 
+                            isOpen: true, 
+                            notification, 
+                            type: 'reject', 
+                            reason: '' 
+                          });
+                        }
+                      }}
+                    >
+                      <Text style={styles.rejectBtnText}>✕ Reject</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.revisionBtn]}
+                      onPress={() => {
+                        if (notification && notification.eventId) {
+                          setActionModal({ 
+                            isOpen: true, 
+                            notification, 
+                            type: 'revision', 
+                            reason: '' 
+                          });
+                        }
+                      }}
+                    >
+                      <Text style={styles.revisionBtnText}>📝 Revision</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Button for club leaders to respond to revision requests */}
+                {canRespondToRevision(notification) && (
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.respondBtn]}
+                      onPress={() => handleRevisionResponse(notification)}
+                    >
+                      <Text style={styles.respondBtnText}>📝 Respond to Revision</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
+        </ScrollView>
+
+        {/* Action Modal */}
+        <Modal
+          visible={actionModal.isOpen}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setActionModal({ isOpen: false, notification: null, type: '', reason: '' })}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {actionModal.type === 'reject' ? '✕ Reject Event' : 
+                 actionModal.type === 'respond' ? '📝 Respond to Revision' : 
+                 '📝 Request Revision'}
+              </Text>
+              
+              <TextInput
+                style={styles.modalInput}
+                placeholder={
+                  actionModal.type === 'reject' 
+                    ? 'Provide rejection reason...' 
+                    : actionModal.type === 'respond'
+                    ? 'Describe what you changed or your response...'
+                    : 'Describe what needs to be changed...'
+                }
+                value={actionModal.reason}
+                onChangeText={(text) => setActionModal({ ...actionModal, reason: text })}
+                multiline
+                numberOfLines={4}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, styles.cancelBtn]}
+                  onPress={() => setActionModal({ isOpen: false, notification: null, type: '', reason: '' })}
+                >
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalBtn, styles.submitBtn]}
+                  onPress={() => handleEventAction(actionModal.type as any)}
+                >
+                  <Text style={styles.submitBtnText}>
+                    {actionModal.type === 'reject' ? 'Reject' : 
+                     actionModal.type === 'respond' ? 'Submit Response' : 
+                     'Request Revision'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </Layout>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  markAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#667eea',
+  },
+  markAllText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  list: {
+    flex: 1,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 80,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#6b7280',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  notificationCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  notificationCardUnread: {
+    backgroundColor: '#eff6ff',
+    borderLeftWidth: 3,
+    borderLeftColor: '#667eea',
+  },
+  notificationMain: {
+    flexDirection: 'row',
+    padding: 16,
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  iconText: {
+    fontSize: 20,
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: '#4b5563',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  notificationMessageUnread: {
+    color: '#111827',
+    fontWeight: '500',
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#667eea',
+    marginLeft: 8,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  actionBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  approveBtn: {
+    backgroundColor: '#d1fae5',
+  },
+  approveBtnText: {
+    color: '#059669',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  rejectBtn: {
+    backgroundColor: '#fee2e2',
+  },
+  rejectBtnText: {
+    color: '#dc2626',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  revisionBtn: {
+    backgroundColor: '#ede9fe',
+  },
+  revisionBtnText: {
+    color: '#8b5cf6',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  respondBtn: {
+    backgroundColor: '#dbeafe',
+  },
+  respondBtnText: {
+    color: '#2563eb',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#111827',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: '#f3f4f6',
+  },
+  cancelBtnText: {
+    color: '#374151',
+    fontWeight: '600',
+  },
+  submitBtn: {
+    backgroundColor: '#667eea',
+  },
+  submitBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+});

@@ -30,6 +30,8 @@ export default function RootLayout() {
           <Stack.Screen name="policies" options={{ headerShown: false, title: 'Policies & Guidelines' }} />
           <Stack.Screen name="virtual-tour" options={{ headerShown: false, title: 'Virtual Tour' }} />
           <Stack.Screen name="admin-panel" options={{ headerShown: false, title: 'Admin Panel' }} />
+          <Stack.Screen name="plan-events" options={{ headerShown: false, title: 'Plan Events' }} />
+          <Stack.Screen name="notifications" options={{ headerShown: false, title: 'Notifications' }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
