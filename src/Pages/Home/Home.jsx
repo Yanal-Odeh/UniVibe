@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Users, BookOpen, Coffee, Music, Camera, Sparkles, ArrowRight } from 'lucide-react';
 import styles from './Home.module.scss';
+import EventSlider from '../../Components/EventSlider/EventSlider';
 
 // Memoized components for better performance
 const StatCard = React.memo(({ stat }) => (
@@ -209,6 +210,11 @@ const Home = () => {
         <div className={styles.statsContainer}>
           {statsList}
         </div>
+      </div>
+
+      {/* Event Slider Section */}
+      <div className={styles.eventSliderSection}>
+        <EventSlider />
       </div>
 
       {/* Features Section */}
