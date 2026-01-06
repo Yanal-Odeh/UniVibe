@@ -85,7 +85,7 @@ export default function AdminPanel() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/sign-in');
+    router.replace('/(tabs)');
   };
 
   const formatRole = (role: string) => {

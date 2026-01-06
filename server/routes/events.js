@@ -6,6 +6,7 @@ import {
   updateEvent,
   deleteEvent,
   facultyApproval,
+  facultyReject,
   deanApproval,
   deanReject,
   deanshipApproval,
@@ -35,6 +36,7 @@ router.delete('/:id', authenticate, deleteEvent);
 
 // Approval routes
 router.post('/:id/approve/faculty', authenticate, facultyApproval);
+router.post('/:id/reject/faculty', authenticate, facultyReject);
 router.post('/:id/approve/dean', authenticate, deanApproval);
 router.post('/:id/reject/dean', authenticate, deanReject);
 router.post('/:id/approve/deanship', authenticate, deanshipApproval);

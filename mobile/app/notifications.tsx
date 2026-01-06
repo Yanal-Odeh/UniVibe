@@ -144,6 +144,39 @@ export default function NotificationsScreen() {
     return (role === 'CLUB_LEADER' || role === 'FACULTY_LEADER' || role === 'DEAN_OF_FACULTY') && isRevisionNotification;
   };
 
+  const extractRevisionReason = (message: string) => {
+    // Extract the reason/response after "requests revision" or "Response:"
+    // For revision requests: "...requests revision for event "title": reason"
+    // For responses: "...resubmitted it for your review. Response: text"
+    // For club leader responses stored: "Club Leader Response: text" or "Name's Response: text"
+    
+    if (message.includes('Club Leader Response:')) {
+      const match = message.match(/Club Leader Response:\s*(.+)$/);
+      return match ? match[1] : message;
+    }
+    
+    // Handle user name's response format (e.g., "John's Response:")
+    if (message.includes("'s Response:")) {
+      const match = message.match(/([^']+)'s Response:\s*(.+)$/);
+      return match ? match[2] : message;
+    }
+    
+    if (message.includes('Response:')) {
+      const match = message.match(/Response:\s*(.+)$/);
+      return match ? match[1] : message;
+    }
+    
+    const match = message.match(/:\s*(.+)$/);
+    return match ? match[1] : message;
+  };
+  
+  const extractResponderName = (message: string) => {
+    // Extract the name of the person who responded
+    // Format: "Name has responded to your revision request..."
+    const match = message.match(/^([^\s]+(?:\s+[^\s]+)*?)\s+has responded to your revision request/);
+    return match ? match[1] : 'Submitter';
+  };
+
   const handleRevisionResponse = async (notification: any) => {
     if (!notification || !notification.eventId) {
       Alert.alert('Error', 'Invalid notification');
@@ -168,6 +201,11 @@ export default function NotificationsScreen() {
       return;
     }
     
+    // Mark notification as read immediately to hide buttons
+    if (!notif.read) {
+      await handleMarkAsRead(notif.id);
+    }
+    
     if ((action === 'reject' || action === 'revision' || action === 'respond') && !reason.trim()) {
       Alert.alert('Error', 'Please provide a reason');
       return;
@@ -180,15 +218,21 @@ export default function NotificationsScreen() {
       if (action === 'respond') {
         await api.respondToRevision(notif.eventId, { response: reason });
         Alert.alert('Success', 'Response submitted successfully!');
-      } else {
-        // Handle approval workflow
-        const data = action === 'approve' 
-          ? { approved: true }
-          : {
-              approved: false,
-              [action === 'revision' ? 'revisionRequest' : 'rejectionReason']: reason
-            };
-
+      } 
+      // Handle approval
+      else if (action === 'approve') {
+        if (role === 'FACULTY_LEADER') {
+          await api.approveFacultyLeader(notif.eventId, { approved: true });
+        } else if (role === 'DEAN_OF_FACULTY') {
+          await api.approveDeanOfFaculty(notif.eventId, { approved: true });
+        } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+          await api.approveDeanship(notif.eventId, { approved: true });
+        }
+        Alert.alert('Success', 'Event approved!');
+      }
+      // Handle revision request (send back for changes)
+      else if (action === 'revision') {
+        const data = { approved: false, reason: reason };
         if (role === 'FACULTY_LEADER') {
           await api.approveFacultyLeader(notif.eventId, data);
         } else if (role === 'DEAN_OF_FACULTY') {
@@ -196,13 +240,19 @@ export default function NotificationsScreen() {
         } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
           await api.approveDeanship(notif.eventId, data);
         }
-
-        Alert.alert(
-          'Success', 
-          action === 'approve' ? 'Event approved!' : 
-          action === 'revision' ? 'Revision requested!' : 
-          'Event rejected!'
-        );
+        Alert.alert('Success', 'Revision requested!');
+      }
+      // Handle permanent rejection
+      else if (action === 'reject') {
+        const data = { reason };
+        if (role === 'FACULTY_LEADER') {
+          await api.rejectFacultyLeader(notif.eventId, data);
+        } else if (role === 'DEAN_OF_FACULTY') {
+          await api.rejectDeanOfFaculty(notif.eventId, data);
+        } else if (role === 'DEANSHIP_OF_STUDENT_AFFAIRS') {
+          await api.rejectDeanship(notif.eventId, data);
+        }
+        Alert.alert('Success', 'Event rejected!');
       }
       
       setActionModal({ isOpen: false, notification: null, type: '', reason: '' });
@@ -283,6 +333,32 @@ export default function NotificationsScreen() {
                     ]}>
                       {notification.message}
                     </Text>
+                    
+                    {/* Show revision reason prominently for revision requests */}
+                    {notification.type === 'EVENT_NEEDS_REVISION' && (
+                      <View style={styles.revisionReasonBox}>
+                        <Text style={styles.revisionReasonLabel}>📝 Revision Reason:</Text>
+                        <Text style={styles.revisionReasonText}>
+                          {extractRevisionReason(notification.message)}
+                        </Text>
+                      </View>
+                    )}
+                    
+                    {/* Show both revision reason and response for resubmitted events */}
+                    {notification.type === 'EVENT_PENDING_APPROVAL' && notification.message.includes('responded to your revision request') && (
+                      <>
+                        {/* Extract and show original revision from message */}
+                        {notification.message.includes('Response:') && (
+                          <View style={styles.responseBox}>
+                            <Text style={styles.responseLabel}>💬 Response from {extractResponderName(notification.message)}:</Text>
+                            <Text style={styles.responseText}>
+                              {extractRevisionReason(notification.message)}
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    )}
+                    
                     <Text style={styles.notificationTime}>
                       {formatDate(notification.createdAt)}
                     </Text>
@@ -293,8 +369,8 @@ export default function NotificationsScreen() {
                   )}
                 </TouchableOpacity>
 
-                {/* Action buttons for event approvals */}
-                {canApproveEvent(notification) && (
+                {/* Action buttons for event approvals - only show for unread notifications */}
+                {!notification.read && canApproveEvent(notification) && (
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
                       style={[styles.actionBtn, styles.approveBtn]}
@@ -341,8 +417,8 @@ export default function NotificationsScreen() {
                   </View>
                 )}
 
-                {/* Button for club leaders to respond to revision requests */}
-                {canRespondToRevision(notification) && (
+                {/* Button for club leaders to respond to revision requests - only show for unread notifications */}
+                {!notification.read && canRespondToRevision(notification) && (
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
                       style={[styles.actionBtn, styles.respondBtn]}
@@ -371,6 +447,16 @@ export default function NotificationsScreen() {
                  actionModal.type === 'respond' ? '📝 Respond to Revision' : 
                  '📝 Request Revision'}
               </Text>
+              
+              {/* Show original revision request for 'respond' type */}
+              {actionModal.type === 'respond' && actionModal.notification && (
+                <View style={styles.originalRequestBox}>
+                  <Text style={styles.originalRequestLabel}>Original Revision Request:</Text>
+                  <Text style={styles.originalRequestText}>
+                    {actionModal.notification.message}
+                  </Text>
+                </View>
+              )}
               
               <TextInput
                 style={styles.modalInput}
@@ -517,6 +603,48 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '500',
   },
+  revisionReasonBox: {
+    backgroundColor: '#fef3c7',
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  revisionReasonLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400e',
+    marginBottom: 4,
+  },
+  revisionReasonText: {
+    fontSize: 13,
+    color: '#78350f',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  responseBox: {
+    backgroundColor: '#dbeafe',
+    borderLeftWidth: 3,
+    borderLeftColor: '#3b82f6',
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  responseLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1e40af',
+    marginBottom: 4,
+  },
+  responseText: {
+    fontSize: 13,
+    color: '#1e3a8a',
+    lineHeight: 18,
+    fontWeight: '500',
+  },
   notificationTime: {
     fontSize: 12,
     color: '#9ca3af',
@@ -588,6 +716,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#111827',
+  },
+  originalRequestBox: {
+    backgroundColor: '#fef3c7',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  originalRequestLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#92400e',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  originalRequestText: {
+    fontSize: 14,
+    color: '#78350f',
+    lineHeight: 20,
   },
   modalInput: {
     borderWidth: 1,

@@ -113,6 +113,13 @@ class ApiClient {
     });
   }
 
+  async rejectFacultyLeader(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/reject/faculty`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async approveDeanOfFaculty(eventId: string, data: any) {
     return this.request(`/events/${eventId}/approve/dean`, {
       method: 'POST',
@@ -120,8 +127,22 @@ class ApiClient {
     });
   }
 
+  async rejectDeanOfFaculty(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/reject/dean`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async approveDeanship(eventId: string, data: any) {
     return this.request(`/events/${eventId}/approve/deanship`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async rejectDeanship(eventId: string, data: any) {
+    return this.request(`/events/${eventId}/reject/deanship`, {
       method: 'POST',
       body: JSON.stringify(data),
     });

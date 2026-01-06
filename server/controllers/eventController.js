@@ -539,18 +539,18 @@ export const facultyApproval = async (req, res) => {
       profiler.log();
       res.json({ event: result, message: 'Event approved and forwarded to Dean of Faculty' });
     } else {
-      profiler.start('rejection_transaction');
-      // Optimized: Use transaction for rejection flow
+      profiler.start('revision_transaction');
+      // Send back for revision instead of rejecting
       const result = await prisma.$transaction(async (tx) => {
-        // 1. Update event
+        // 1. Update event - use facultyLeaderRejectionReason for revision message
         const updatedEvent = await tx.event.update({
           where: { id },
           data: {
-            facultyLeaderApproval: 'REJECTED',
+            facultyLeaderApproval: 'PENDING',
             facultyLeaderApprovedBy: user.id,
             facultyLeaderApprovedAt: new Date(),
-            facultyLeaderRejectionReason: reason || 'No reason provided',
-            status: 'REJECTED'
+            facultyLeaderRejectionReason: reason || 'Please revise your event',
+            status: 'PENDING_FACULTY_APPROVAL'
           },
           select: {
             id: true,
@@ -563,27 +563,85 @@ export const facultyApproval = async (req, res) => {
           }
         });
 
-        // 2. Notify event creator
+        // 2. Notify club leader (event creator) for revision
         await tx.notification.create({
           data: {
             userId: event.createdBy,
             eventId: event.id,
-            type: 'EVENT_REJECTED',
-            message: `Your event "${event.title}" was rejected by Faculty Leader${reason ? `: ${reason}` : ''}`
+            type: 'EVENT_NEEDS_REVISION',
+            message: `The Faculty Leader requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
           }
         });
 
         return updatedEvent;
       });
-      profiler.end('rejection_transaction');
+      profiler.end('revision_transaction');
 
       profiler.log();
-      res.json({ event: result, message: 'Event rejected' });
+      res.json({ event: result, message: 'Event sent back for revision' });
     }
   } catch (error) {
     console.error('Faculty approval error:', error);
     profiler.log();
     res.status(500).json({ error: 'Failed to process approval' });
+  }
+};
+
+// Faculty Leader Permanent Rejection
+export const facultyReject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const user = req.user;
+
+    if (user.role !== 'FACULTY_LEADER') {
+      return res.status(403).json({ error: 'Only Faculty Leaders can reject at this stage' });
+    }
+
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        collegeId: true,
+        createdBy: true
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    if (event.collegeId !== user.collegeId) {
+      return res.status(403).json({ error: 'You can only reject events from your college' });
+    }
+
+    // Permanently reject the event
+    const updatedEvent = await prisma.event.update({
+      where: { id },
+      data: {
+        facultyLeaderApproval: 'REJECTED',
+        facultyLeaderApprovedBy: user.id,
+        facultyLeaderApprovedAt: new Date(),
+        facultyLeaderRejectionReason: reason || 'No reason provided',
+        status: 'REJECTED'
+      }
+    });
+
+    // Notify event creator (Club Leader)
+    await prisma.notification.create({
+      data: {
+        userId: event.createdBy,
+        eventId: event.id,
+        type: 'EVENT_REJECTED',
+        message: `Your event "${event.title}" was rejected by Faculty Leader${reason ? `: ${reason}` : ''}`
+      }
+    });
+
+    res.json({ event: updatedEvent, message: 'Event permanently rejected' });
+  } catch (error) {
+    console.error('Faculty rejection error:', error);
+    res.status(500).json({ error: 'Failed to reject event' });
   }
 };
 
@@ -982,16 +1040,16 @@ export const deanshipReject = async (req, res) => {
   }
 };
 
-// Faculty Leader or Dean of Faculty responds to revision request and resubmits
+// Club Leader, Faculty Leader or Dean of Faculty responds to revision request and resubmits
 export const respondToRevision = async (req, res) => {
   try {
     const { id } = req.params;
     const { response } = req.body;
     const user = req.user;
 
-    // Verify user is Faculty Leader or Dean of Faculty
-    if (user.role !== 'FACULTY_LEADER' && user.role !== 'DEAN_OF_FACULTY') {
-      return res.status(403).json({ error: 'Only Faculty Leaders and Dean of Faculty can respond to revision requests' });
+    // Verify user is Club Leader, Faculty Leader or Dean of Faculty
+    if (user.role !== 'CLUB_LEADER' && user.role !== 'FACULTY_LEADER' && user.role !== 'DEAN_OF_FACULTY') {
+      return res.status(403).json({ error: 'Only Club Leaders, Faculty Leaders and Dean of Faculty can respond to revision requests' });
     }
 
     // Get event
@@ -1004,13 +1062,19 @@ export const respondToRevision = async (req, res) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    // Verify user belongs to the same college
-    if (event.collegeId !== user.collegeId) {
+    // Verify user is event creator for Club Leader role
+    if (user.role === 'CLUB_LEADER' && event.createdBy !== user.id) {
+      return res.status(403).json({ error: 'You can only respond to your own events' });
+    }
+
+    // Verify user belongs to the same college for Faculty/Dean roles
+    if ((user.role === 'FACULTY_LEADER' || user.role === 'DEAN_OF_FACULTY') && event.collegeId !== user.collegeId) {
       return res.status(403).json({ error: 'You can only respond to events from your college' });
     }
 
-    // Verify event is in revision status (either from Dean or Deanship)
-    if (event.status !== 'NEEDS_REVISION_DEAN' && event.status !== 'NEEDS_REVISION_DEANSHIP') {
+    // Verify event is in revision status
+    const validStatuses = ['NEEDS_REVISION_DEAN', 'NEEDS_REVISION_DEANSHIP', 'PENDING_FACULTY_APPROVAL'];
+    if (!validStatuses.includes(event.status)) {
       return res.status(400).json({ error: 'Event is not awaiting revision' });
     }
 
@@ -1020,8 +1084,53 @@ export const respondToRevision = async (req, res) => {
 
     let updatedEvent;
     
+    // If Club Leader responding to Faculty Leader's revision
+    if (user.role === 'CLUB_LEADER' && event.status === 'PENDING_FACULTY_APPROVAL') {
+      // Keep the original revision reason and append the response
+      const originalReason = event.facultyLeaderRejectionReason || '';
+      const combinedMessage = `${originalReason}\n\n📝 Club Leader Response: ${response}`;
+      
+      // Update event - store both revision reason and response
+      updatedEvent = await prisma.event.update({
+        where: { id },
+        data: {
+          facultyLeaderApproval: 'PENDING',
+          facultyLeaderRejectionReason: combinedMessage,
+          status: 'PENDING_FACULTY_APPROVAL'
+        }
+      });
+
+      // Notify Faculty Leader about the resubmission
+      const facultyLeader = await prisma.user.findFirst({
+        where: {
+          role: 'FACULTY_LEADER',
+          collegeId: event.collegeId
+        }
+      });
+
+      if (facultyLeader) {
+        await prisma.notification.create({
+          data: {
+            userId: facultyLeader.id,
+            eventId: event.id,
+            type: 'EVENT_PENDING_APPROVAL',
+            message: `${user.name} has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+          }
+        });
+      }
+      
+      // Also notify the Club Leader confirming their response was submitted
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          eventId: event.id,
+          type: 'EVENT_PENDING_APPROVAL',
+          message: `Your response to the revision request for event "${event.title}" has been submitted to Faculty Leader. Original Request: ${originalReason}\n\n${user.name}'s Response: ${response}`
+        }
+      });
+    }
     // If Faculty Leader responding to Dean's revision
-    if (user.role === 'FACULTY_LEADER' && event.status === 'NEEDS_REVISION_DEAN') {
+    else if (user.role === 'FACULTY_LEADER' && event.status === 'NEEDS_REVISION_DEAN') {
       // Update event with faculty leader's response and resubmit to dean
       updatedEvent = await prisma.event.update({
         where: { id },

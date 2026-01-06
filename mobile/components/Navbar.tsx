@@ -261,7 +261,7 @@ export default function Navbar() {
                     onPress={async () => {
                       await logout();
                       setMobileMenuOpen(false);
-                      router.replace('/');
+                      router.replace('/(tabs)');
                     }}
                     style={styles.mobileMenuLink}
                   >
