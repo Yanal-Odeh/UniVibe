@@ -32,6 +32,11 @@ export default function RootLayout() {
           <Stack.Screen name="admin-panel" options={{ headerShown: false, title: 'Admin Panel' }} />
           <Stack.Screen name="plan-events" options={{ headerShown: false, title: 'Plan Events' }} />
           <Stack.Screen name="notifications" options={{ headerShown: false, title: 'Notifications' }} />
+          <Stack.Screen name="event-calendar" options={{ headerShown: false, title: 'Event Calendar' }} />
+          <Stack.Screen name="event-details" options={{ headerShown: false, title: 'Event Details' }} />
+          <Stack.Screen name="events" options={{ headerShown: false, title: 'Events' }} />
+          <Stack.Screen name="communities" options={{ headerShown: false, title: 'Communities' }} />
+          <Stack.Screen name="about" options={{ headerShown: false, title: 'About' }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

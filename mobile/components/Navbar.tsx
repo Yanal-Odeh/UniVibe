@@ -97,6 +97,12 @@ export default function Navbar() {
         router.push('/virtual-tour');
       } else if (path === '/plan-events') {
         router.push('/plan-events');
+      } else if (path === '/calendar') {
+        router.push('/event-calendar');
+      } else if (path === '/saved-events') {
+        router.push('/saved-events');
+      } else if (path === '/virtual-events') {
+        router.push('/virtual-events');
       }
       // Add more routes as needed
     } catch (error) {

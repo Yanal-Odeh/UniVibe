@@ -74,7 +74,7 @@ class ApiClient {
     return this.request(`/events${queryString ? `?${queryString}` : ''}`);
   }
 
-  async getEvent(id: number) {
+  async getEvent(id: number | string) {
     return this.request(`/events/${id}`);
   }
 
