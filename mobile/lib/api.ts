@@ -291,6 +291,40 @@ class ApiClient {
       method: 'PATCH',
     });
   }
+
+  // Study Space endpoints
+  async getStudySpaces(date?: string) {
+    const params = date ? `?date=${date}` : '';
+    return this.request(`/study-spaces${params}`);
+  }
+
+  async getStudySpace(id: string, date?: string) {
+    const params = date ? `?date=${date}` : '';
+    return this.request(`/study-spaces/${id}${params}`);
+  }
+
+  async createReservation(spaceId: string, date: string) {
+    return this.request('/study-spaces/reserve', {
+      method: 'POST',
+      body: JSON.stringify({ spaceId, date }),
+    });
+  }
+
+  async getMyReservations(status?: string) {
+    const params = status ? `?status=${status}` : '';
+    return this.request(`/study-spaces/my/reservations${params}`);
+  }
+
+  async cancelReservation(reservationId: string) {
+    return this.request(`/study-spaces/reservations/${reservationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAllReservations(params?: { status?: string }) {
+    const queryParams = params?.status ? `?status=${params.status}` : '';
+    return this.request(`/study-spaces/admin/reservations${queryParams}`);
+  }
 }
 
 // Export singleton instance

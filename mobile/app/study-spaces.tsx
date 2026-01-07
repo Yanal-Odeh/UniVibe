@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Modal, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
+import api from '@/lib/api';
+import { router } from 'expo-router';
 
 export default function StudySpacesScreen() {
+  const { currentUser } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [studySpaces, setStudySpaces] = useState<any[]>([]);
+  const [userReservations, setUserReservations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedSpace, setSelectedSpace] = useState<any>(null);
+  const [showReservationModal, setShowReservationModal] = useState(false);
+  const [reserving, setReserving] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   const categories = [
     { id: 'all', name: 'All Spaces', icon: '📚' },
@@ -13,112 +25,140 @@ export default function StudySpacesScreen() {
     { id: 'cafe', name: 'Café Style', icon: '☕' },
   ];
 
-  const studySpaces = [
-    {
-      id: 1,
-      name: 'Main Library - Level 3',
-      category: 'quiet',
-      description: 'Silent study area with individual desks and excellent lighting.',
-      capacity: '120 seats',
-      amenities: ['Wifi', 'Power Outlets', 'Silent Zone'],
-      hours: '24/7',
-      location: 'Main Library, 3rd Floor',
-      availability: 'Available',
-      image: '📚',
-      color: '#4f46e5'
-    },
-    {
-      id: 2,
-      name: 'Collaborative Learning Center',
-      category: 'collaborative',
-      description: 'Open space perfect for group projects and discussions.',
-      capacity: '80 seats',
-      amenities: ['Wifi', 'Whiteboards', 'Group Tables', 'Projectors'],
-      hours: '8 AM - 10 PM',
-      location: 'Student Center, 2nd Floor',
-      availability: 'Available',
-      image: '👥',
-      color: '#10b981'
-    },
-    {
-      id: 3,
-      name: 'Science Library Reading Room',
-      category: 'quiet',
-      description: 'Dedicated quiet space for focused individual study.',
-      capacity: '60 seats',
-      amenities: ['Wifi', 'Power Outlets', 'Natural Light'],
-      hours: '7 AM - Midnight',
-      location: 'Science Building, 1st Floor',
-      availability: 'Available',
-      image: '🔬',
-      color: '#3b82f6'
-    },
-    {
-      id: 4,
-      name: 'Campus Café Study Area',
-      category: 'cafe',
-      description: 'Casual study space with coffee and light background music.',
-      capacity: '40 seats',
-      amenities: ['Wifi', 'Coffee', 'Snacks', 'Comfortable Seating'],
-      hours: '7 AM - 8 PM',
-      location: 'Student Union Building',
-      availability: 'Busy',
-      image: '☕',
-      color: '#f59e0b'
-    },
-    {
-      id: 5,
-      name: 'Engineering Study Pods',
-      category: 'collaborative',
-      description: 'Private study rooms for small groups with tech equipment.',
-      capacity: '6-8 per pod',
-      amenities: ['Wifi', 'Smart TV', 'Whiteboards', 'Bookable'],
-      hours: '8 AM - 10 PM',
-      location: 'Engineering Building, Ground Floor',
-      availability: 'Available',
-      image: '🔧',
-      color: '#8b5cf6'
-    },
-    {
-      id: 6,
-      name: 'Garden Study Terrace',
-      category: 'quiet',
-      description: 'Outdoor study space with natural ambiance and fresh air.',
-      capacity: '30 seats',
-      amenities: ['Wifi', 'Shade', 'Natural Setting'],
-      hours: '8 AM - 6 PM',
-      location: 'Behind Main Library',
-      availability: 'Available',
-      image: '🌿',
-      color: '#059669'
-    },
-    {
-      id: 7,
-      name: 'Digital Learning Lab',
-      category: 'collaborative',
-      description: 'Tech-enabled space with computers and multimedia resources.',
-      capacity: '50 seats',
-      amenities: ['Wifi', 'Computers', 'Printers', 'Scanners'],
-      hours: '8 AM - 9 PM',
-      location: 'Library, Basement',
-      availability: 'Available',
-      image: '💻',
-      color: '#6366f1'
-    },
-    {
-      id: 8,
-      name: 'Cozy Corner Lounge',
-      category: 'cafe',
-      description: 'Comfortable seating area for relaxed studying and reading.',
-      capacity: '25 seats',
-      amenities: ['Wifi', 'Soft Seating', 'Coffee Table', 'Warm Lighting'],
-      hours: '9 AM - 9 PM',
-      location: 'Arts Building, 2nd Floor',
-      availability: 'Available',
-      image: '🛋️',
-      color: '#ec4899'
+  // Check for date change every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newDate = new Date().toLocaleDateString('en-CA');
+      if (newDate !== currentDate) {
+        setCurrentDate(newDate);
+        fetchStudySpaces();
+        if (currentUser) {
+          fetchUserReservations();
+        }
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [currentDate, currentUser]);
+
+  useEffect(() => {
+    fetchStudySpaces();
+    if (currentUser) {
+      fetchUserReservations();
     }
-  ];
+  }, [currentUser]);
+
+  const fetchStudySpaces = async () => {
+    try {
+      setLoading(true);
+      const today = new Date().toISOString().split('T')[0];
+      const data = await api.getStudySpaces(today);
+      setStudySpaces(data);
+    } catch (error: any) {
+      console.error('Error fetching study spaces:', error);
+      Alert.alert('Error', 'Failed to load study spaces');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserReservations = async () => {
+    try {
+      if (!currentUser) return; // Skip if not logged in
+      const data = await api.getMyReservations('ACTIVE');
+      setUserReservations(data);
+    } catch (error: any) {
+      // Silently fail if user is not authenticated or token expired
+      console.error('Error fetching reservations:', error);
+      setUserReservations([]);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchStudySpaces(),
+      currentUser ? fetchUserReservations() : Promise.resolve()
+    ]);
+    setRefreshing(false);
+  };
+
+  const hasUserReserved = (spaceId: string) => {
+    if (!userReservations || userReservations.length === 0) return false;
+    
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA');
+    
+    return userReservations.some(res => {
+      const resDate = new Date(res.date);
+      const resDateStr = resDate.toLocaleDateString('en-CA');
+      return res.spaceId === spaceId && resDateStr === todayStr && res.status === 'ACTIVE';
+    });
+  };
+
+  const openReservationModal = (space: any) => {
+    if (!currentUser) {
+      Alert.alert('Sign In Required', 'Please sign in to reserve a study space', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign In', onPress: () => router.push('/sign-in') }
+      ]);
+      return;
+    }
+    
+    if (hasUserReserved(space.id)) {
+      Alert.alert('Already Reserved', 'You already have a reservation for this space today');
+      return;
+    }
+    
+    setSelectedSpace(space);
+    setShowReservationModal(true);
+  };
+
+  const closeReservationModal = () => {
+    setShowReservationModal(false);
+    setSelectedSpace(null);
+  };
+
+  const handleReservation = async () => {
+    if (!selectedSpace) return;
+
+    setReserving(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await api.createReservation(selectedSpace.id, today);
+      
+      Alert.alert('Success', `Successfully reserved ${selectedSpace.name} for today!`);
+      
+      await Promise.all([
+        fetchStudySpaces(),
+        fetchUserReservations()
+      ]);
+      
+      closeReservationModal();
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to create reservation');
+    } finally {
+      setReserving(false);
+    }
+  };
+
+  const getAvailabilityColor = (availability: string) => {
+    switch (availability) {
+      case 'Available': return '#10b981';
+      case 'Busy': return '#f59e0b';
+      case 'Full': return '#ef4444';
+      default: return '#6b7280';
+    }
+  };
+
+  const getAvailabilityBgColor = (availability: string) => {
+    switch (availability) {
+      case 'Available': return '#d1fae5';
+      case 'Busy': return '#fed7aa';
+      case 'Full': return '#fee2e2';
+      default: return '#f3f4f6';
+    }
+  };
 
   const features = [
     {
@@ -175,7 +215,12 @@ export default function StudySpacesScreen() {
 
   return (
     <Layout>
-      <ScrollView style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Hero Section */}
         <View style={styles.hero}>
           <Text style={styles.heroTitle}>
@@ -235,47 +280,85 @@ export default function StudySpacesScreen() {
         {/* Study Spaces Grid */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            Available Study Spaces <Text style={styles.resultCount}>({filteredSpaces.length})</Text>
+            Available Study Spaces {!loading && <Text style={styles.resultCount}>({filteredSpaces.length})</Text>}
           </Text>
-          <View style={styles.spacesGrid}>
-            {filteredSpaces.map((space) => (
-              <View key={space.id} style={styles.spaceCard}>
-                <View style={[styles.spaceHeader, { backgroundColor: space.color }]}>
-                  <Text style={styles.spaceEmoji}>{space.image}</Text>
-                  <View style={[styles.availabilityBadge, space.availability === 'Available' ? styles.availableBadge : styles.busyBadge]}>
-                    <Text style={styles.availabilityText}>{space.availability}</Text>
-                  </View>
-                </View>
-                <View style={styles.spaceBody}>
-                  <Text style={styles.spaceName}>{space.name}</Text>
-                  <Text style={styles.spaceDescription}>{space.description}</Text>
-                  
-                  <View style={styles.spaceDetails}>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>👥</Text>
-                      <Text style={styles.detailText}>{space.capacity}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>🕐</Text>
-                      <Text style={styles.detailText}>{space.hours}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>📍</Text>
-                      <Text style={styles.detailText}>{space.location}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.amenities}>
-                    {space.amenities.map((amenity, idx) => (
-                      <View key={idx} style={styles.amenityTag}>
-                        <Text style={styles.amenityText}>{amenity}</Text>
+          
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4f46e5" />
+              <Text style={styles.loadingText}>Loading study spaces...</Text>
+            </View>
+          ) : (
+            <View style={styles.spacesGrid}>
+              {filteredSpaces.map((space) => {
+                const isReserved = hasUserReserved(space.id);
+                const isFull = space.availability === 'Full';
+                const canReserve = !isReserved && !isFull;
+                
+                return (
+                  <View key={space.id} style={styles.spaceCard}>
+                    <View style={[styles.spaceHeader, { backgroundColor: space.color }]}>
+                      <Text style={styles.spaceEmoji}>{space.image}</Text>
+                      <View style={[
+                        styles.availabilityBadge,
+                        { 
+                          backgroundColor: getAvailabilityBgColor(space.availability),
+                        }
+                      ]}>
+                        <Text style={[styles.availabilityText, { color: getAvailabilityColor(space.availability) }]}>
+                          {space.availability}
+                        </Text>
                       </View>
-                    ))}
+                    </View>
+                    <View style={styles.spaceBody}>
+                      <Text style={styles.spaceName}>{space.name}</Text>
+                      <Text style={styles.spaceDescription}>{space.description}</Text>
+                      
+                      <View style={styles.spaceDetails}>
+                        <View style={styles.detailItem}>
+                          <Text style={styles.detailIcon}>👥</Text>
+                          <Text style={styles.detailText}>{space.availableSeats} / {space.capacity} available</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                          <Text style={styles.detailIcon}>🕐</Text>
+                          <Text style={styles.detailText}>{space.hours}</Text>
+                        </View>
+                        <View style={styles.detailItem}>
+                          <Text style={styles.detailIcon}>📍</Text>
+                          <Text style={styles.detailText}>{space.location}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.amenities}>
+                        {space.amenities?.map((amenity: string, idx: number) => (
+                          <View key={idx} style={styles.amenityTag}>
+                            <Text style={styles.amenityText}>{amenity}</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.reserveBtn,
+                          !canReserve && styles.reserveBtnDisabled,
+                          isReserved && styles.reserveBtnReserved
+                        ]}
+                        onPress={() => canReserve && openReservationModal(space)}
+                        disabled={!canReserve}
+                      >
+                        <Text style={[
+                          styles.reserveBtnText,
+                          !canReserve && styles.reserveBtnTextDisabled
+                        ]}>
+                          {isFull ? '❌ Space Full' : isReserved ? '✓ Already Reserved' : '📅 Reserve Space'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </View>
-            ))}
-          </View>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         {/* Tips Section */}
@@ -294,6 +377,78 @@ export default function StudySpacesScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Reservation Modal */}
+      <Modal
+        visible={showReservationModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closeReservationModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Reserve Study Space</Text>
+              <TouchableOpacity onPress={closeReservationModal}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {selectedSpace && (
+              <View>
+                <View style={styles.modalSpaceInfo}>
+                  <Text style={styles.modalSpaceEmoji}>{selectedSpace.image}</Text>
+                  <View style={styles.modalSpaceDetails}>
+                    <Text style={styles.modalSpaceName}>{selectedSpace.name}</Text>
+                    <Text style={styles.modalSpaceLocation}>{selectedSpace.location}</Text>
+                    <Text style={styles.modalSpaceAvailability}>
+                      {selectedSpace.availableSeats} seats available today
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.modalDateInfo}>
+                  <Text style={styles.modalDateIcon}>📅</Text>
+                  <View>
+                    <Text style={styles.modalDateLabel}>Reservation Date:</Text>
+                    <Text style={styles.modalDateValue}>
+                      Today ({new Date().toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })})
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={styles.modalInfoText}>
+                  This reservation is valid for the entire day and will automatically reset tomorrow.
+                </Text>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={styles.modalCancelBtn}
+                    onPress={closeReservationModal}
+                    disabled={reserving}
+                  >
+                    <Text style={styles.modalCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, reserving && styles.modalConfirmBtnDisabled]}
+                    onPress={handleReservation}
+                    disabled={reserving}
+                  >
+                    <Text style={styles.modalConfirmText}>
+                      {reserving ? 'Reserving...' : 'Confirm Reservation'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </Layout>
   );
 }
@@ -599,5 +754,163 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
+  },
+
+  // Loading
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#6b7280',
+    fontSize: 14,
+  },
+
+  // Reserve Button
+  reserveBtn: {
+    marginTop: 16,
+    backgroundColor: '#4f46e5',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  reserveBtnText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  reserveBtnDisabled: {
+    backgroundColor: '#9ca3af',
+    opacity: 0.6,
+  },
+  reserveBtnTextDisabled: {
+    color: '#ffffff',
+  },
+  reserveBtnReserved: {
+    backgroundColor: '#10b981',
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalClose: {
+    fontSize: 28,
+    color: '#6b7280',
+    fontWeight: '300',
+  },
+  modalSpaceInfo: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  modalSpaceEmoji: {
+    fontSize: 48,
+    marginRight: 16,
+  },
+  modalSpaceDetails: {
+    flex: 1,
+  },
+  modalSpaceName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  modalSpaceLocation: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  modalSpaceAvailability: {
+    fontSize: 14,
+    color: '#10b981',
+    fontWeight: '600',
+  },
+  modalDateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  modalDateIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  modalDateLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  modalDateValue: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  modalInfoText: {
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 20,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    color: '#6b7280',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: '#4f46e5',
+    alignItems: 'center',
+  },
+  modalConfirmText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  modalConfirmBtnDisabled: {
+    backgroundColor: '#9ca3af',
+    opacity: 0.6,
   },
 });

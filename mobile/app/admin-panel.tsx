@@ -18,6 +18,9 @@ export default function AdminPanel() {
   const [students, setStudents] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [studySpaceReservations, setStudySpaceReservations] = useState<any>(null);
+  const [reservationsLoading, setReservationsLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [rejectionModal, setRejectionModal] = useState<any>({ isOpen: false, application: null, reason: '' });
   const [eventRevisionModal, setEventRevisionModal] = useState<any>({ isOpen: false, event: null, reason: '' });
@@ -57,6 +60,27 @@ export default function AdminPanel() {
     fetchData();
   }, [isAuthenticated, currentUser]);
 
+  useEffect(() => {
+    // Check for date change every minute
+    const checkDateChange = setInterval(() => {
+      const newDate = new Date().toLocaleDateString('en-CA');
+      if (newDate !== currentDate) {
+        setCurrentDate(newDate);
+        if (activeSection === 'studyspaces') {
+          loadStudySpaceReservations();
+        }
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkDateChange);
+  }, [currentDate, activeSection]);
+
+  useEffect(() => {
+    if (activeSection === 'studyspaces') {
+      loadStudySpaceReservations();
+    }
+  }, [activeSection]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -80,6 +104,19 @@ export default function AdminPanel() {
       console.error('Failed to fetch data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStudySpaceReservations = async () => {
+    setReservationsLoading(true);
+    try {
+      const data = await api.getAllReservations({ status: 'ACTIVE' });
+      setStudySpaceReservations(data || { total: 0, groupedBySpace: {}, allReservations: [] });
+    } catch (err) {
+      console.error('Failed to load reservations:', err);
+      Alert.alert('Error', 'Failed to load study space reservations');
+    } finally {
+      setReservationsLoading(false);
     }
   };
 
@@ -295,6 +332,14 @@ export default function AdminPanel() {
         >
           <Text style={[styles.navItemText, activeSection === 'events' && styles.navItemTextActive]}>
             📅 Events
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navItem, activeSection === 'studyspaces' && styles.navItemActive]}
+          onPress={() => setActiveSection('studyspaces')}
+        >
+          <Text style={[styles.navItemText, activeSection === 'studyspaces' && styles.navItemTextActive]}>
+            📚 Study Spaces
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -679,6 +724,98 @@ export default function AdminPanel() {
               </View>
             )}
           </View>
+        </View>
+      )}
+
+      {/* Study Spaces Reservations Section */}
+      {activeSection === 'studyspaces' && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Study Space Reservations</Text>
+              <Text style={styles.sectionSubtitle}>View all students who reserved study spaces today</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.refreshBtn} 
+              onPress={loadStudySpaceReservations}
+              disabled={reservationsLoading}
+            >
+              <Text style={styles.refreshBtnText}>{reservationsLoading ? '...' : '🔄'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {reservationsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#4f46e5" />
+            </View>
+          ) : studySpaceReservations && studySpaceReservations.groupedBySpace ? (
+            <View>
+              {/* Stats */}
+              <View style={styles.statsCard}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Total Reservations Today</Text>
+                  <Text style={styles.statValue}>{studySpaceReservations.total}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Spaces Reserved</Text>
+                  <Text style={styles.statValue}>{Object.keys(studySpaceReservations.groupedBySpace).length}</Text>
+                </View>
+              </View>
+
+              {/* Reservations by Space */}
+              {Object.entries(studySpaceReservations.groupedBySpace).map(([spaceName, data]: [string, any]) => (
+                <View key={spaceName} style={styles.spaceReservationCard}>
+                  <View style={styles.spaceReservationHeader}>
+                    <View style={styles.spaceReservationInfo}>
+                      <Text style={styles.spaceEmoji}>{data.space.image}</Text>
+                      <View>
+                        <Text style={styles.spaceReservationName}>{data.space.name}</Text>
+                        <Text style={styles.spaceReservationLocation}>{data.space.location}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.capacityInfo}>
+                      <Text style={styles.reservedCount}>{data.reservations.length}</Text>
+                      <Text style={styles.capacityTotal}>/ {data.space.capacity}</Text>
+                    </View>
+                  </View>
+
+                  {/* Reservations List */}
+                  <View style={styles.reservationsTable}>
+                    <View style={styles.tableHeader}>
+                      <Text style={[styles.tableHeaderText, styles.colStudent]}>Student</Text>
+                      <Text style={[styles.tableHeaderText, styles.colEmail]}>Email</Text>
+                      <Text style={[styles.tableHeaderText, styles.colDate]}>Date</Text>
+                    </View>
+                    {data.reservations.map((reservation: any) => (
+                      <View key={reservation.id} style={styles.tableRow}>
+                        <Text style={[styles.tableCell, styles.colStudent]}>
+                          {reservation.student.firstName} {reservation.student.lastName}
+                        </Text>
+                        <Text style={[styles.tableCell, styles.colEmail]} numberOfLines={1}>
+                          {reservation.student.email}
+                        </Text>
+                        <Text style={[styles.tableCell, styles.colDate]}>
+                          {new Date(reservation.date).toLocaleDateString('en-CA')}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+
+              {Object.keys(studySpaceReservations.groupedBySpace).length === 0 && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateIcon}>📚</Text>
+                  <Text style={styles.emptyStateText}>No reservations for today</Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateIcon}>📚</Text>
+              <Text style={styles.emptyStateText}>Tap refresh to load reservations</Text>
+            </View>
+          )}
         </View>
       )}
 
@@ -1409,5 +1546,144 @@ const styles = StyleSheet.create({
   },
   rejectSubmitBtn: {
     backgroundColor: '#dc2626',
+  },
+
+  // Study Spaces Styles
+  refreshBtn: {
+    backgroundColor: '#4f46e5',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  refreshBtnText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsCard: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    gap: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statItem: {
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  spaceReservationCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  spaceReservationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  spaceReservationInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  spaceEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  spaceReservationName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  spaceReservationLocation: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  capacityInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  reservedCount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#4f46e5',
+  },
+  capacityTotal: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginLeft: 4,
+  },
+  reservationsTable: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  tableHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  tableCell: {
+    fontSize: 13,
+    color: '#4b5563',
+  },
+  colStudent: {
+    flex: 2,
+  },
+  colEmail: {
+    flex: 2,
+  },
+  colDate: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  emptyStateIcon: {
+    fontSize: 48,
+    marginBottom: 12,
+    opacity: 0.3,
   },
 });

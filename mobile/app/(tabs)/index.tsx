@@ -100,52 +100,52 @@ export default function HomeScreen() {
         </View>
 
         {/* Features Grid */}
-        <View className="flex-row flex-wrap justify-center">
+        <View className="flex-row flex-wrap justify-between">
           {/* Feature 1 - Join Communities */}
-          <View className="w-full sm:w-1/2 p-2">
-            <View className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-purple-500">
-              <View className="bg-purple-500 w-16 h-16 rounded-full items-center justify-center mb-4">
-                <Text className="text-white text-3xl">👥</Text>
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-2xl p-5 shadow-lg border-l-4 border-purple-500" style={{minHeight: 220}}>
+              <View className="bg-purple-500 w-14 h-14 rounded-full items-center justify-center mb-3">
+                <Text className="text-white text-2xl">👥</Text>
               </View>
-              <Text className="text-xl font-bold text-gray-800 mb-2">Join Communities</Text>
-              <Text className="text-gray-600 mb-4">Connect with like-minded students and join vibrant communities</Text>
-              <Text className="text-purple-500 font-semibold">Learn More →</Text>
+              <Text className="text-lg font-bold text-gray-800 mb-2">Join Communities</Text>
+              <Text className="text-gray-600 text-xs mb-3">Connect with like-minded students and join vibrant communities</Text>
+              <Text className="text-purple-500 font-semibold text-xs">Learn More →</Text>
             </View>
           </View>
 
           {/* Feature 2 - Upcoming Events */}
-          <View className="w-full sm:w-1/2 p-2">
-            <View className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-blue-500">
-              <View className="bg-blue-500 w-16 h-16 rounded-full items-center justify-center mb-4">
-                <Text className="text-white text-3xl">📅</Text>
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-2xl p-5 shadow-lg border-l-4 border-blue-500" style={{minHeight: 220}}>
+              <View className="bg-blue-500 w-14 h-14 rounded-full items-center justify-center mb-3">
+                <Text className="text-white text-2xl">📅</Text>
               </View>
-              <Text className="text-xl font-bold text-gray-800 mb-2">Upcoming Events</Text>
-              <Text className="text-gray-600 mb-4">Discover and participate in exciting campus events</Text>
-              <Text className="text-blue-500 font-semibold">Learn More →</Text>
+              <Text className="text-lg font-bold text-gray-800 mb-2">Upcoming Events</Text>
+              <Text className="text-gray-600 text-xs mb-3">Discover and participate in exciting campus events</Text>
+              <Text className="text-blue-500 font-semibold text-xs">Learn More →</Text>
             </View>
           </View>
 
           {/* Feature 3 - Study Spaces */}
-          <View className="w-full sm:w-1/2 p-2">
-            <View className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-green-500">
-              <View className="bg-green-500 w-16 h-16 rounded-full items-center justify-center mb-4">
-                <Text className="text-white text-3xl">📚</Text>
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-2xl p-5 shadow-lg border-l-4 border-green-500" style={{minHeight: 220}}>
+              <View className="bg-green-500 w-14 h-14 rounded-full items-center justify-center mb-3">
+                <Text className="text-white text-2xl">📚</Text>
               </View>
-              <Text className="text-xl font-bold text-gray-800 mb-2">Study Spaces</Text>
-              <Text className="text-gray-600 mb-4">Find the perfect spot to study and collaborate</Text>
-              <Text className="text-green-500 font-semibold">Learn More →</Text>
+              <Text className="text-lg font-bold text-gray-800 mb-2">Study Spaces</Text>
+              <Text className="text-gray-600 text-xs mb-3">Find the perfect spot to study and collaborate</Text>
+              <Text className="text-green-500 font-semibold text-xs">Learn More →</Text>
             </View>
           </View>
 
           {/* Feature 4 - Dine & Relax */}
-          <View className="w-full sm:w-1/2 p-2">
-            <View className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-pink-500">
-              <View className="bg-pink-500 w-16 h-16 rounded-full items-center justify-center mb-4">
-                <Text className="text-white text-3xl">☕</Text>
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-2xl p-5 shadow-lg border-l-4 border-pink-500" style={{minHeight: 220}}>
+              <View className="bg-pink-500 w-14 h-14 rounded-full items-center justify-center mb-3">
+                <Text className="text-white text-2xl">☕</Text>
               </View>
-              <Text className="text-xl font-bold text-gray-800 mb-2">Dine & Relax</Text>
-              <Text className="text-gray-600 mb-4">Explore dining options and relaxation areas</Text>
-              <Text className="text-pink-500 font-semibold">Learn More →</Text>
+              <Text className="text-lg font-bold text-gray-800 mb-2">Dine & Relax</Text>
+              <Text className="text-gray-600 text-xs mb-3">Explore dining options and relaxation areas</Text>
+              <Text className="text-pink-500 font-semibold text-xs">Learn More →</Text>
             </View>
           </View>
         </View>
@@ -153,98 +153,97 @@ export default function HomeScreen() {
 
       {/* Info Cards Section */}
       <View className="py-12 px-4 bg-white">
-        {/* Card 1 - Hours */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">🕐</Text>
-            <Text className="text-2xl font-bold text-gray-800">Hours</Text>
-          </View>
-          <Text className="text-gray-600 font-semibold mb-1">Building</Text>
-          <Text className="text-gray-700 mb-2">7:00 a.m. - midnight{'\n'}Monday - Sunday</Text>
-          <Text className="text-gray-500 text-sm mb-4">Closed seasonally | Weekends</Text>
-          <View className="flex-row gap-2">
-            <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-white font-semibold text-center">Shop, Play, Sleep</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="bg-gray-200 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-gray-700 font-semibold text-center">Services</Text>
-            </TouchableOpacity>
-          </View>
+        <View className="mb-8">
+          <Text className="text-3xl font-bold text-gray-800 text-center mb-2">Student Services</Text>
+          <View className="w-16 h-1 bg-blue-600 mx-auto rounded-full"></View>
         </View>
+        <View className="flex-row flex-wrap justify-between">
+          {/* Card 1 - Hours */}
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-xl shadow-md p-4 border border-gray-200" style={{minHeight: 280, flex: 1, justifyContent: 'space-between'}}>
+              <View>
+                <View className="items-center mb-3">
+                  <Text className="text-3xl mb-1">🕐</Text>
+                  <Text className="text-lg font-bold text-gray-800">Hours</Text>
+                </View>
+                <Text className="text-gray-600 font-semibold text-xs mb-1">Building</Text>
+                <Text className="text-gray-700 text-xs mb-1">7:00 a.m. - midnight</Text>
+                <Text className="text-gray-700 text-xs mb-2">Monday - Sunday</Text>
+                <Text className="text-gray-500 text-xs mb-3">Closed seasonally | Weekends</Text>
+              </View>
+              <View>
+                <TouchableOpacity className="bg-blue-600 px-3 py-2 rounded-lg mb-2">
+                  <Text className="text-white font-semibold text-xs text-center">Shop, Play, Sleep</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-gray-200 px-3 py-2 rounded-lg">
+                  <Text className="text-gray-700 font-semibold text-xs text-center">Services</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
 
-        {/* Card 2 - Events */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">📅</Text>
-            <Text className="text-2xl font-bold text-gray-800">Events</Text>
+          {/* Card 2 - Events */}
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-xl shadow-md p-4 border border-gray-200" style={{minHeight: 280, flex: 1, justifyContent: 'space-between'}}>
+              <View>
+                <View className="items-center mb-3">
+                  <Text className="text-3xl mb-1">📅</Text>
+                  <Text className="text-lg font-bold text-gray-800">Events</Text>
+                </View>
+                <Text className="text-gray-600 text-xs mb-3">Social, educational and cultural</Text>
+              </View>
+              <View>
+                <TouchableOpacity className="bg-blue-600 px-3 py-2 rounded-lg mb-2">
+                  <Text className="text-white font-semibold text-xs text-center">Plan an Event</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-gray-200 px-3 py-2 rounded-lg">
+                  <Text className="text-gray-700 font-semibold text-xs text-center">Event Calendar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          <Text className="text-gray-600 mb-4">Social, educational and cultural</Text>
-          <View className="flex-row gap-2">
-            <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-white font-semibold text-center">Plan an Event</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="bg-gray-200 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-gray-700 font-semibold text-center">Event Calendar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Card 3 - Study */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">📚</Text>
-            <Text className="text-2xl font-bold text-gray-800">Study</Text>
+          {/* Card 3 - Study */}
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-xl shadow-md p-4 border border-gray-200" style={{minHeight: 280, flex: 1, justifyContent: 'space-between'}}>
+              <View>
+                <View className="items-center mb-3">
+                  <Text className="text-3xl mb-1">📚</Text>
+                  <Text className="text-lg font-bold text-gray-800">Study</Text>
+                </View>
+                <Text className="text-gray-600 text-xs mb-3">The Student Center provides quiet places for students to do work, on-call, and also offers rooms available for group work.</Text>
+              </View>
+              <View>
+                <TouchableOpacity className="bg-blue-600 px-3 py-2 rounded-lg mb-2">
+                  <Text className="text-white font-semibold text-xs text-center">Book a Study Room</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-gray-200 px-3 py-2 rounded-lg">
+                  <Text className="text-gray-700 font-semibold text-xs text-center">Study Spaces</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          <Text className="text-gray-600 mb-4">The Student Center provides quiet places for students to do work, on-call, and also offers rooms available for group work.</Text>
-          <View className="flex-row gap-2">
-            <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-white font-semibold text-center">Book a Study Room</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="bg-gray-200 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-gray-700 font-semibold text-center">Study Spaces</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Card 4 - Directions */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">📍</Text>
-            <Text className="text-2xl font-bold text-gray-800">Directions</Text>
+          {/* Card 4 - Directions */}
+          <View style={{width: '48%', marginBottom: 16}}>
+            <View className="bg-white rounded-xl shadow-md p-4 border border-gray-200" style={{minHeight: 280, flex: 1, justifyContent: 'space-between'}}>
+              <View>
+                <View className="items-center mb-3">
+                  <Text className="text-3xl mb-1">📍</Text>
+                  <Text className="text-lg font-bold text-gray-800">Directions</Text>
+                </View>
+                <Text className="text-gray-600 text-xs mb-3">Find your way to the Student Center and elsewhere on campus</Text>
+              </View>
+              <View>
+                <TouchableOpacity className="bg-blue-600 px-3 py-2 rounded-lg mb-2">
+                  <Text className="text-white font-semibold text-xs text-center">Get Directions</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="bg-gray-200 px-3 py-2 rounded-lg">
+                  <Text className="text-gray-700 font-semibold text-xs text-center">Campus Map</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          <Text className="text-gray-600 mb-4">Find your way to the Student Center and elsewhere on campus</Text>
-          <View className="flex-row gap-2">
-            <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-white font-semibold text-center">Information Center</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="bg-gray-200 px-4 py-2 rounded-lg flex-1">
-              <Text className="text-gray-700 font-semibold text-center">Parking</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Card 5 - Employment */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">💼</Text>
-            <Text className="text-2xl font-bold text-gray-800">Employment</Text>
-          </View>
-          <Text className="text-gray-600 mb-4">Do you want to be part of our team? Find out about openings at the Student Center.</Text>
-          <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg">
-            <Text className="text-white font-semibold text-center">Student Employment Opportunities</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Card 6 - Work Orders */}
-        <View className="bg-white rounded-xl shadow-md p-6 mb-4 border border-gray-200">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-4xl mr-3">📋</Text>
-            <Text className="text-2xl font-bold text-gray-800">Work Orders</Text>
-          </View>
-          <Text className="text-gray-600 mb-4">Departments can use this form to request a special or repair of repair in the Student Center.</Text>
-          <TouchableOpacity className="bg-blue-600 px-4 py-2 rounded-lg">
-            <Text className="text-white font-semibold text-center">Work Order Request Form</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -301,7 +300,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Explore Button */}
-        <TouchableOpacity className="bg-purple-600 px-6 py-4 rounded-lg flex-row items-center justify-center">
+        <TouchableOpacity className="px-6 py-4 rounded-lg flex-row items-center justify-center" style={{backgroundColor: '#0064a4'}}>
           <Text className="text-white font-semibold text-base mr-2">Explore All Communities</Text>
           <Text className="text-white">→</Text>
         </TouchableOpacity>
