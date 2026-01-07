@@ -34,6 +34,7 @@ model User {
   eventRegistrations EventRegistration[]
   savedEvents        SavedEvent[]
   applications       ApplicationForm[]  @relation("UserApplications")
+  studySpaceReservations StudySpaceReservation[]
 
   // Performance indexes
   @@index([role, collegeId]) // For finding faculty/dean by college
@@ -224,6 +225,8 @@ enum NotificationType {
   EVENT_REMINDER_1_HOUR
   APPLICATION_APPROVED
   APPLICATION_REJECTED
+  STUDY_SPACE_RESERVED
+  STUDY_SPACE_CANCELLED
 }
 
 enum Role {
@@ -290,4 +293,51 @@ model SavedEvent {
 
   @@unique([userId, eventId])
   @@map("saved_events")
+}
+
+model StudySpace {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  category    String   // 'quiet', 'collaborative', 'cafe'
+  description String
+  capacity    Int      // Total number of seats
+  location    String
+  hours       String
+  amenities   String[] // Array of amenity strings
+  image       String   // Emoji representation
+  color       String   // Hex color code
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  reservations StudySpaceReservation[]
+
+  @@map("study_spaces")
+}
+
+model StudySpaceReservation {
+  id          String   @id @default(cuid())
+  studentId   String
+  spaceId     String
+  date        DateTime @db.Date // Reservation date
+  timeSlot    String   // e.g., "09:00", "14:00"
+  status      ReservationStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  student     User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  space       StudySpace @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  // Performance indexes
+  @@index([spaceId, date, status]) // For checking capacity per day
+  @@index([studentId, status]) // For fetching user's active reservations
+  @@index([date, status]) // For daily reset queries
+  @@map("study_space_reservations")
+}
+
+enum ReservationStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }

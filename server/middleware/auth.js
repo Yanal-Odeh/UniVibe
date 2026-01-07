@@ -78,9 +78,18 @@ export const requireAdmin = (req, res, next) => {
   next();
 };
 
-export const requireRole = (...roles) => {
+export const requireRole = (roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    console.log('Checking role - User role:', req.user?.role, 'Required roles:', roles);
+    
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    // If roles is an array, check if user's role is in the array
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
     next();

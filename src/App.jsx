@@ -25,6 +25,7 @@ const SignUp = lazy(() => import('./Pages/SignUp/SignUp'));
 const Communities = lazy(() => import('./Pages/Communities/Communities'));
 const AdminPanel = lazy(() => import('./Pages/AdminPanel/AdminPanel'));
 const StudySpaces = lazy(() => import('./Pages/StudySpaces/StudySpaces'));
+const MyReservations = lazy(() => import('./Pages/MyReservations/MyReservations'));
 const DinePlayShop = lazy(() => import('./Pages/DinePlayShop/DinePlayShop'));
 const Services = lazy(() => import('./Pages/Services/Services'));
 
@@ -106,6 +107,10 @@ const router = createBrowserRouter([
       {
         path: "/study",
         element: <Suspense fallback={<Loader />}><StudySpaces /></Suspense>
+      },
+      {
+        path: "/my-reservations",
+        element: <Suspense fallback={<Loader />}><MyReservations /></Suspense>
       },
       {
         path: "/dine",

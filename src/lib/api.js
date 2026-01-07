@@ -415,6 +415,65 @@ class ApiClient {
   async checkSavedEvent(eventId) {
     return this.request(`/saved-events/check/${eventId}`);
   }
+
+  // Study Spaces API
+  async getAllStudySpaces(date = null) {
+    const params = date ? `?date=${date}` : '';
+    return this.requestWithDeduplication(`/study-spaces${params}`);
+  }
+
+  async getStudySpace(id, date = null) {
+    const params = date ? `?date=${date}` : '';
+    return this.request(`/study-spaces/${id}${params}`);
+  }
+
+  async createReservation(spaceId, date) {
+    return this.request('/study-spaces/reserve', {
+      method: 'POST',
+      body: JSON.stringify({ spaceId, date }),
+    });
+  }
+
+  async getMyReservations(status = null) {
+    const params = status ? `?status=${status}` : '';
+    return this.request(`/study-spaces/my/reservations${params}`);
+  }
+
+  async cancelReservation(reservationId) {
+    return this.request(`/study-spaces/reservations/${reservationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Admin: Study Spaces Management
+  async createStudySpace(data) {
+    return this.request('/study-spaces/admin/spaces', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateStudySpace(id, data) {
+    return this.request(`/study-spaces/admin/spaces/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteStudySpace(id) {
+    return this.request(`/study-spaces/admin/spaces/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getStudySpaceStatistics() {
+    return this.request('/study-spaces/admin/statistics');
+  }
+
+  async getAllReservations(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/study-spaces/admin/reservations${queryString ? '?' + queryString : ''}`);
+  }
 }
 
 export default new ApiClient();

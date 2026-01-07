@@ -997,6 +997,7 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 }
 
+// Role Filter Styles
 .roleFilter {
   display: flex;
   gap: 0.5rem;
@@ -1023,4 +1024,95 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 .roleText {
   font-weight: 600;
   color: $text-dark;
+}
+
+
+// Study Space Reservations Styles
+.statsCard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statItem {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statLabel {
+  color: #718096;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.spaceReservationCard {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.spaceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f9f0ff 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.spaceInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spaceEmoji {
+  font-size: 2.5rem;
+}
+
+.spaceInfo h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.spaceInfo p {
+  margin: 0.25rem 0 0 0;
+  color: #718096;
+  font-size: 0.875rem;
+}
+
+.capacityInfo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.reservedCount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.capacityTotal {
+  font-size: 1rem;
+  color: #718096;
+  font-weight: 500;
 }

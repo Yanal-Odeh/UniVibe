@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, Settings, LogOut, FileText, Check, XCircle } from 'lucide-react';
+import { Users, Plus, Trash2, Edit2, Crown, User, Shield, Search, X, Calendar, Settings, LogOut, FileText, Check, XCircle, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useCommunities } from '../../contexts/CommunitiesContext';
@@ -24,6 +24,11 @@ function AdminPanel() {
   const [applications, setApplications] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, application: null, reason: '' });
+  
+  // Study Spaces state
+  const [studySpaceReservations, setStudySpaceReservations] = useState(null);
+  const [reservationsLoading, setReservationsLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-CA'));
   
   const [newCommunity, setNewCommunity] = useState({
     name: '',
@@ -105,8 +110,44 @@ function AdminPanel() {
   };
 
   // Change active section
-  const handleSectionChange = (section) => {
+  const handleSectionChange = async (section) => {
     setActiveSection(section);
+    
+    // Auto-load reservations when switching to study spaces section
+    if (section === 'studyspaces') {
+      await loadStudySpaceReservations();
+    }
+  };
+
+  // Check for date change every minute (if on study spaces section)
+  useEffect(() => {
+    if (activeSection !== 'studyspaces') return;
+
+    const checkDateChange = setInterval(() => {
+      const newDate = new Date().toLocaleDateString('en-CA');
+      if (newDate !== currentDate) {
+        console.log('Date changed from', currentDate, 'to', newDate, '- refreshing reservations');
+        setCurrentDate(newDate);
+        loadStudySpaceReservations();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkDateChange);
+  }, [activeSection, currentDate]);
+
+  const loadStudySpaceReservations = async () => {
+    setReservationsLoading(true);
+    try {
+      console.log('Loading study space reservations...');
+      const data = await api.getAllReservations({ status: 'ACTIVE' });
+      console.log('Reservations loaded:', data);
+      setStudySpaceReservations(data || { total: 0, groupedBySpace: {}, allReservations: [] });
+    } catch (err) {
+      console.error('Failed to load reservations:', err);
+      setStudySpaceReservations({ total: 0, groupedBySpace: {}, allReservations: [] });
+    } finally {
+      setReservationsLoading(false);
+    }
   };
 
   const handleAddCommunity = async () => {
@@ -341,6 +382,14 @@ function AdminPanel() {
           >
             <FileText size={20} />
             <span>Manage Applications</span>
+          </button>
+
+          <button
+            className={`${styles.navItem} ${activeSection === 'studyspaces' ? styles.active : ''}`}
+            onClick={() => handleSectionChange('studyspaces')}
+          >
+            <BookOpen size={20} />
+            <span>Study Space Reservations</span>
           </button>
 
           <button
@@ -958,6 +1007,107 @@ function AdminPanel() {
                 </div>
               )}
             </div>
+          </>
+        )}
+
+        {/* Study Space Reservations Section */}
+        {activeSection === 'studyspaces' && (
+          <>
+            <div className={styles.adminHeader}>
+              <div>
+                <h1>Study Space Reservations</h1>
+                <p>View all students who reserved study spaces today</p>
+              </div>
+            </div>
+
+            {reservationsLoading ? (
+              <Loader />
+            ) : studySpaceReservations && studySpaceReservations.groupedBySpace ? (
+              <>
+                <div className={styles.statsCard}>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Total Reservations Today</span>
+                    <span className={styles.statValue}>{studySpaceReservations.total}</span>
+                  </div>
+                  <div className={styles.statItem}>
+                    <span className={styles.statLabel}>Spaces Reserved</span>
+                    <span className={styles.statValue}>{Object.keys(studySpaceReservations.groupedBySpace).length}</span>
+                  </div>
+                </div>
+
+                {Object.entries(studySpaceReservations.groupedBySpace).map(([spaceName, data]) => (
+                  <div key={spaceName} className={styles.spaceReservationCard}>
+                    <div className={styles.spaceHeader}>
+                      <div className={styles.spaceInfo}>
+                        <span className={styles.spaceEmoji}>{data.space.image}</span>
+                        <div>
+                          <h3>{data.space.name}</h3>
+                          <p>{data.space.location}</p>
+                        </div>
+                      </div>
+                      <div className={styles.capacityInfo}>
+                        <span className={styles.reservedCount}>{data.reservations.length}</span>
+                        <span className={styles.capacityTotal}>/ {data.space.capacity} seats</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.communitiesTable}>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Student</th>
+                            <th>Email</th>
+                            <th>Reserved At</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.reservations.map(reservation => (
+                            <tr key={reservation.id}>
+                              <td>
+                                <div className={styles.communityCell}>
+                                  <div 
+                                    className={styles.tableAvatar}
+                                    style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)' }}
+                                  >
+                                    {reservation.student.firstName[0]}{reservation.student.lastName[0]}
+                                  </div>
+                                  <div>
+                                    <strong>{reservation.student.firstName} {reservation.student.lastName}</strong>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>{reservation.student.email}</td>
+                              <td>{new Date(reservation.createdAt).toLocaleString()}</td>
+                              <td>
+                                <span 
+                                  className={styles.statusBadge}
+                                  data-status={reservation.status.toLowerCase()}
+                                >
+                                  {reservation.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+
+                {Object.keys(studySpaceReservations.groupedBySpace).length === 0 && (
+                  <div className={styles.emptyState}>
+                    <BookOpen size={64} style={{ opacity: 0.3 }} />
+                    <p>No reservations for today</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className={styles.emptyState}>
+                <BookOpen size={64} style={{ opacity: 0.3 }} />
+                <p>Click "Refresh" to load reservations</p>
+              </div>
+            )}
           </>
         )}
       </div>

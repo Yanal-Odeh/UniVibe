@@ -15,7 +15,9 @@ import notificationRoutes from './routes/notifications.js';
 import applicationRoutes from './routes/applications.js';
 import registrationRoutes from './routes/registrations.js';
 import savedEventRoutes from './routes/savedEvents.js';
+import studySpaceRoutes from './routes/studySpaces.js';
 import { startReminderScheduler } from './services/eventReminderService.js';
+import { startDailyResetScheduler } from './services/studySpaceResetService.js';
 
 // Load .env from parent directory
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +63,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/saved-events', savedEventRoutes);
+app.use('/api/study-spaces', studySpaceRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -101,6 +104,9 @@ app.listen(PORT, '0.0.0.0', async () => {
     
     // Start event reminder scheduler
     startReminderScheduler();
+    
+    // Start daily reset scheduler for study spaces
+    startDailyResetScheduler();
   } catch (error) {
     console.error('❌ Failed to connect to database:', error.message);
   }

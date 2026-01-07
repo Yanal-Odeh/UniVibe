@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './StudySpaces.module.scss';
-import { BookOpen, Users, Wifi, Coffee, Clock, MapPin, Search, Filter } from 'lucide-react';
+import { BookOpen, Users, Wifi, Coffee, Clock, MapPin, Search, X, Calendar, CheckCircle } from 'lucide-react';
+import api from '../../lib/api';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 function StudySpaces() {
+  const { currentAdmin: user } = useAdminAuth();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [studySpaces, setStudySpaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userReservations, setUserReservations] = useState([]);
+  
+  // Reservation modal state
+  const [selectedSpace, setSelectedSpace] = useState(null);
+  const [showReservationModal, setShowReservationModal] = useState(false);
+  const [reserving, setReserving] = useState(false);
+  const [reservationMessage, setReservationMessage] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   const categories = [
     { id: 'all', name: 'All Spaces', icon: BookOpen },
@@ -13,112 +27,163 @@ function StudySpaces() {
     { id: 'cafe', name: 'Café Style', icon: Coffee },
   ];
 
-  const studySpaces = [
-    {
-      id: 1,
-      name: 'Main Library - Level 3',
-      category: 'quiet',
-      description: 'Silent study area with individual desks and excellent lighting.',
-      capacity: '120 seats',
-      amenities: ['Wifi', 'Power Outlets', 'Silent Zone'],
-      hours: '24/7',
-      location: 'Main Library, 3rd Floor',
-      availability: 'Available',
-      image: '📚',
-      color: '#4f46e5'
-    },
-    {
-      id: 2,
-      name: 'Collaborative Learning Center',
-      category: 'collaborative',
-      description: 'Open space perfect for group projects and discussions.',
-      capacity: '80 seats',
-      amenities: ['Wifi', 'Whiteboards', 'Group Tables', 'Projectors'],
-      hours: '8 AM - 10 PM',
-      location: 'Student Center, 2nd Floor',
-      availability: 'Available',
-      image: '👥',
-      color: '#10b981'
-    },
-    {
-      id: 3,
-      name: 'Science Library Reading Room',
-      category: 'quiet',
-      description: 'Dedicated quiet space for focused individual study.',
-      capacity: '60 seats',
-      amenities: ['Wifi', 'Power Outlets', 'Natural Light'],
-      hours: '7 AM - Midnight',
-      location: 'Science Building, 1st Floor',
-      availability: 'Available',
-      image: '🔬',
-      color: '#3b82f6'
-    },
-    {
-      id: 4,
-      name: 'Campus Café Study Area',
-      category: 'cafe',
-      description: 'Casual study space with coffee and light background music.',
-      capacity: '40 seats',
-      amenities: ['Wifi', 'Coffee', 'Snacks', 'Comfortable Seating'],
-      hours: '7 AM - 8 PM',
-      location: 'Student Union Building',
-      availability: 'Busy',
-      image: '☕',
-      color: '#f59e0b'
-    },
-    {
-      id: 5,
-      name: 'Engineering Study Pods',
-      category: 'collaborative',
-      description: 'Private study rooms for small groups with tech equipment.',
-      capacity: '6-8 per pod',
-      amenities: ['Wifi', 'Smart TV', 'Whiteboards', 'Bookable'],
-      hours: '8 AM - 10 PM',
-      location: 'Engineering Building, Ground Floor',
-      availability: 'Available',
-      image: '🔧',
-      color: '#8b5cf6'
-    },
-    {
-      id: 6,
-      name: 'Garden Study Terrace',
-      category: 'quiet',
-      description: 'Outdoor study space with natural ambiance and fresh air.',
-      capacity: '30 seats',
-      amenities: ['Wifi', 'Shade', 'Natural Setting'],
-      hours: '8 AM - 6 PM',
-      location: 'Behind Main Library',
-      availability: 'Available',
-      image: '🌿',
-      color: '#059669'
-    },
-    {
-      id: 7,
-      name: 'Digital Learning Lab',
-      category: 'collaborative',
-      description: 'Tech-enabled space with computers and multimedia resources.',
-      capacity: '50 seats',
-      amenities: ['Wifi', 'Computers', 'Printers', 'Scanners'],
-      hours: '8 AM - 9 PM',
-      location: 'Library, Basement',
-      availability: 'Available',
-      image: '💻',
-      color: '#6366f1'
-    },
-    {
-      id: 8,
-      name: 'Cozy Corner Lounge',
-      category: 'cafe',
-      description: 'Comfortable seating area for relaxed studying and reading.',
-      capacity: '25 seats',
-      amenities: ['Wifi', 'Soft Seating', 'Coffee Table', 'Warm Lighting'],
-      hours: '9 AM - 9 PM',
-      location: 'Arts Building, 2nd Floor',
-      availability: 'Available',
-      image: '🛋️',
-      color: '#ec4899'
+  // Check for date change every minute
+  useEffect(() => {
+    const checkDateChange = setInterval(() => {
+      const newDate = new Date().toLocaleDateString('en-CA');
+      if (newDate !== currentDate) {
+        console.log('Date changed from', currentDate, 'to', newDate, '- refreshing data');
+        setCurrentDate(newDate);
+        fetchStudySpaces();
+        if (user) {
+          fetchUserReservations();
+        }
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkDateChange);
+  }, [currentDate, user]);
+
+  useEffect(() => {
+    fetchStudySpaces();
+    if (user) {
+      fetchUserReservations();
     }
-  ];
+  }, [user]);
+
+  const fetchStudySpaces = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.getAllStudySpaces();
+      setStudySpaces(data);
+    } catch (err) {
+      console.error('Error fetching study spaces:', err);
+      setError('Failed to load study spaces. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserReservations = async () => {
+    try {
+      const data = await api.getMyReservations('ACTIVE');
+      console.log('User reservations fetched:', data);
+      setUserReservations(data);
+    } catch (err) {
+      console.error('Error fetching user reservations:', err);
+    }
+  };
+
+  const hasUserReserved = (spaceId) => {
+    if (!userReservations || userReservations.length === 0) return false;
+    
+    // Get today's date in YYYY-MM-DD format (local timezone)
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format
+    
+    console.log('Checking for space:', spaceId, 'Today:', todayStr);
+    console.log('Current reservations:', userReservations);
+    
+    const isReserved = userReservations.some(res => {
+      // Convert reservation date to YYYY-MM-DD format
+      const resDate = new Date(res.date);
+      const resDateStr = resDate.toLocaleDateString('en-CA');
+      
+      const spaceMatches = res.spaceId === spaceId;
+      const dateMatches = resDateStr === todayStr;
+      const statusMatches = res.status === 'ACTIVE';
+      
+      console.log('===== COMPARISON DETAILS =====');
+      console.log('Looking for spaceId:', spaceId);
+      console.log('Reservation spaceId:', res.spaceId);
+      console.log('Space matches?', spaceMatches);
+      console.log('---');
+      console.log('Today:', todayStr);
+      console.log('Reservation date:', resDateStr);
+      console.log('Date matches?', dateMatches);
+      console.log('---');
+      console.log('Reservation status:', res.status);
+      console.log('Status is ACTIVE?', statusMatches);
+      console.log('---');
+      console.log('FINAL MATCH?', spaceMatches && dateMatches && statusMatches);
+      console.log('==============================');
+      
+      return spaceMatches && dateMatches && statusMatches;
+    });
+    
+    console.log('Is reserved result:', isReserved);
+    return isReserved;
+  };
+
+  const openReservationModal = (space) => {
+    if (!user) {
+      alert('Please sign in to reserve a study space');
+      return;
+    }
+    
+    // Check if user already reserved this space
+    if (hasUserReserved(space.id)) {
+      setReservationMessage({ type: 'error', text: 'You already have a reservation for this space on this date' });
+      return;
+    }
+    
+    setSelectedSpace(space);
+    setShowReservationModal(true);
+    setReservationMessage(null);
+  };
+
+  const closeReservationModal = () => {
+    setShowReservationModal(false);
+    setSelectedSpace(null);
+    setReservationMessage(null);
+  };
+
+  const handleReservation = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedSpace) {
+      setReservationMessage({ type: 'error', text: 'Please select a space' });
+      return;
+    }
+
+    setReserving(true);
+    setReservationMessage(null);
+
+    try {
+      // Use today's date
+      const today = new Date().toISOString().split('T')[0];
+      
+      const response = await api.createReservation(
+        selectedSpace.id,
+        today
+      );
+      
+      setReservationMessage({ 
+        type: 'success', 
+        text: `Successfully reserved ${selectedSpace.name} for today! Check your notifications.` 
+      });
+      
+      // Force immediate state update and refetch to ensure UI updates
+      await Promise.all([
+        fetchStudySpaces(),
+        fetchUserReservations()
+      ]);
+      
+      setTimeout(() => {
+        closeReservationModal();
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Reservation error:', err);
+      setReservationMessage({ 
+        type: 'error', 
+        text: err.message || 'Failed to create reservation. Please try again.' 
+      });
+    } finally {
+      setReserving(false);
+    }
+  };
 
   const filteredSpaces = studySpaces.filter(space => {
     const matchesCategory = selectedCategory === 'all' || space.category === selectedCategory;
@@ -149,6 +214,22 @@ function StudySpaces() {
       description: 'Access to cafés and refreshment areas'
     }
   ];
+
+  if (loading) {
+    return (
+      <div className={styles.studySpacesPage}>
+        <div className={styles.loading}>Loading study spaces...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.studySpacesPage}>
+        <div className={styles.error}>{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.studySpacesPage}>
@@ -224,7 +305,11 @@ function StudySpaces() {
               <div key={space.id} className={styles.spaceCard}>
                 <div className={styles.spaceHeader} style={{ background: `linear-gradient(135deg, ${space.color}dd, ${space.color})` }}>
                   <div className={styles.spaceEmoji}>{space.image}</div>
-                  <span className={`${styles.availabilityBadge} ${space.availability === 'Available' ? styles.available : styles.busy}`}>
+                  <span className={`${styles.availabilityBadge} ${
+                    space.availability === 'Full' ? styles.full : 
+                    space.availability === 'Busy' ? styles.busy : 
+                    styles.available
+                  }`}>
                     {space.availability}
                   </span>
                 </div>
@@ -235,8 +320,16 @@ function StudySpaces() {
                   <div className={styles.spaceDetails}>
                     <div className={styles.detailItem}>
                       <Users className={styles.detailIcon} />
-                      <span>{space.capacity}</span>
+                      <span>{space.capacity} total</span>
                     </div>
+                    {space.availableSeats !== undefined && (
+                      <div className={styles.detailItem}>
+                        <CheckCircle className={styles.detailIcon} />
+                        <span className={styles.availableSeats}>
+                          {space.availableSeats} available
+                        </span>
+                      </div>
+                    )}
                     <div className={styles.detailItem}>
                       <Clock className={styles.detailIcon} />
                       <span>{space.hours}</span>
@@ -252,6 +345,22 @@ function StudySpaces() {
                       <span key={idx} className={styles.amenityTag}>{amenity}</span>
                     ))}
                   </div>
+
+                  <button 
+                    className={`${styles.reserveBtn} ${
+                      space.availability === 'Full' || (user && hasUserReserved(space.id)) ? styles.disabled : ''
+                    } ${
+                      user && hasUserReserved(space.id) ? styles.alreadyReserved : ''
+                    }`}
+                    onClick={() => openReservationModal(space)}
+                    disabled={space.availability === 'Full' || (user && hasUserReserved(space.id))}
+                  >
+                    {space.availability === 'Full' 
+                      ? 'Space Full' 
+                      : user && hasUserReserved(space.id) 
+                      ? '✓ Already Reserved' 
+                      : 'Reserve Now'}
+                  </button>
                 </div>
               </div>
             ))}
@@ -285,6 +394,73 @@ function StudySpaces() {
           </div>
         </div>
       </div>
+
+      {/* Reservation Modal */}
+      {showReservationModal && selectedSpace && (
+        <div className={styles.modalOverlay} onClick={closeReservationModal}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeReservationModal}>
+              <X />
+            </button>
+            
+            <h2 className={styles.modalTitle}>Reserve Study Space</h2>
+            <div className={styles.spaceInfo}>
+              <span className={styles.spaceEmoji}>{selectedSpace.image}</span>
+              <div>
+                <h3>{selectedSpace.name}</h3>
+                <p>{selectedSpace.location}</p>
+                {selectedSpace.availableSeats !== undefined && (
+                  <p className={styles.availabilityInfo}>
+                    {selectedSpace.availableSeats} seats available today
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <form onSubmit={handleReservation} className={styles.reservationForm}>
+              <div className={styles.dateInfo}>
+                <Calendar size={20} />
+                <div>
+                  <strong>Reservation Date:</strong> Today ({new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })})
+                </div>
+              </div>
+
+              <p className={styles.infoText}>
+                This reservation is valid for the entire day and will automatically reset tomorrow.
+              </p>
+
+              {reservationMessage && (
+                <div className={`${styles.message} ${styles[reservationMessage.type]}`}>
+                  {reservationMessage.text}
+                </div>
+              )}
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={closeReservationModal}
+                  disabled={reserving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.confirmBtn}
+                  disabled={reserving}
+                >
+                  {reserving ? 'Reserving...' : 'Confirm Reservation'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
