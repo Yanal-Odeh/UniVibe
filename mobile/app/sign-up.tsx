@@ -58,7 +58,7 @@ export default function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#0064a4','#764ba2']}
         style={styles.gradient}
       >
         {/* Background Decorations */}
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#667eea',
+    color: '#0064a4',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     color: '#1a202c',
   },
   submitButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#0064a4',
     fontWeight: '600',
   },
 });

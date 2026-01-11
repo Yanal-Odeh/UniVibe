@@ -313,26 +313,28 @@ export default function DinePlayShopScreen() {
                   </View>
                 </View>
                 <View style={styles.placeBody}>
-                  <View style={styles.placeTop}>
-                    <Text style={styles.placeName}>{place.name}</Text>
-                    <View style={styles.placeType}>
-                      <Text style={styles.placeTypeText}>{place.type}</Text>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.placeTop}>
+                      <Text style={styles.placeName}>{place.name}</Text>
+                      <View style={styles.placeType}>
+                        <Text style={styles.placeTypeText}>{place.type}</Text>
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.placeDescription}>{place.description}</Text>
-                  
-                  <View style={styles.placeDetails}>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>🕐</Text>
-                      <Text style={styles.detailText}>{place.hours}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>📍</Text>
-                      <Text style={styles.detailText}>{place.location}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailIcon}>💰</Text>
-                      <Text style={styles.detailText}>{place.price}</Text>
+                    <Text style={styles.placeDescription}>{place.description}</Text>
+                    
+                    <View style={styles.placeDetails}>
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>🕐</Text>
+                        <Text style={styles.detailText}>{place.hours}</Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>📍</Text>
+                        <Text style={styles.detailText}>{place.location}</Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>💰</Text>
+                        <Text style={styles.detailText}>{place.price}</Text>
+                      </View>
                     </View>
                   </View>
 
@@ -377,7 +379,7 @@ const styles = StyleSheet.create({
   
   // Hero Section
   hero: {
-    backgroundColor: '#fa709a',
+    backgroundColor: '#0064a4',
     paddingVertical: 48,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -391,7 +393,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   highlight: {
-    color: '#7c3aed',
+    color: '#ffffff',
   },
   heroSubtitle: {
     fontSize: 16,
@@ -446,8 +448,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryBtnActive: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#f59e0b',
+    backgroundColor: '#0064a4',
+    borderColor: '#0064a4',
   },
   categoryIcon: {
     fontSize: 18,
@@ -500,7 +502,7 @@ const styles = StyleSheet.create({
     borderColor: '#f3f4f6',
   },
   highlightIconContainer: {
-    backgroundColor: '#fed7aa',
+    backgroundColor: '#0064a4',
     width: 60,
     height: 60,
     borderRadius: 12,
@@ -527,7 +529,9 @@ const styles = StyleSheet.create({
 
   // Places Grid
   placesGrid: {
-    gap: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   placeCard: {
     backgroundColor: '#ffffff',
@@ -540,48 +544,55 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#f3f4f6',
+    width: '48%',
+    marginBottom: 16,
+    display: 'flex',
+    flexDirection: 'column',
   },
   placeHeader: {
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 16,
     alignItems: 'center',
     position: 'relative',
   },
   placeEmoji: {
-    fontSize: 64,
+    fontSize: 48,
   },
   placeRating: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 8,
+    right: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
+    borderRadius: 16,
   },
   starIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   ratingText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: '#f59e0b',
   },
   placeBody: {
-    padding: 20,
+    padding: 16,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
   },
   placeTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 6,
+    gap: 6,
   },
   placeName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
     flex: 1,
@@ -594,49 +605,51 @@ const styles = StyleSheet.create({
   },
   placeTypeText: {
     color: '#92400e',
-    fontSize: 11,
+    fontSize:5,
     fontWeight: '600',
   },
   placeDescription: {
     color: '#6b7280',
-    lineHeight: 22,
-    marginBottom: 16,
-    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 14,
+    fontSize: 13,
   },
   placeDetails: {
     backgroundColor: '#f9fafb',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
+    padding: 14,
+    marginBottom: 14,
+    gap: 10,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   detailIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   detailText: {
     color: '#6b7280',
-    fontSize: 14,
+    fontSize: 12,
     flex: 1,
   },
   features: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
+    minHeight: 60,
   },
   featureTag: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     backgroundColor: '#fed7aa',
     borderRadius: 6,
+    alignSelf: 'flex-start',
   },
   featureText: {
     color: '#9a3412',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 
@@ -659,13 +672,13 @@ const styles = StyleSheet.create({
   tipCard: {
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#f0f9ff',
     borderRadius: 12,
   },
   tipNumber: {
     width: 50,
     height: 50,
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#0064a4',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',

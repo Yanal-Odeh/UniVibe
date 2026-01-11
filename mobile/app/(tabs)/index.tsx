@@ -1,9 +1,63 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ImageBackground, ScrollView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import Layout from '@/components/Layout';
+import api from '@/lib/api';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    fetchUpcomingEvents();
+  }, []);
+
+  const fetchUpcomingEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      const data = await api.getEvents();
+      const eventsList = data.events || data || [];
+      
+      // Filter approved events and get upcoming ones (next 3)
+      const now = new Date();
+      const approvedEvents = eventsList
+        .filter((e: any) => e.status === 'APPROVED')
+        .filter((e: any) => new Date(e.startDate) >= now)
+        .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+        .slice(0, 3);
+      
+      setUpcomingEvents(approvedEvents);
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors: any = {
+      'Technology': '#4f46e5',
+      'Cultural': '#ec4899',
+      'Educational': '#10b981',
+      'Career': '#f59e0b',
+      'Sports': '#ef4444',
+      'General': '#6b7280'
+    };
+    return colors[category] || '#6b7280';
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -149,6 +203,116 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+      </View>
+
+      {/* Upcoming Events Section */}
+      <View className="py-12 px-4 bg-white">
+        <View className="mb-8">
+          <Text className="text-3xl font-bold text-gray-800 text-center mb-2">Upcoming Events</Text>
+          <Text className="text-gray-600 text-center mb-2">Discover exciting events happening on campus</Text>
+          <View className="w-16 h-1 mx-auto rounded-full" style={{backgroundColor: '#0064a4'}}></View>
+        </View>
+
+        {loadingEvents ? (
+          <View className="items-center py-8">
+            <ActivityIndicator size="large" color="#667eea" />
+            <Text className="text-gray-600 mt-4">Loading events...</Text>
+          </View>
+        ) : upcomingEvents.length === 0 ? (
+          <View className="items-center py-8">
+            <Text className="text-4xl mb-4">📅</Text>
+            <Text className="text-gray-600 text-center">No upcoming events at the moment</Text>
+          </View>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row" style={{gap: 16}}>
+              {upcomingEvents.map((event) => (
+                <TouchableOpacity
+                  key={event.id}
+                  onPress={() => router.push(`/event-details?id=${event.id}`)}
+                  style={{width: 300}}
+                >
+                  <View className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                    {/* Event Header with Gradient */}
+                    <View 
+                      className="p-6"
+                      style={{
+                        backgroundColor: '#0064a4',
+                      }}
+                    >
+                      <View className="flex-row justify-between items-start mb-3">
+                        <View 
+                          className="px-3 py-1 rounded-full"
+                          style={{backgroundColor: 'rgba(255, 255, 255, 0.3)'}}
+                        >
+                          <Text className="text-white text-xs font-semibold">{event.category}</Text>
+                        </View>
+                        {event.capacity && (
+                          <View 
+                            className="px-3 py-1 rounded-full"
+                            style={{backgroundColor: 'rgba(255, 255, 255, 0.3)'}}
+                          >
+                            <Text className="text-white text-xs font-semibold">
+                              {event.registeredCount || 0}/{event.capacity}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-white text-2xl font-bold mb-2" numberOfLines={2}>
+                        {event.title}
+                      </Text>
+                    </View>
+
+                    {/* Event Details */}
+                    <View className="p-4">
+                      <View className="flex-row items-center mb-3">
+                        <Text className="text-lg mr-2">📅</Text>
+                        <Text className="text-gray-700 text-sm font-medium">
+                          {formatDate(event.startDate)}
+                        </Text>
+                      </View>
+                      
+                      <View className="flex-row items-center mb-3">
+                        <Text className="text-lg mr-2">🕐</Text>
+                        <Text className="text-gray-700 text-sm">
+                          {formatTime(event.startDate)}
+                        </Text>
+                      </View>
+
+                      {event.location && (
+                        <View className="flex-row items-start mb-4">
+                          <Text className="text-lg mr-2">📍</Text>
+                          <Text className="text-gray-700 text-sm flex-1" numberOfLines={2}>
+                            {event.location}
+                          </Text>
+                        </View>
+                      )}
+
+                      <TouchableOpacity 
+                        className="py-3 rounded-lg items-center"
+                        style={{backgroundColor: '#0064a4'}}
+                        onPress={() => router.push(`/event-details?id=${event.id}`)}
+                      >
+                        <Text className="text-white font-semibold">View Details →</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        )}
+
+        {/* View All Events Button */}
+        {upcomingEvents.length > 0 && (
+          <TouchableOpacity 
+            className="mt-6 px-6 py-4 rounded-lg items-center"
+            style={{backgroundColor: '#0064a4'}}
+            onPress={() => router.push('/event-calendar')}
+          >
+            <Text className="text-white font-semibold text-base">View All Events →</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Info Cards Section */}

@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   
   // Hero Section
   hero: {
-    backgroundColor: '#4facfe',
+    backgroundColor: '#0064a4',
     paddingVertical: 48,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   highlight: {
-    color: '#fbbf24',
+    color: '#ffffff',
   },
   heroSubtitle: {
     fontSize: 16,
@@ -452,8 +452,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryBtnActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
+    backgroundColor: '#0064a4',
+    borderColor: '#0064a4',
   },
   categoryIcon: {
     fontSize: 18,
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#0064a4',
   },
   categoryTextActive: {
     color: '#ffffff',
@@ -487,14 +487,16 @@ const styles = StyleSheet.create({
 
   // Quick Access
   quickAccessGrid: {
-    gap: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   quickAccessCard: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -502,41 +504,45 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#f3f4f6',
+    width: '48%',
+    marginBottom: 16,
   },
   quickAccessIcon: {
-    backgroundColor: '#dbeafe',
-    width: 50,
-    height: 50,
+    backgroundColor: '#eaedf1ff',
+    width: 44,
+    height: 44,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickAccessIconText: {
-    fontSize: 24,
+    fontSize: 20,
   },
   quickAccessInfo: {
     flex: 1,
   },
   quickAccessTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#111827',
     marginBottom: 2,
   },
   quickAccessDescription: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6b7280',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   quickAccessValue: {
-    fontSize: 13,
-    color: '#3b82f6',
+    fontSize: 12,
+    color: '#0064a4',
     fontWeight: '600',
   },
 
   // Services Grid
   servicesGrid: {
-    gap: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   serviceCard: {
     backgroundColor: '#ffffff',
@@ -549,83 +555,85 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#f3f4f6',
+    width: '48%',
+    marginBottom: 16,
   },
   serviceHeader: {
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   serviceIcon: {
-    fontSize: 64,
+    fontSize: 48,
   },
   serviceBody: {
-    padding: 20,
+    padding: 16,
   },
   serviceName: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   serviceDescription: {
     color: '#6b7280',
-    lineHeight: 22,
-    marginBottom: 20,
-    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+    fontSize: 13,
   },
   serviceDetails: {
     backgroundColor: '#f9fafb',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 20,
-    gap: 12,
+    padding: 14,
+    marginBottom: 16,
+    gap: 10,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 10,
   },
   detailIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   detailText: {
     color: '#6b7280',
-    fontSize: 14,
+    fontSize: 12,
     flex: 1,
   },
   detailTextLink: {
-    color: '#3b82f6',
-    fontSize: 14,
+    color: '#0064a4',
+    fontSize: 12,
     flex: 1,
   },
   features: {
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-    paddingTop: 16,
+    paddingTop: 14,
   },
   featuresTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   featuresList: {
-    gap: 8,
+    gap: 6,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
+    gap: 6,
   },
   featureCheck: {
     color: '#10b981',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 12,
   },
   featureItemText: {
     color: '#6b7280',
-    fontSize: 13,
+    fontSize: 11,
     flex: 1,
   },
 
@@ -654,7 +662,7 @@ const styles = StyleSheet.create({
   resourceNumber: {
     width: 50,
     height: 50,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#0064a4',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',

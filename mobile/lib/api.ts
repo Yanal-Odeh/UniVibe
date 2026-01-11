@@ -105,6 +105,10 @@ class ApiClient {
     });
   }
 
+  async getMyRegistrations(status?: string) {
+    return this.request(`/registrations/my-registrations${status ? `?status=${status}` : ''}`);
+  }
+
   // Event approval workflow
   async approveFacultyLeader(eventId: string, data: any) {
     return this.request(`/events/${eventId}/approve/faculty`, {

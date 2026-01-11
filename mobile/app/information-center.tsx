@@ -107,23 +107,21 @@ export default function InformationCenter() {
           </View>
 
           {/* Announcements */}
-          <View style={styles.announcementsCard}>
-            <Text style={styles.announcementsTitle}>Recent Announcements</Text>
-            <View style={styles.announcementsList}>
-              {announcements.map((announcement, index) => (
-                <View key={index} style={styles.announcement}>
-                  <View style={[styles.announcementBadge, 
-                    announcement.badge === 'Important' ? styles.badgeImportant :
-                    announcement.badge === 'Event' ? styles.badgeEvent :
-                    styles.badgeUpdate
-                  ]}>
-                    <Text style={styles.badgeText}>{announcement.badge}</Text>
-                  </View>
-                  <Text style={styles.announcementTitle}>{announcement.title}</Text>
-                  <Text style={styles.announcementDate}>{announcement.date}</Text>
+          <Text style={styles.sectionTitle}>Recent Announcements</Text>
+          <View style={styles.announcementsList}>
+            {announcements.map((announcement, index) => (
+              <View key={index} style={styles.announcement}>
+                <View style={[styles.announcementBadge, 
+                  announcement.badge === 'Important' ? styles.badgeImportant :
+                  announcement.badge === 'Event' ? styles.badgeEvent :
+                  styles.badgeUpdate
+                ]}>
+                  <Text style={styles.badgeText}>{announcement.badge}</Text>
                 </View>
-              ))}
-            </View>
+                <Text style={styles.announcementTitle}>{announcement.title}</Text>
+                <Text style={styles.announcementDate}>{announcement.date}</Text>
+              </View>
+            ))}
           </View>
 
           {/* Quick Links */}
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   hero: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 50,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -177,38 +175,44 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardsGrid: {
-    gap: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     marginBottom: 30,
   },
   card: {
     backgroundColor: '#ffffff',
-    padding: 24,
+    padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    width: '48%',
+    marginBottom: 16,
+    minHeight: 200,
   },
   cardIcon: {
-    fontSize: 40,
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
+    fontSize: 32,
     marginBottom: 12,
   },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 6,
+  },
+  cardDescription: {
+    fontSize: 13,
+    color: '#666666',
+    lineHeight: 18,
+    marginBottom: 10,
+    flex: 1,
+  },
   cardLink: {
-    fontSize: 14,
-    color: '#667eea',
+    fontSize: 13,
+    color: '#0064a4',
     fontWeight: '600',
   },
   helpSection: {
@@ -234,7 +238,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   helpButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 8,
@@ -262,12 +266,22 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   announcementsList: {
-    gap: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 30,
   },
   announcement: {
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    width: '48%',
+    marginBottom: 16,
   },
   announcementBadge: {
     alignSelf: 'flex-start',
@@ -325,7 +339,7 @@ const styles = StyleSheet.create({
   },
   quickLinkText: {
     fontSize: 15,
-    color: '#667eea',
+    color: '#0064a4',
     fontWeight: '500',
   },
 });

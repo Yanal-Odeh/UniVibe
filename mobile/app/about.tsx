@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   stepNumberText: {
-    color: '#4f46e5',
+    color: '#0064a4',
     fontWeight: '700',
     fontSize: 18,
   },

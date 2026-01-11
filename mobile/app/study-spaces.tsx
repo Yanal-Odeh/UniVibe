@@ -311,30 +311,32 @@ export default function StudySpacesScreen() {
                       </View>
                     </View>
                     <View style={styles.spaceBody}>
-                      <Text style={styles.spaceName}>{space.name}</Text>
-                      <Text style={styles.spaceDescription}>{space.description}</Text>
-                      
-                      <View style={styles.spaceDetails}>
-                        <View style={styles.detailItem}>
-                          <Text style={styles.detailIcon}>👥</Text>
-                          <Text style={styles.detailText}>{space.availableSeats} / {space.capacity} available</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                          <Text style={styles.detailIcon}>🕐</Text>
-                          <Text style={styles.detailText}>{space.hours}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                          <Text style={styles.detailIcon}>📍</Text>
-                          <Text style={styles.detailText}>{space.location}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.amenities}>
-                        {space.amenities?.map((amenity: string, idx: number) => (
-                          <View key={idx} style={styles.amenityTag}>
-                            <Text style={styles.amenityText}>{amenity}</Text>
+                      <View>
+                        <Text style={styles.spaceName}>{space.name}</Text>
+                        <Text style={styles.spaceDescription}>{space.description}</Text>
+                        
+                        <View style={styles.spaceDetails}>
+                          <View style={styles.detailItem}>
+                            <Text style={styles.detailIcon}>👥</Text>
+                            <Text style={styles.detailText}>{space.availableSeats} / {space.capacity} available</Text>
                           </View>
-                        ))}
+                          <View style={styles.detailItem}>
+                            <Text style={styles.detailIcon}>🕐</Text>
+                            <Text style={styles.detailText}>{space.hours}</Text>
+                          </View>
+                          <View style={styles.detailItem}>
+                            <Text style={styles.detailIcon}>📍</Text>
+                            <Text style={styles.detailText}>{space.location}</Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.amenities}>
+                          {space.amenities?.map((amenity: string, idx: number) => (
+                            <View key={idx} style={styles.amenityTag}>
+                              <Text style={styles.amenityText}>{amenity}</Text>
+                            </View>
+                          ))}
+                        </View>
                       </View>
 
                       <TouchableOpacity
@@ -461,7 +463,7 @@ const styles = StyleSheet.create({
   
   // Hero Section
   hero: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 48,
     paddingHorizontal: 24,
     alignItems: 'center',
@@ -475,7 +477,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   highlight: {
-    color: '#fbbf24',
+    color: '#ffffff',
   },
   heroSubtitle: {
     fontSize: 16,
@@ -530,8 +532,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryBtnActive: {
-    backgroundColor: '#4f46e5',
-    borderColor: '#4f46e5',
+    backgroundColor: '#0064a4',
+    borderColor: '#0064a4',
   },
   categoryIcon: {
     fontSize: 18,
@@ -611,7 +613,9 @@ const styles = StyleSheet.create({
 
   // Spaces Grid
   spacesGrid: {
-    gap: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   spaceCard: {
     backgroundColor: '#ffffff',
@@ -624,23 +628,27 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: '#f3f4f6',
+    width: '48%',
+    marginBottom: 16,
+    display: 'flex',
+    flexDirection: 'column',
   },
   spaceHeader: {
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingVertical: 32,
+    paddingHorizontal: 16,
     alignItems: 'center',
     position: 'relative',
   },
   spaceEmoji: {
-    fontSize: 64,
+    fontSize: 48,
   },
   availabilityBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    top: 8,
+    right: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 16,
   },
   availableBadge: {
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -655,38 +663,42 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   spaceBody: {
-    padding: 20,
+    padding: 16,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   spaceName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   spaceDescription: {
     color: '#6b7280',
-    lineHeight: 22,
-    marginBottom: 16,
-    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 14,
+    fontSize: 13,
   },
   spaceDetails: {
     backgroundColor: '#f9fafb',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
+    padding: 14,
+    marginBottom: 14,
+    gap: 10,
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   detailIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   detailText: {
     color: '#6b7280',
-    fontSize: 14,
+    fontSize: 12,
     flex: 1,
   },
   amenities: {
@@ -731,7 +743,7 @@ const styles = StyleSheet.create({
   tipNumber: {
     width: 50,
     height: 50,
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#0064a4',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
@@ -771,7 +783,7 @@ const styles = StyleSheet.create({
   // Reserve Button
   reserveBtn: {
     marginTop: 16,
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#0064a4',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
@@ -824,7 +836,7 @@ const styles = StyleSheet.create({
   modalSpaceInfo: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fbfaf9ff',
     borderRadius: 12,
     marginBottom: 20,
   },
@@ -901,7 +913,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#4f46e5',
+    backgroundColor: '#0064a4',
     alignItems: 'center',
   },
   modalConfirmText: {
@@ -910,7 +922,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalConfirmBtnDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: '#af9d9cff',
     opacity: 0.6,
   },
 });

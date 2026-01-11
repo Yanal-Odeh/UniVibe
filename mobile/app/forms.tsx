@@ -165,7 +165,7 @@ export default function FormsApplications() {
 
           {loading ? (
             <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="#667eea" />
+              <ActivityIndicator size="large" color="#0064a4" />
               <Text style={styles.loaderText}>Loading communities...</Text>
             </View>
           ) : (
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   hero: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 50,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -412,54 +412,60 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   communitiesGrid: {
-    gap: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   communityCard: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+    width: '48%',
+    marginBottom: 16,
+    minHeight: 240,
   },
   communityIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   communityIconText: {
-    fontSize: 28,
+    fontSize: 24,
   },
   communityContent: {
-    marginBottom: 16,
+    marginBottom: 12,
+    flex: 1,
   },
   communityName: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '700',
     color: '#333333',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   communityDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666666',
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: 12,
   },
   communityMeta: {
     flexDirection: 'row',
   },
   members: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#999999',
   },
   joinBtn: {
-    backgroundColor: '#667eea',
-    paddingVertical: 12,
+    backgroundColor: '#0064a4',
+    paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -589,7 +595,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

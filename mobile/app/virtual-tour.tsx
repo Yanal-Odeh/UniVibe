@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   hero: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingVertical: 50,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   categoryBtnActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#0064a4',
+    borderColor: '#0064a4',
   },
   categoryBtnText: {
     fontSize: 14,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   ctaCard: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     padding: 28,
     borderRadius: 12,
     alignItems: 'center',
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryBtnText: {
-    color: '#667eea',
+    color: '#0064a4',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
   },
   featureBullet: {
     fontSize: 20,
-    color: '#667eea',
+    color: '#0064a4',
     marginRight: 8,
   },
   featureItemText: {

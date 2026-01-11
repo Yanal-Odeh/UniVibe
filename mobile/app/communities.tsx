@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#667eea',
+    color: '#0064a4',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   keyMemberRoleText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#667eea',
+    color: '#0064a4',
   },
 
   // Card Footer
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     color: '#718096',
   },
   joinBtn: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 8,
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064a4',
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
