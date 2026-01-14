@@ -479,6 +479,23 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
   gap: 1rem;
 }
 
+// Info Message for Club Leaders
+.infoMessage {
+  background-color: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  border-radius: $border-radius;
+  padding: 0.75rem 1rem;
+  
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
 .radioGroup {
   display: flex;
   gap: 1rem;

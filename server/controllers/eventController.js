@@ -192,11 +192,50 @@ export const createEvent = async (req, res) => {
   const profiler = new Profiler('Create Event');
   
   try {
-    const { title, description, collegeId, locationId, startDate, endDate, communityId } = req.body;
+    let { title, description, collegeId, locationId, startDate, endDate, communityId } = req.body;
 
     // Validate input
-    if (!title || !description || !locationId || !startDate || !communityId) {
-      return res.status(400).json({ error: 'Required fields: title, description, locationId, startDate, communityId' });
+    if (!title || !description || !locationId || !startDate) {
+      return res.status(400).json({ error: 'Required fields: title, description, locationId, startDate' });
+    }
+
+    // For club leaders, automatically get their community and college
+    if (req.user.role === 'CLUB_LEADER') {
+      // Find the community that this club leader leads
+      const ledCommunity = await prisma.community.findFirst({
+        where: {
+          clubLeaderId: req.user.id
+        },
+        include: { college: true }
+      });
+
+      if (!ledCommunity) {
+        return res.status(403).json({ 
+          error: 'No community assigned',
+          message: 'You are not assigned as a leader of any community. Please contact an admin.' 
+        });
+      }
+
+      if (!ledCommunity.collegeId) {
+        return res.status(400).json({ 
+          error: 'Community not linked to a college',
+          message: 'Your community must be assigned to a college. Please contact an admin.' 
+        });
+      }
+
+      // Automatically set the community and college
+      communityId = ledCommunity.id;
+      collegeId = ledCommunity.collegeId;
+
+      console.log(`✅ Auto-assigned event to club leader ${req.user.firstName} ${req.user.lastName}:`, {
+        community: ledCommunity.name,
+        college: ledCommunity.college?.name
+      });
+    } else {
+      // For non-club leaders, communityId is required
+      if (!communityId) {
+        return res.status(400).json({ error: 'Required field: communityId' });
+      }
     }
 
     // Get community to use its college
@@ -354,25 +393,31 @@ export const createEvent = async (req, res) => {
     });
     profiler.end('create_event_transaction');
 
-    // Send notification to Faculty Leader of this college
+    // Send notification to ALL Faculty Leaders of this college
     profiler.start('create_notification');
-    const facultyLeader = await prisma.user.findFirst({
+    const facultyLeaders = await prisma.user.findMany({
       where: {
         role: 'FACULTY_LEADER',
         collegeId: community.collegeId
       },
-      select: { id: true }
+      select: { id: true, firstName: true, lastName: true }
     });
 
-    if (facultyLeader) {
-      await prisma.notification.create({
-        data: {
-          userId: facultyLeader.id,
-          eventId: event.id,
-          type: 'EVENT_PENDING_APPROVAL',
-          message: `New event "${title}" is pending your approval from ${community.name}`
-        }
-      });
+    if (facultyLeaders.length > 0) {
+      console.log(`📧 Sending new event notification to ${facultyLeaders.length} faculty leader(s) for college ${community.collegeId}`);
+      for (const facultyLeader of facultyLeaders) {
+        await prisma.notification.create({
+          data: {
+            userId: facultyLeader.id,
+            eventId: event.id,
+            type: 'EVENT_PENDING_APPROVAL',
+            message: `New event "${title}" is pending your approval from ${community.name}`
+          }
+        });
+        console.log(`   ✅ Notified: ${facultyLeader.firstName} ${facultyLeader.lastName}`);
+      }
+    } else {
+      console.log(`⚠️  No Faculty Leader found for college ${community.collegeId}`);
     }
     profiler.end('create_notification');
 
@@ -510,26 +555,31 @@ export const facultyApproval = async (req, res) => {
           }
         });
 
-        // 2. Find dean and create notification in parallel would be ideal,
-        // but we need dean.id first. However, we can optimize the query.
-        const dean = await tx.user.findFirst({
+        // 2. Find ALL deans for this college and create notifications
+        const deans = await tx.user.findMany({
           where: {
             role: 'DEAN_OF_FACULTY',
             collegeId: event.collegeId
           },
-          select: { id: true } // Only select what we need
+          select: { id: true, firstName: true, lastName: true } // Select what we need for logging
         });
 
-        // 3. Create notification if dean exists
-        if (dean) {
-          await tx.notification.create({
-            data: {
-              userId: dean.id,
-              eventId: event.id,
-              type: 'EVENT_PENDING_APPROVAL',
-              message: `Event "${event.title}" has been approved by Faculty Leader and is pending your approval`
-            }
-          });
+        // 3. Create notification for EACH dean
+        if (deans.length > 0) {
+          console.log(`📧 Sending notification to ${deans.length} dean(s) for college ${event.collegeId}`);
+          for (const dean of deans) {
+            await tx.notification.create({
+              data: {
+                userId: dean.id,
+                eventId: event.id,
+                type: 'EVENT_PENDING_APPROVAL',
+                message: `Event "${event.title}" has been approved by Faculty Leader and is pending your approval`
+              }
+            });
+            console.log(`   ✅ Notified: ${dean.firstName} ${dean.lastName}`);
+          }
+        } else {
+          console.log(`⚠️  No Dean of Faculty found for college ${event.collegeId}`);
         }
 
         return updatedEvent;
@@ -715,23 +765,29 @@ export const deanApproval = async (req, res) => {
           }
         });
 
-        // 2. Find deanship and create notification
-        const deanship = await tx.user.findFirst({
+        // 2. Find ALL deanship users and create notifications
+        const deanships = await tx.user.findMany({
           where: {
             role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
           },
-          select: { id: true }
+          select: { id: true, firstName: true, lastName: true }
         });
 
-        if (deanship) {
-          await tx.notification.create({
-            data: {
-              userId: deanship.id,
-              eventId: event.id,
-              type: 'EVENT_PENDING_APPROVAL',
-              message: `Event "${event.title}" from ${event.college.name} is pending your final approval`
-            }
-          });
+        if (deanships.length > 0) {
+          console.log(`📧 Sending approval notification to ${deanships.length} deanship user(s)`);
+          for (const deanship of deanships) {
+            await tx.notification.create({
+              data: {
+                userId: deanship.id,
+                eventId: event.id,
+                type: 'EVENT_PENDING_APPROVAL',
+                message: `Event "${event.title}" from ${event.college.name} is pending your final approval`
+              }
+            });
+            console.log(`   ✅ Notified: ${deanship.firstName} ${deanship.lastName}`);
+          }
+        } else {
+          console.log(`⚠️  No Deanship user found`);
         }
 
         return updatedEvent;
@@ -766,24 +822,30 @@ export const deanApproval = async (req, res) => {
           }
         });
 
-        // 2. Notify faculty leader for revision
-        const facultyLeader = await tx.user.findFirst({
+        // 2. Notify ALL faculty leaders for revision
+        const facultyLeaders = await tx.user.findMany({
           where: {
             role: 'FACULTY_LEADER',
             collegeId: event.collegeId
           },
-          select: { id: true }
+          select: { id: true, firstName: true, lastName: true }
         });
 
-        if (facultyLeader) {
-          await tx.notification.create({
-            data: {
-              userId: facultyLeader.id,
-              eventId: event.id,
-              type: 'EVENT_NEEDS_REVISION',
-              message: `The Dean of Faculty requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
-            }
-          });
+        if (facultyLeaders.length > 0) {
+          console.log(`📧 Sending dean revision request to ${facultyLeaders.length} faculty leader(s) for college ${event.collegeId}`);
+          for (const facultyLeader of facultyLeaders) {
+            await tx.notification.create({
+              data: {
+                userId: facultyLeader.id,
+                eventId: event.id,
+                type: 'EVENT_NEEDS_REVISION',
+                message: `The Dean of Faculty requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+              }
+            });
+            console.log(`   ✅ Notified: ${facultyLeader.firstName} ${facultyLeader.lastName}`);
+          }
+        } else {
+          console.log(`⚠️  No Faculty Leader found for college ${event.collegeId}`);
         }
 
         return updatedEvent;
@@ -958,24 +1020,30 @@ export const deanshipApproval = async (req, res) => {
           }
         });
 
-        // 2. Notify Dean of Faculty for revision
-        const dean = await tx.user.findFirst({
+        // 2. Notify ALL Deans of Faculty for revision
+        const deans = await tx.user.findMany({
           where: {
             role: 'DEAN_OF_FACULTY',
             collegeId: event.collegeId
           },
-          select: { id: true }
+          select: { id: true, firstName: true, lastName: true }
         });
 
-        if (dean) {
-          await tx.notification.create({
-            data: {
-              userId: dean.id,
-              eventId: event.id,
-              type: 'EVENT_NEEDS_REVISION',
-              message: `The Deanship of Student Affairs requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
-            }
-          });
+        if (deans.length > 0) {
+          console.log(`📧 Sending deanship revision request to ${deans.length} dean(s) for college ${event.collegeId}`);
+          for (const dean of deans) {
+            await tx.notification.create({
+              data: {
+                userId: dean.id,
+                eventId: event.id,
+                type: 'EVENT_NEEDS_REVISION',
+                message: `The Deanship of Student Affairs requests revision for event "${event.title}": ${reason || 'Please revise your event'}`
+              }
+            });
+            console.log(`   ✅ Notified: ${dean.firstName} ${dean.lastName}`);
+          }
+        } else {
+          console.log(`⚠️  No Dean of Faculty found for college ${event.collegeId}`);
         }
 
         return updatedEvent;
@@ -1100,23 +1168,30 @@ export const respondToRevision = async (req, res) => {
         }
       });
 
-      // Notify Faculty Leader about the resubmission
-      const facultyLeader = await prisma.user.findFirst({
+      // Notify ALL Faculty Leaders about the resubmission
+      const facultyLeaders = await prisma.user.findMany({
         where: {
           role: 'FACULTY_LEADER',
           collegeId: event.collegeId
-        }
+        },
+        select: { id: true, firstName: true, lastName: true }
       });
 
-      if (facultyLeader) {
-        await prisma.notification.create({
-          data: {
-            userId: facultyLeader.id,
-            eventId: event.id,
-            type: 'EVENT_PENDING_APPROVAL',
-            message: `${user.name} has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
-          }
-        });
+      if (facultyLeaders.length > 0) {
+        console.log(`📧 Sending club leader revision response to ${facultyLeaders.length} faculty leader(s) for college ${event.collegeId}`);
+        for (const facultyLeader of facultyLeaders) {
+          await prisma.notification.create({
+            data: {
+              userId: facultyLeader.id,
+              eventId: event.id,
+              type: 'EVENT_PENDING_APPROVAL',
+              message: `${user.name} has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+            }
+          });
+          console.log(`   ✅ Notified: ${facultyLeader.firstName} ${facultyLeader.lastName}`);
+        }
+      } else {
+        console.log(`⚠️  No Faculty Leader found for college ${event.collegeId}`);
       }
       
       // Also notify the Club Leader confirming their response was submitted
@@ -1140,23 +1215,30 @@ export const respondToRevision = async (req, res) => {
         }
       });
 
-      // Notify Dean of Faculty about the revision response
-      const dean = await prisma.user.findFirst({
+      // Notify ALL Deans of Faculty about the revision response
+      const deans = await prisma.user.findMany({
         where: {
           role: 'DEAN_OF_FACULTY',
           collegeId: event.collegeId
-        }
+        },
+        select: { id: true, firstName: true, lastName: true }
       });
 
-      if (dean) {
-        await prisma.notification.create({
-          data: {
-            userId: dean.id,
-            eventId: event.id,
-            type: 'EVENT_PENDING_APPROVAL',
-            message: `Faculty Leader has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
-          }
-        });
+      if (deans.length > 0) {
+        console.log(`📧 Sending revision response notification to ${deans.length} dean(s) for college ${event.collegeId}`);
+        for (const dean of deans) {
+          await prisma.notification.create({
+            data: {
+              userId: dean.id,
+              eventId: event.id,
+              type: 'EVENT_PENDING_APPROVAL',
+              message: `Faculty Leader has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+            }
+          });
+          console.log(`   ✅ Notified: ${dean.firstName} ${dean.lastName}`);
+        }
+      } else {
+        console.log(`⚠️  No Dean of Faculty found for college ${event.collegeId}`);
       }
     }
     // If Dean of Faculty responding to Deanship's revision
@@ -1170,22 +1252,29 @@ export const respondToRevision = async (req, res) => {
         }
       });
 
-      // Notify Deanship about the revision response
-      const deanship = await prisma.user.findFirst({
+      // Notify ALL Deanship users about the revision response
+      const deanships = await prisma.user.findMany({
         where: {
           role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
-        }
+        },
+        select: { id: true, firstName: true, lastName: true }
       });
 
-      if (deanship) {
-        await prisma.notification.create({
-          data: {
-            userId: deanship.id,
-            eventId: event.id,
-            type: 'EVENT_PENDING_APPROVAL',
-            message: `Dean of Faculty has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
-          }
-        });
+      if (deanships.length > 0) {
+        console.log(`📧 Sending dean revision response to ${deanships.length} deanship user(s)`);
+        for (const deanship of deanships) {
+          await prisma.notification.create({
+            data: {
+              userId: deanship.id,
+              eventId: event.id,
+              type: 'EVENT_PENDING_APPROVAL',
+              message: `Dean of Faculty has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+            }
+          });
+          console.log(`   ✅ Notified: ${deanship.firstName} ${deanship.lastName}`);
+        }
+      } else {
+        console.log(`⚠️  No Deanship user found`);
       }
     }
     else {
@@ -1244,22 +1333,29 @@ export const respondToDeanshipRevision = async (req, res) => {
       }
     });
 
-    // Notify Deanship of Student Affairs about the revision response
-    const deanship = await prisma.user.findFirst({
+    // Notify ALL Deanship users about the revision response
+    const deanships = await prisma.user.findMany({
       where: {
         role: 'DEANSHIP_OF_STUDENT_AFFAIRS'
-      }
+      },
+      select: { id: true, firstName: true, lastName: true }
     });
 
-    if (deanship) {
-      await prisma.notification.create({
-        data: {
-          userId: deanship.id,
-          eventId: event.id,
-          type: 'EVENT_PENDING_APPROVAL',
-          message: `Dean of Faculty has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
-        }
-      });
+    if (deanships.length > 0) {
+      console.log(`📧 Sending dean revision response to ${deanships.length} deanship user(s)`);
+      for (const deanship of deanships) {
+        await prisma.notification.create({
+          data: {
+            userId: deanship.id,
+            eventId: event.id,
+            type: 'EVENT_PENDING_APPROVAL',
+            message: `Dean of Faculty has responded to your revision request for event "${event.title}" and resubmitted it for your review. Response: ${response}`
+          }
+        });
+        console.log(`   ✅ Notified: ${deanship.firstName} ${deanship.lastName}`);
+      }
+    } else {
+      console.log(`⚠️  No Deanship user found`);
     }
 
     res.json({ event: updatedEvent, message: 'Response sent and event resubmitted to Deanship' });

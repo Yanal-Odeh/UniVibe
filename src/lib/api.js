@@ -474,6 +474,19 @@ class ApiClient {
     const queryString = new URLSearchParams(params).toString();
     return this.request(`/study-spaces/admin/reservations${queryString ? '?' + queryString : ''}`);
   }
+
+  // Colleges and Locations API
+  async getColleges() {
+    return this.requestWithDeduplication('/colleges');
+  }
+
+  async getCollegeLocations(collegeId) {
+    return this.requestWithDeduplication(`/colleges/${collegeId}/locations`);
+  }
+
+  async getMyCollegeLocations() {
+    return this.requestWithDeduplication('/colleges/my-locations');
+  }
 }
 
 export default new ApiClient();

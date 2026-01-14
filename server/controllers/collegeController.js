@@ -77,13 +77,14 @@ export const getLocation = async (req, res) => {
 export const getMyCollegeLocations = async (req, res) => {
   try {
     const user = req.user;
-    console.log('Fetching locations for user:', user.id, 'Role:', user.role, 'CollegeId:', user.collegeId);
+    console.log('🔍 Fetching locations for user:', user.id, 'Role:', user.role, 'Email:', user.email);
 
     // If user doesn't have a collegeId, try to find it through their led community
     let collegeId = user.collegeId;
     let communityInfo = null;
 
     if (!collegeId) {
+      console.log('⚠️  User has no collegeId, searching for led community...');
       // Find the community this user leads (correct field name: clubLeaderId)
       const ledCommunity = await prisma.community.findFirst({
         where: {
@@ -94,18 +95,26 @@ export const getMyCollegeLocations = async (req, res) => {
         }
       });
 
+      console.log('🔍 Community search result:', ledCommunity ? `Found: ${ledCommunity.name}` : 'None found');
+
       if (ledCommunity && ledCommunity.college) {
         collegeId = ledCommunity.college.id;
         communityInfo = {
           id: ledCommunity.id,
           name: ledCommunity.name
         };
-        console.log('Found community:', ledCommunity.name, 'College:', ledCommunity.college.name);
+        console.log(`✅ Found community: ${ledCommunity.name}, College: ${ledCommunity.college.name}`);
+      } else if (ledCommunity && !ledCommunity.college) {
+        console.log(`⚠️  Community "${ledCommunity.name}" found but has NO COLLEGE assigned!`);
+        return res.status(400).json({ 
+          error: 'Community not linked to college',
+          message: `Your community "${ledCommunity.name}" is not assigned to any college. Please contact an administrator to link it to a college.`
+        });
       }
     }
 
     if (!collegeId) {
-      console.log('No college found for user');
+      console.log('❌ No college found for user');
       return res.status(404).json({ 
         error: 'No college found',
         message: 'Please contact admin to assign you to a college'

@@ -150,9 +150,7 @@ const PlanEvents = () => {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/colleges');
-        if (!response.ok) throw new Error('Failed to fetch colleges');
-        const data = await response.json();
+        const data = await api.getColleges();
         setColleges(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching colleges:', error);
@@ -163,33 +161,47 @@ const PlanEvents = () => {
     fetchColleges();
   }, []);
 
-  // Fetch locations when college is selected
+  // Fetch locations for club leaders automatically, or when college is selected for other roles
   useEffect(() => {
-    if (formData.collegeId) {
-      console.log('📍 Fetching locations for college:', formData.collegeId);
-      
-      const fetchLocations = async () => {
-        setLoadingLocations(true);
-        try {
-          const response = await fetch(`http://localhost:5000/api/colleges/${formData.collegeId}/locations`);
-          if (!response.ok) throw new Error('Failed to fetch locations');
-          const data = await response.json();
+    const fetchLocationsForUser = async () => {
+      setLoadingLocations(true);
+      try {
+        // For club leaders, use their college's locations automatically
+        if (userRole === 'CLUB_LEADER') {
+          console.log('📍 Fetching locations for club leader...');
+          const data = await api.getMyCollegeLocations();
+          console.log('📍 Club leader locations fetched:', data);
+          setLocations(Array.isArray(data.locations) ? data.locations : []);
+          
+          // Also log the community and college info
+          if (data.collegeName && data.communityName) {
+            console.log(`✅ Club: ${data.communityName}, Faculty: ${data.collegeName}, Locations: ${data.locations?.length || 0}`);
+          }
+        } 
+        // For other roles, fetch based on selected college
+        else if (formData.collegeId) {
+          console.log('📍 Fetching locations for college:', formData.collegeId);
+          const data = await api.getCollegeLocations(formData.collegeId);
           console.log('📍 Locations fetched:', data.length, 'locations');
           setLocations(Array.isArray(data) ? data : []);
-        } catch (error) {
-          console.error('Error fetching locations:', error);
-          showToast('Failed to load locations', 'error');
+        } else {
+          console.log('📍 No college selected, clearing locations');
           setLocations([]);
-        } finally {
-          setLoadingLocations(false);
         }
-      };
-      fetchLocations();
-    } else {
-      console.log('📍 No college selected, clearing locations');
-      setLocations([]);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        showToast(error.message || 'Failed to load locations', 'error');
+        setLocations([]);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+
+    // Fetch locations when modal opens for club leaders, or when college changes for others
+    if (showModal) {
+      fetchLocationsForUser();
     }
-  }, [formData.collegeId]);
+  }, [formData.collegeId, showModal, userRole]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -217,25 +229,39 @@ const PlanEvents = () => {
   };
 
   const handleCreateEvent = async () => {
-    // Validate required fields
-    if (!formData.title || !formData.description || !formData.collegeId || 
-        !formData.locationId || !formData.startDate || !formData.communityId) {
+    // Validate required fields - communityId not required for club leaders
+    const requiredFields = ['title', 'description', 'locationId', 'startDate'];
+    
+    // For non-club leaders, communityId is still required
+    if (userRole !== 'CLUB_LEADER') {
+      requiredFields.push('communityId');
+    }
+    
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    if (missingFields.length > 0) {
       showToast('Please fill in all required fields', 'error');
       return;
     }
 
     try {
-      // Create event via API
-      const response = await api.createEvent({
+      // Prepare event data - for club leaders, communityId will be auto-assigned by backend
+      const eventData = {
         title: formData.title,
         description: formData.description,
-        collegeId: formData.collegeId,
         locationId: formData.locationId,
         startDate: formData.startDate,
         endDate: formData.endDate || null,
-        communityId: formData.communityId,
         capacity: formData.capacity ? parseInt(formData.capacity) : null
-      });
+      };
+
+      // Only include communityId if user is not a club leader
+      if (userRole !== 'CLUB_LEADER') {
+        eventData.communityId = formData.communityId;
+        eventData.collegeId = formData.collegeId;
+      }
+
+      // Create event via API
+      const response = await api.createEvent(eventData);
 
       const newEvent = response.event;
       
@@ -590,50 +616,61 @@ const PlanEvents = () => {
                 />
               </div>
 
-              {/* College Selection */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  College <span className={styles.required}>*</span>
-                </label>
-                <select
-                  name="collegeId"
-                  value={formData.collegeId}
-                  onChange={handleInputChange}
-                  className={styles.select}
-                >
-                  <option value="">Select a college</option>
-                  {colleges.map(college => (
-                    <option key={college.id} value={college.id}>
-                      {college.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Community Selection */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Community <span className={styles.required}>*</span>
-                </label>
-                <select
-                  name="communityId"
-                  value={formData.communityId}
-                  onChange={handleInputChange}
-                  className={styles.select}
-                  disabled={!formData.collegeId}
-                >
-                  <option value="">
-                    {!formData.collegeId ? 'Select a college first' : 'Select a community'}
-                  </option>
-                  {communities
-                    .filter(community => community.collegeId === formData.collegeId)
-                    .map(community => (
-                      <option key={community.id} value={community.id}>
-                        {community.name}
+              {/* College Selection - Only show for non-club leaders */}
+              {userRole !== 'CLUB_LEADER' && (
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    College <span className={styles.required}>*</span>
+                  </label>
+                  <select
+                    name="collegeId"
+                    value={formData.collegeId}
+                    onChange={handleInputChange}
+                    className={styles.select}
+                  >
+                    <option value="">Select a college</option>
+                    {colleges.map(college => (
+                      <option key={college.id} value={college.id}>
+                        {college.name}
                       </option>
                     ))}
-                </select>
-              </div>
+                  </select>
+                </div>
+              )}
+
+              {/* Community Selection - Only show for non-club leaders */}
+              {userRole !== 'CLUB_LEADER' && (
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    Community <span className={styles.required}>*</span>
+                  </label>
+                  <select
+                    name="communityId"
+                    value={formData.communityId}
+                    onChange={handleInputChange}
+                    className={styles.select}
+                    disabled={!formData.collegeId}
+                  >
+                    <option value="">
+                      {!formData.collegeId ? 'Select a college first' : 'Select a community'}
+                    </option>
+                    {communities
+                      .filter(community => community.collegeId === formData.collegeId)
+                      .map(community => (
+                        <option key={community.id} value={community.id}>
+                          {community.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Club Leader Info Message */}
+              {userRole === 'CLUB_LEADER' && (
+                <div className={styles.infoMessage}>
+                  <p>ℹ️ Events will be automatically assigned to your club and college</p>
+                </div>
+              )}
 
               {/* Location Selection */}
               <div className={styles.formGroup}>
