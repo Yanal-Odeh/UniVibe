@@ -35,6 +35,8 @@ model User {
   savedEvents        SavedEvent[]
   applications       ApplicationForm[]  @relation("UserApplications")
   studySpaceReservations StudySpaceReservation[]
+  tasksAssignedTo    Task[]             @relation("TasksAssignedTo")
+  tasksAssignedBy    Task[]             @relation("TasksAssignedBy")
 
   // Performance indexes
   @@index([role, collegeId]) // For finding faculty/dean by college
@@ -134,6 +136,7 @@ model Event {
   notifications Notification[]
   registrations EventRegistration[]
   savedByUsers  SavedEvent[]
+  tasks         Task[]
 
   // Performance indexes
   @@index([status, startDate]) // Already exists - for filtering approved/pending events by date
@@ -340,4 +343,32 @@ enum ReservationStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  eventId     String
+  assignedToId String
+  assignedById String  // Club leader who assigned the task
+  status      TaskStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  assignedTo  User  @relation("TasksAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedBy  User  @relation("TasksAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([assignedToId])
+  @@index([assignedById])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }

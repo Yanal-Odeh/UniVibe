@@ -487,6 +487,46 @@ class ApiClient {
   async getMyCollegeLocations() {
     return this.requestWithDeduplication('/colleges/my-locations');
   }
+
+  // Task Management API
+  async getEventTasks(eventId) {
+    return this.request(`/events/${eventId}/tasks`);
+  }
+
+  async getMyTasks(eventId) {
+    return this.request(`/events/${eventId}/my-tasks`);
+  }
+
+  async getCommunityMembers(eventId) {
+    return this.request(`/events/${eventId}/members`);
+  }
+
+  async createTask(eventId, data) {
+    return this.request(`/events/${eventId}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTask(taskId, data) {
+    return this.request(`/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTaskStatus(taskId, status) {
+    return this.request(`/tasks/${taskId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async deleteTask(taskId) {
+    return this.request(`/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export default new ApiClient();

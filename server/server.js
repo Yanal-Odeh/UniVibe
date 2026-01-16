@@ -16,6 +16,7 @@ import applicationRoutes from './routes/applications.js';
 import registrationRoutes from './routes/registrations.js';
 import savedEventRoutes from './routes/savedEvents.js';
 import studySpaceRoutes from './routes/studySpaces.js';
+import taskRoutes from './routes/tasks.js';
 import { startReminderScheduler } from './services/eventReminderService.js';
 import { startDailyResetScheduler } from './services/studySpaceResetService.js';
 
@@ -64,6 +65,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/saved-events', savedEventRoutes);
 app.use('/api/study-spaces', studySpaceRoutes);
+app.use('/api', taskRoutes);
 
 // Health check
 app.get('/api/health', async (req, res) => {

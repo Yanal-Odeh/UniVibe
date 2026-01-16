@@ -19,6 +19,8 @@ import {
   UserX
 } from 'lucide-react';
 import Loader from '../../Components/Loader/Loader';
+import TaskManager from '../../Components/TaskManager/TaskManager';
+import MyTasks from '../../Components/TaskManager/MyTasks';
 import styles from './EventDetails.module.scss';
 import api from '../../lib/api';
 
@@ -489,6 +491,23 @@ function EventDetails() {
 
           </div>
         </div>
+
+        {/* Task Manager - Only visible to club leaders for their events */}
+        {currentUser && event.community?.clubLeaderId === currentUser.id && (
+          <TaskManager 
+            eventId={id} 
+            currentUser={currentUser} 
+            event={event} 
+          />
+        )}
+
+        {/* My Tasks - Visible to students who have tasks assigned */}
+        {currentUser && currentUser.role === 'STUDENT' && (
+          <MyTasks 
+            eventId={id} 
+            currentUser={currentUser} 
+          />
+        )}
       </div>
     </div>
   );

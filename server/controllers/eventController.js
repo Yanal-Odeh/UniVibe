@@ -164,7 +164,8 @@ export const getEventById = async (req, res) => {
             id: true,
             name: true,
             avatar: true,
-            color: true
+            color: true,
+            clubLeaderId: true
           }
         },
         _count: {
