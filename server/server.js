@@ -54,6 +54,9 @@ console.log(`CORS configured. origin=${isDev ? 'allow-any (development)' : corsO
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);

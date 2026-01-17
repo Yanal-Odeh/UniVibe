@@ -15,7 +15,13 @@ import {
   respondToDeanshipRevision,
   getPendingApprovals
 } from '../controllers/eventController.js';
+import {
+  uploadEventMedia,
+  getEventMedia,
+  deleteEventMedia
+} from '../controllers/eventMediaController.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -43,5 +49,10 @@ router.post('/:id/approve/deanship', authenticate, deanshipApproval);
 router.post('/:id/reject/deanship', authenticate, deanshipReject);
 router.post('/:id/respond-revision', authenticate, respondToRevision);
 router.post('/:id/respond-deanship-revision', authenticate, respondToDeanshipRevision);
+
+// Media routes - Club Leaders can upload/delete media for their events
+router.post('/:id/media', authenticate, upload.array('media', 10), uploadEventMedia);
+router.get('/:id/media', getEventMedia);
+router.delete('/:id/media/:mediaId', authenticate, deleteEventMedia);
 
 export default router;

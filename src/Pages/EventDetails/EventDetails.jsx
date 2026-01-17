@@ -21,6 +21,7 @@ import {
 import Loader from '../../Components/Loader/Loader';
 import TaskManager from '../../Components/TaskManager/TaskManager';
 import MyTasks from '../../Components/TaskManager/MyTasks';
+import EventMediaGallery from '../../Components/EventMediaGallery/EventMediaGallery';
 import styles from './EventDetails.module.scss';
 import api from '../../lib/api';
 
@@ -508,6 +509,13 @@ function EventDetails() {
             currentUser={currentUser} 
           />
         )}
+
+        {/* Event Media Gallery */}
+        <EventMediaGallery 
+          eventId={id}
+          isClubLeader={currentUser && event.community?.clubLeaderId === currentUser.id}
+          currentUser={currentUser}
+        />
       </div>
     </div>
   );

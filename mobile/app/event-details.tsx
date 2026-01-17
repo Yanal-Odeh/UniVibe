@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/api';
 import Layout from '@/components/Layout';
+import EventMediaGallery from '@/components/EventMediaGallery';
 
 export default function EventDetailsScreen() {
   const router = useRouter();
@@ -183,6 +184,14 @@ export default function EventDetailsScreen() {
             <Text style={styles.fullBannerText}>⚠️ This event is full</Text>
           </View>
         )}
+
+        {/* Event Media Gallery */}
+        <View style={{ margin: 16, marginTop: 0 }}>
+          <EventMediaGallery
+            eventId={id as string}
+            isClubLeader={currentUser && event.community?.clubLeaderId === currentUser.id}
+          />
+        </View>
       </ScrollView>
     </Layout>
   );

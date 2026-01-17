@@ -37,6 +37,7 @@ model User {
   studySpaceReservations StudySpaceReservation[]
   tasksAssignedTo    Task[]             @relation("TasksAssignedTo")
   tasksAssignedBy    Task[]             @relation("TasksAssignedBy")
+  uploadedMedia      EventMedia[]       @relation("MediaUploader")
 
   // Performance indexes
   @@index([role, collegeId]) // For finding faculty/dean by college
@@ -137,6 +138,7 @@ model Event {
   registrations EventRegistration[]
   savedByUsers  SavedEvent[]
   tasks         Task[]
+  media         EventMedia[]
 
   // Performance indexes
   @@index([status, startDate]) // Already exists - for filtering approved/pending events by date
@@ -371,4 +373,28 @@ enum TaskStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+}
+
+model EventMedia {
+  id          String   @id @default(cuid())
+  eventId     String
+  fileUrl     String   // Path to the uploaded file
+  fileType    MediaType // IMAGE or VIDEO
+  fileName    String   // Original file name
+  fileSize    Int      // File size in bytes
+  uploadedBy  String   // User who uploaded the media
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploader    User  @relation("MediaUploader", fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([uploadedBy])
+  @@map("event_media")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
 }
