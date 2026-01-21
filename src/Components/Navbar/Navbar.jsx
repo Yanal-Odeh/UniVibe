@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.scss';
 import Notifications from '../Notifications/Notifications';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import { User } from 'lucide-react';
+import { User, MessageCircle } from 'lucide-react';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -187,6 +187,19 @@ function Navbar() {
         <div className={styles.authArea}>
           {/* Notifications bell */}
           <Notifications />
+          
+          {/* Messages icon - only show when authenticated */}
+          {isAuthenticated && (
+            <button
+              className={styles.authButton}
+              onClick={() => navigate('/messages')}
+              aria-label="Messages"
+              title="Messages"
+            >
+              <MessageCircle size={18} />
+            </button>
+          )}
+          
           {!isAuthenticated ? (
             <button
               className={styles.authButton}

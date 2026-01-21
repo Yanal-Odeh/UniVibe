@@ -5,6 +5,8 @@ import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
 import studentRoutes from './routes/students.js';
@@ -17,15 +19,28 @@ import registrationRoutes from './routes/registrations.js';
 import savedEventRoutes from './routes/savedEvents.js';
 import studySpaceRoutes from './routes/studySpaces.js';
 import taskRoutes from './routes/tasks.js';
+import chatRoutes from './routes/chat.js';
 import { startReminderScheduler } from './services/eventReminderService.js';
 import { startDailyResetScheduler } from './services/studySpaceResetService.js';
+import { setupSocketIO } from './services/socketService.js';
 
 // Load .env from parent directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env') });
 
+// Allow any origin in development so Vite's port changes won't cause CORS failures.
+const isDev = process.env.NODE_ENV === 'development';
+const corsOrigin = isDev ? true : (process.env.CLIENT_URL || 'http://localhost:5173');
+
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: corsOrigin,
+    credentials: true
+  }
+});
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 });
@@ -43,14 +58,13 @@ app.use(compression({
   level: 6 // Balance between compression and speed
 }));
 
-// Allow any origin in development so Vite's port changes won't cause CORS failures.
-const isDev = process.env.NODE_ENV === 'development';
-const corsOrigin = isDev ? true : (process.env.CLIENT_URL || 'http://localhost:5173');
 app.use(cors({
   origin: corsOrigin,
   credentials: true
 }));
 console.log(`CORS configured. origin=${isDev ? 'allow-any (development)' : corsOrigin}`);
+app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
@@ -69,6 +83,10 @@ app.use('/api/registrations', registrationRoutes);
 app.use('/api/saved-events', savedEventRoutes);
 app.use('/api/study-spaces', studySpaceRoutes);
 app.use('/api', taskRoutes);
+app.use('/api/chat', chatRoutes);
+
+// Setup Socket.IO for real-time chat
+setupSocketIO(io, prisma);
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -98,8 +116,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', async () => {
+httpServer.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Socket.IO enabled for real-time chat`);
   console.log(`Mobile access: http://192.168.1.8:${PORT}`);
   
   // Test database connection on startup

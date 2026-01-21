@@ -28,6 +28,7 @@ const StudySpaces = lazy(() => import('./Pages/StudySpaces/StudySpaces'));
 const MyReservations = lazy(() => import('./Pages/MyReservations/MyReservations'));
 const DinePlayShop = lazy(() => import('./Pages/DinePlayShop/DinePlayShop'));
 const Services = lazy(() => import('./Pages/Services/Services'));
+const Messages = lazy(() => import('./Pages/Messages/Messages'));
 
 const router = createBrowserRouter([
   { 
@@ -119,6 +120,10 @@ const router = createBrowserRouter([
       {
         path: "/services",
         element: <Suspense fallback={<Loader />}><Services /></Suspense>
+      },
+      {
+        path: "/messages",
+        element: <Suspense fallback={<Loader />}><Messages /></Suspense>
       },
         
       {

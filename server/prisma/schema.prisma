@@ -38,6 +38,9 @@ model User {
   tasksAssignedTo    Task[]             @relation("TasksAssignedTo")
   tasksAssignedBy    Task[]             @relation("TasksAssignedBy")
   uploadedMedia      EventMedia[]       @relation("MediaUploader")
+  conversationsInitiated Conversation[] @relation("ConversationInitiator")
+  conversationsReceived  Conversation[] @relation("ConversationParticipant")
+  messages           Message[]
 
   // Performance indexes
   @@index([role, collegeId]) // For finding faculty/dean by college
@@ -397,4 +400,42 @@ model EventMedia {
 enum MediaType {
   IMAGE
   VIDEO
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  user1Id      String    // First user in the conversation
+  user2Id      String    // Second user in the conversation
+  lastMessageAt DateTime @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  user1        User      @relation("ConversationInitiator", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2        User      @relation("ConversationParticipant", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages     Message[]
+
+  // Ensure unique conversation between two users
+  @@unique([user1Id, user2Id])
+  @@index([user1Id, lastMessageAt])
+  @@index([user2Id, lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
 }
