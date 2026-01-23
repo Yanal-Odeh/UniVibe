@@ -527,6 +527,43 @@ class ApiClient {
       method: 'DELETE',
     });
   }
+
+  // Task Submission API
+  async uploadTaskSubmission(taskId, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${this.baseURL}/tasks/${taskId}/submissions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload file');
+    }
+
+    return response.json();
+  }
+
+  async getTaskSubmissions(taskId) {
+    return this.request(`/tasks/${taskId}/submissions`);
+  }
+
+  async deleteTaskSubmission(submissionId) {
+    return this.request(`/submissions/${submissionId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Get file URL for download
+  getFileUrl(filePath) {
+    return `${this.baseURL.replace('/api', '')}/${filePath}`;
+  }
 }
 
 export default new ApiClient();

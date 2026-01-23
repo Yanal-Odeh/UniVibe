@@ -6,7 +6,12 @@ import {
   CheckCircle, 
   Clock, 
   PlayCircle, 
-  X 
+  X,
+  File,
+  Image,
+  Video,
+  FileText,
+  Download
 } from 'lucide-react';
 import api from '../../lib/api';
 import styles from './TaskManager.module.scss';
@@ -17,6 +22,8 @@ function TaskManager({ eventId, currentUser, event }) {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [submissions, setSubmissions] = useState({});
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -37,6 +44,21 @@ function TaskManager({ eventId, currentUser, event }) {
     try {
       const tasks = await api.getEventTasks(eventId);
       setTasks(tasks);
+      
+      // Fetch submissions for each task
+      const submissionsMap = {};
+      await Promise.all(
+        tasks.map(async (task) => {
+          try {
+            const taskSubmissions = await api.getTaskSubmissions(task.id);
+            submissionsMap[task.id] = taskSubmissions;
+          } catch (error) {
+            console.error(`Error fetching submissions for task ${task.id}:`, error);
+            submissionsMap[task.id] = [];
+          }
+        })
+      );
+      setSubmissions(submissionsMap);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     } finally {
@@ -146,6 +168,28 @@ function TaskManager({ eventId, currentUser, event }) {
     }
   };
 
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith('image/')) {
+      return <Image size={16} className={styles.fileIcon} />;
+    } else if (fileType.startsWith('video/')) {
+      return <Video size={16} className={styles.fileIcon} />;
+    } else if (fileType === 'application/pdf') {
+      return <FileText size={16} className={styles.fileIcon} />;
+    } else {
+      return <File size={16} className={styles.fileIcon} />;
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const toggleTaskExpand = (taskId) => {
+    setExpandedTaskId(expandedTaskId === taskId ? null : taskId);
+  };
+
   if (!isClubLeader) {
     return null;
   }
@@ -173,56 +217,115 @@ function TaskManager({ eventId, currentUser, event }) {
         </div>
       ) : (
         <div className={styles.taskList}>
-          {tasks.map(task => (
-            <div key={task.id} className={styles.taskCard}>
-              <div className={styles.taskHeader}>
-                <div className={styles.taskInfo}>
-                  <h3 className={styles.taskTitle}>{task.title}</h3>
-                  {task.description && (
-                    <p className={styles.taskDescription}>{task.description}</p>
+          {tasks.map(task => {
+            const taskSubmissions = submissions[task.id] || [];
+            const isExpanded = expandedTaskId === task.id;
+            
+            return (
+              <div key={task.id} className={styles.taskCard}>
+                <div className={styles.taskHeader}>
+                  <div className={styles.taskInfo}>
+                    <h3 className={styles.taskTitle}>{task.title}</h3>
+                    {task.description && (
+                      <p className={styles.taskDescription}>{task.description}</p>
+                    )}
+                  </div>
+                  <div className={styles.taskActions}>
+                    <button 
+                      className={styles.iconButton}
+                      onClick={() => openEditModal(task)}
+                      title="Edit task"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
+                      className={styles.iconButton}
+                      onClick={() => handleDelete(task.id)}
+                      title="Delete task"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.taskFooter}>
+                  <div className={styles.assignee}>
+                    <span className={styles.label}>Assigned to:</span>
+                    <span className={styles.value}>
+                      {task.assignedTo.firstName} {task.assignedTo.lastName}
+                    </span>
+                  </div>
+                  
+                  <div className={styles.statusSelector}>
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                      className={`${styles.statusDropdown} ${styles[`status${task.status}`]}`}
+                    >
+                      <option value="PENDING">Pending</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+                    {getStatusIcon(task.status)}
+                  </div>
+                </div>
+
+                {/* Submissions Section for Club Leader */}
+                <div className={styles.submissionSection}>
+                  <div className={styles.submissionHeader}>
+                    <h4 className={styles.submissionTitle}>
+                      Student Submissions ({taskSubmissions.length})
+                    </h4>
+                    {taskSubmissions.length > 0 && (
+                      <button
+                        className={styles.expandButton}
+                        onClick={() => toggleTaskExpand(task.id)}
+                      >
+                        {isExpanded ? 'Hide' : 'Show'}
+                      </button>
+                    )}
+                  </div>
+
+                  {isExpanded && taskSubmissions.length > 0 && (
+                    <div className={styles.submissionsList}>
+                      {taskSubmissions.map(submission => (
+                        <div key={submission.id} className={styles.submissionItem}>
+                          <div className={styles.submissionInfo}>
+                            {getFileIcon(submission.fileType)}
+                            <div className={styles.fileDetails}>
+                              <a
+                                href={api.getFileUrl(submission.fileUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.fileName}
+                              >
+                                {submission.fileName}
+                              </a>
+                              <span className={styles.fileSize}>
+                                {formatFileSize(submission.fileSize)} • Uploaded by {submission.uploadedBy.firstName} {submission.uploadedBy.lastName} • {new Date(submission.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={api.getFileUrl(submission.fileUrl)}
+                            download
+                            className={styles.downloadButton}
+                            title="Download file"
+                          >
+                            <Download size={16} />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {taskSubmissions.length === 0 && (
+                    <p className={styles.noSubmissions}>No submissions yet</p>
                   )}
                 </div>
-                <div className={styles.taskActions}>
-                  <button 
-                    className={styles.iconButton}
-                    onClick={() => openEditModal(task)}
-                    title="Edit task"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button 
-                    className={styles.iconButton}
-                    onClick={() => handleDelete(task.id)}
-                    title="Delete task"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
               </div>
-
-              <div className={styles.taskFooter}>
-                <div className={styles.assignee}>
-                  <span className={styles.label}>Assigned to:</span>
-                  <span className={styles.value}>
-                    {task.assignedTo.firstName} {task.assignedTo.lastName}
-                  </span>
-                </div>
-                
-                <div className={styles.statusSelector}>
-                  <select
-                    value={task.status}
-                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                    className={`${styles.statusDropdown} ${styles[`status${task.status}`]}`}
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                  </select>
-                  {getStatusIcon(task.status)}
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

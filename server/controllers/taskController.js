@@ -371,3 +371,171 @@ export const getCommunityMembers = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch community members' });
   }
 };
+
+// Upload a file submission for a task
+export const uploadTaskSubmission = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const userId = req.user.id;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Verify the task exists
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        event: {
+          include: {
+            community: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Only the assigned user can upload submissions
+    if (task.assignedToId !== userId) {
+      return res.status(403).json({ error: 'You can only upload files for tasks assigned to you' });
+    }
+
+    // Create the submission
+    const submission = await prisma.taskSubmission.create({
+      data: {
+        taskId,
+        fileName: file.originalname,
+        fileUrl: file.path,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        uploadedById: userId,
+      },
+      include: {
+        uploadedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json(submission);
+  } catch (error) {
+    console.error('Error uploading task submission:', error);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+};
+
+// Get all submissions for a task
+export const getTaskSubmissions = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const userId = req.user.id;
+
+    // Verify the task exists
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        event: {
+          include: {
+            community: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Only the assigned user or club leader can view submissions
+    const isAssignedUser = task.assignedToId === userId;
+    const isClubLeader = task.event.community?.clubLeaderId === userId;
+
+    if (!isAssignedUser && !isClubLeader) {
+      return res.status(403).json({ error: 'Not authorized to view these submissions' });
+    }
+
+    const submissions = await prisma.taskSubmission.findMany({
+      where: { taskId },
+      include: {
+        uploadedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching task submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch submissions' });
+  }
+};
+
+// Delete a task submission
+export const deleteTaskSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const userId = req.user.id;
+
+    // Get the submission with task details
+    const submission = await prisma.taskSubmission.findUnique({
+      where: { id: submissionId },
+      include: {
+        task: {
+          include: {
+            event: {
+              include: {
+                community: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    // Only the uploader or club leader can delete
+    const isUploader = submission.uploadedById === userId;
+    const isClubLeader = submission.task.event.community?.clubLeaderId === userId;
+
+    if (!isUploader && !isClubLeader) {
+      return res.status(403).json({ error: 'Not authorized to delete this submission' });
+    }
+
+    // Delete the file from filesystem
+    const fs = await import('fs/promises');
+    try {
+      await fs.unlink(submission.fileUrl);
+    } catch (fileError) {
+      console.error('Error deleting file from filesystem:', fileError);
+      // Continue even if file deletion fails
+    }
+
+    // Delete from database
+    await prisma.taskSubmission.delete({
+      where: { id: submissionId },
+    });
+
+    res.json({ message: 'Submission deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting task submission:', error);
+    res.status(500).json({ error: 'Failed to delete submission' });
+  }
+};

@@ -37,6 +37,7 @@ model User {
   studySpaceReservations StudySpaceReservation[]
   tasksAssignedTo    Task[]             @relation("TasksAssignedTo")
   tasksAssignedBy    Task[]             @relation("TasksAssignedBy")
+  taskSubmissions    TaskSubmission[]
   uploadedMedia      EventMedia[]       @relation("MediaUploader")
   conversationsInitiated Conversation[] @relation("ConversationInitiator")
   conversationsReceived  Conversation[] @relation("ConversationParticipant")
@@ -365,6 +366,7 @@ model Task {
   event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   assignedTo  User  @relation("TasksAssignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
   assignedBy  User  @relation("TasksAssignedBy", fields: [assignedById], references: [id], onDelete: Cascade)
+  submissions TaskSubmission[]
 
   @@index([eventId])
   @@index([assignedToId])
@@ -376,6 +378,26 @@ enum TaskStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+}
+
+model TaskSubmission {
+  id          String   @id @default(cuid())
+  taskId      String
+  fileName    String   // Original file name
+  fileUrl     String   // Path to the uploaded file
+  fileType    String   // MIME type (image/jpeg, application/pdf, video/mp4, etc.)
+  fileSize    Int      // File size in bytes
+  uploadedById String  // Student who uploaded
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([uploadedById])
+  @@map("task_submissions")
 }
 
 model EventMedia {
