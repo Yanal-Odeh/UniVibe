@@ -12,7 +12,7 @@ function VirtualTour() {
       name: 'Main Campus',
       category: 'Campus',
       image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80',
-      panorama: 'https://pannellum.org/images/cerro-toco-0.jpg',
+      panorama: 'https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?w=2000&q=80',
       description: 'Explore our historic main campus with beautiful architecture and green spaces.',
       features: ['Library', 'Student Center', 'Administrative Offices'],
       color: '#667eea'
@@ -22,7 +22,7 @@ function VirtualTour() {
       name: 'Science Building',
       category: 'Academic',
       image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80',
-      panorama: 'https://pannellum.org/images/alma.jpg',
+      panorama: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=2000&q=80',
       description: 'State-of-the-art laboratories and research facilities for STEM students.',
       features: ['Research Labs', 'Computer Labs', 'Study Areas'],
       color: '#4facfe'
@@ -32,19 +32,19 @@ function VirtualTour() {
       name: 'Library',
       category: 'Academic',
       image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-0.jpg',
+      panorama: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=2000&q=80',
       description: 'Modern library with extensive collections and quiet study spaces.',
       features: ['Reading Rooms', 'Digital Resources', 'Group Study Rooms'],
       color: '#f093fb'
     },
     {
       id: 4,
-      name: 'Student Housing',
-      category: 'Residential',
-      image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-1.jpg',
-      description: 'Comfortable dormitories with modern amenities and community spaces.',
-      features: ['Single & Double Rooms', 'Common Areas', 'Laundry Facilities'],
+      name: 'Lecture Hall',
+      category: 'Academic',
+      image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=2000&q=80',
+      description: 'Modern lecture halls equipped with state-of-the-art audio-visual technology.',
+      features: ['Tiered Seating', 'Smart Boards', 'Recording Capabilities'],
       color: '#fa709a'
     },
     {
@@ -52,7 +52,7 @@ function VirtualTour() {
       name: 'Sports Complex',
       category: 'Recreation',
       image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-2.jpg',
+      panorama: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=2000&q=80',
       description: 'Full-service athletic facilities including gym, pool, and sports fields.',
       features: ['Fitness Center', 'Swimming Pool', 'Basketball Courts'],
       color: '#fee140'
@@ -62,27 +62,17 @@ function VirtualTour() {
       name: 'Dining Hall',
       category: 'Dining',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-3.jpg',
+      panorama: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=2000&q=80',
       description: 'Multiple dining options with diverse menu selections for all dietary needs.',
       features: ['Buffet Style', 'Grab & Go', 'Vegetarian Options'],
       color: '#30cfd0'
-    },
-    {
-      id: 7,
-      name: 'Arts Center',
-      category: 'Academic',
-      image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-4.jpg',
-      description: 'Creative spaces for performing and visual arts with galleries and theaters.',
-      features: ['Theater', 'Art Studios', 'Music Rooms'],
-      color: '#a8edea'
     },
     {
       id: 8,
       name: 'Student Union',
       category: 'Campus',
       image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80',
-      panorama: 'https://pannellum.org/images/bma-5.jpg',
+      panorama: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=2000&q=80',
       description: 'Hub for student activities, clubs, and social gatherings.',
       features: ['Meeting Rooms', 'Lounge Areas', 'Cafe'],
       color: '#764ba2'
