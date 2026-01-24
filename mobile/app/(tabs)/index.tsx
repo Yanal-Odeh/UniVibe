@@ -78,12 +78,18 @@ export default function HomeScreen() {
             
             {/* Hero Buttons */}
             <View className="flex-row gap-4">
-              <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg flex-row items-center">
+              <TouchableOpacity 
+                className="bg-blue-600 px-6 py-3 rounded-lg flex-row items-center"
+                onPress={() => router.push('/events')}
+              >
                 <Text className="text-white font-semibold text-base mr-2">Explore Events</Text>
                 <Text className="text-white">→</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity className="bg-white/20 border-2 border-white px-6 py-3 rounded-lg">
+              <TouchableOpacity 
+                className="bg-white/20 border-2 border-white px-6 py-3 rounded-lg"
+                onPress={() => router.push('/communities')}
+              >
                 <Text className="text-white font-semibold text-base">Join Communities</Text>
               </TouchableOpacity>
             </View>

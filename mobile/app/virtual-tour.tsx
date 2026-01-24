@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, Image, Alert, Dimensions } from 'react-native';
 import Layout from '@/components/Layout';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function VirtualTour() {
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [showPanorama, setShowPanorama] = useState(false);
+  const [panoramaLocation, setPanoramaLocation] = useState<any>(null);
 
   const locations = [
     {
@@ -12,6 +16,7 @@ export default function VirtualTour() {
       name: 'Main Campus',
       category: 'Campus',
       image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?w=2000&q=80',
       description: 'Explore our historic main campus with beautiful architecture and green spaces.',
       features: ['Library', 'Student Center', 'Administrative Offices'],
       color: '#667eea'
@@ -21,6 +26,7 @@ export default function VirtualTour() {
       name: 'Science Building',
       category: 'Academic',
       image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=2000&q=80',
       description: 'State-of-the-art laboratories and research facilities for STEM students.',
       features: ['Research Labs', 'Computer Labs', 'Study Areas'],
       color: '#4facfe'
@@ -30,17 +36,19 @@ export default function VirtualTour() {
       name: 'Library',
       category: 'Academic',
       image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1568667256549-094345857637?w=2000&q=80',
       description: 'Modern library with extensive collections and quiet study spaces.',
       features: ['Reading Rooms', 'Digital Resources', 'Group Study Rooms'],
       color: '#f093fb'
     },
     {
       id: 4,
-      name: 'Student Housing',
-      category: 'Residential',
-      image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80',
-      description: 'Comfortable dormitories with modern amenities and community spaces.',
-      features: ['Single & Double Rooms', 'Common Areas', 'Laundry Facilities'],
+      name: 'Lecture Hall',
+      category: 'Academic',
+      image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=2000&q=80',
+      description: 'Modern lecture halls equipped with state-of-the-art audio-visual technology.',
+      features: ['Tiered Seating', 'Smart Boards', 'Recording Capabilities'],
       color: '#fa709a'
     },
     {
@@ -48,6 +56,7 @@ export default function VirtualTour() {
       name: 'Sports Complex',
       category: 'Recreation',
       image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=2000&q=80',
       description: 'Full-service athletic facilities including gym, pool, and sports fields.',
       features: ['Fitness Center', 'Swimming Pool', 'Basketball Courts'],
       color: '#fee140'
@@ -57,31 +66,24 @@ export default function VirtualTour() {
       name: 'Dining Hall',
       category: 'Dining',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=2000&q=80',
       description: 'Multiple dining options with diverse menu selections for all dietary needs.',
       features: ['Buffet Style', 'Grab & Go', 'Vegetarian Options'],
       color: '#30cfd0'
-    },
-    {
-      id: 7,
-      name: 'Arts Center',
-      category: 'Academic',
-      image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80',
-      description: 'Creative spaces for performing and visual arts with galleries and theaters.',
-      features: ['Theater', 'Art Studios', 'Music Rooms'],
-      color: '#a8edea'
     },
     {
       id: 8,
       name: 'Student Union',
       category: 'Campus',
       image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80',
+      panorama: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=2000&q=80',
       description: 'Hub for student activities, clubs, and social gatherings.',
       features: ['Meeting Rooms', 'Lounge Areas', 'Cafe'],
       color: '#764ba2'
     }
   ];
 
-  const categories = ['All', 'Campus', 'Academic', 'Residential', 'Recreation', 'Dining'];
+  const categories = ['All', 'Campus', 'Academic', 'Recreation', 'Dining'];
 
   const filteredLocations = activeCategory === 'All' 
     ? locations 
@@ -222,10 +224,51 @@ export default function VirtualTour() {
               </View>
               <TouchableOpacity 
                 style={[styles.tourBtn, { backgroundColor: selectedLocation?.color }]}
+                onPress={() => {
+                  console.log('Launch 360° Tour pressed');
+                  console.log('Selected location:', selectedLocation?.name);
+                  setPanoramaLocation(selectedLocation); // Save location for panorama
+                  setShowPanorama(true);
+                  setSelectedLocation(null); // Close detail modal
+                  console.log('showPanorama set to true');
+                }}
               >
                 <Text style={styles.tourBtnText}>Launch 360° Tour</Text>
               </TouchableOpacity>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Panorama Viewer Modal */}
+      <Modal
+        visible={showPanorama}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => {
+          console.log('Panorama modal closing');
+          setPanoramaLocation(null);
+        }}
+      >
+        <View style={styles.panoramaContainer}>
+          <TouchableOpacity 
+            style={styles.panoramaCloseBtn}
+            onPress={() => {
+              console.log('Close button pressed');
+              setShowPanorama(false);
+              setPanoramaLocation(null);
+            }}
+          >
+            <Text style={styles.panoramaCloseBtnText}>✕ Close</Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: panoramaLocation?.panorama }}
+            style={styles.panoramaImage}
+            resizeMode="cover"
+          />
+          <View style={styles.panoramaInfo}>
+            <Text style={styles.panoramaTitle}>{panoramaLocation?.name}</Text>
+            <Text style={styles.panoramaHint}>Swipe to explore the 360° view</Text>
           </View>
         </View>
       </Modal>
@@ -526,5 +569,53 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  panoramaContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  panoramaCloseBtn: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  panoramaCloseBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  panoramaScrollView: {
+    flex: 1,
+  },
+  panoramaScrollContent: {
+    flexGrow: 1,
+  },
+  panoramaImage: {
+    width: SCREEN_WIDTH * 2,
+    height: SCREEN_HEIGHT,
+  },
+  panoramaInfo: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 20,
+    borderRadius: 12,
+  },
+  panoramaTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  panoramaHint: {
+    color: '#ccc',
+    fontSize: 14,
   },
 });
