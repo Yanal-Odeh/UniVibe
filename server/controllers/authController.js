@@ -140,7 +140,14 @@ export const getCurrentUser = async (req, res) => {
           select: {
             id: true,
             name: true,
-            collegeId: true
+            collegeId: true,
+            college: {
+              select: {
+                id: true,
+                name: true,
+                code: true
+              }
+            }
           }
         }
       }

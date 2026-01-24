@@ -91,7 +91,12 @@ export default function PlanEventsScreen() {
       const userRole = (currentUser?.role || '').toString().toUpperCase();
       if (userRole === 'CLUB_LEADER' && currentUser?.ledCommunities && currentUser.ledCommunities.length > 0) {
         const ledCommunity = currentUser.ledCommunities[0];
-        const collegeId = ledCommunity.collegeId || '';
+        // Try multiple ways to get collegeId from the community
+        const collegeId = ledCommunity.collegeId || ledCommunity.college?.id || '';
+        
+        console.log('Club Leader detected:', currentUser.firstName, currentUser.lastName);
+        console.log('Led Community:', ledCommunity.name);
+        console.log('College ID from community:', collegeId);
         
         setFormData(prev => ({
           ...prev,
@@ -99,14 +104,19 @@ export default function PlanEventsScreen() {
           collegeId: collegeId
         }));
         
-        // Immediately fetch locations for the college
-        if (collegeId) {
-          try {
-            const data = await api.getLocations(collegeId);
-            setLocations(data.locations || data || []);
-          } catch (err) {
-            console.error('Failed to fetch locations:', err);
+        // Fetch locations using automatic endpoint (like web version)
+        try {
+          console.log('📍 Fetching locations for club leader using automatic endpoint...');
+          const data = await api.getMyCollegeLocations();
+          console.log('📍 API response:', data);
+          const locationsList = data.locations || [];
+          console.log('📍 Locations fetched:', locationsList.length);
+          if (data.collegeName && data.communityName) {
+            console.log(`✅ Club: ${data.communityName}, Faculty: ${data.collegeName}`);
           }
+          setLocations(locationsList);
+        } catch (err) {
+          console.error('Failed to fetch locations:', err);
         }
       }
     } catch (err) {
@@ -118,9 +128,15 @@ export default function PlanEventsScreen() {
   };
 
   const fetchLocations = async (collegeId: string) => {
+    console.log('=== fetchLocations called ===');
+    console.log('College ID parameter:', collegeId);
     try {
       const data = await api.getLocations(collegeId);
-      setLocations(data.locations || data || []);
+      console.log('API response for locations:', data);
+      const locationsList = data.locations || data || [];
+      console.log('Processed locations list:', locationsList);
+      console.log('Number of locations:', locationsList.length);
+      setLocations(locationsList);
     } catch (err) {
       console.error('Failed to fetch locations:', err);
     }
@@ -137,7 +153,9 @@ export default function PlanEventsScreen() {
 
   const handleOpenModal = () => {
     // Ensure locations are loaded for club leaders
-    if (formData.collegeId && locations.length === 0) {
+    const userRole = (currentUser?.role || '').toString().toUpperCase();
+    if (userRole === 'CLUB_LEADER' && formData.collegeId && locations.length === 0) {
+      console.log('Modal opened - Fetching locations for college:', formData.collegeId);
       fetchLocations(formData.collegeId);
     }
     setShowModal(true);
@@ -551,13 +569,23 @@ export default function PlanEventsScreen() {
                   </View>
                 )}
 
-                {/* Location selector - always show for club leaders */}
+                {/* Location selector */}
                 <View style={styles.pickerContainer}>
                   <Text style={styles.label}>Location *</Text>
-                  {!formData.collegeId ? (
+                  {!formData.collegeId && ((currentUser?.role || '').toString().toUpperCase() !== 'CLUB_LEADER') ? (
                     <Text style={styles.loadingText}>Please select a college first</Text>
+                  ) : !formData.collegeId ? (
+                    <View>
+                      <Text style={styles.loadingText}>No college associated with this community</Text>
+                      <Text style={styles.errorText}>Debug: College ID is: {formData.collegeId || 'EMPTY'}</Text>
+                    </View>
+                  ) : formData.collegeId && locations.length === 0 ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color="#0066cc" />
+                      <Text style={styles.loadingText}>Loading locations...</Text>
+                    </View>
                   ) : locations.length === 0 ? (
-                    <Text style={styles.loadingText}>Loading locations...</Text>
+                    <Text style={styles.loadingText}>No locations available</Text>
                   ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                       {locations.map((location) => (
@@ -920,6 +948,12 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontStyle: 'italic',
     padding: 12,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 8,
   },
   pickerContainer: {
     marginBottom: 16,

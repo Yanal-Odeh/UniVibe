@@ -36,7 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         console.log('Token found, verifying...');
         const user = await api.getCurrentUser();
-        console.log('Current user from API:', user);
+        console.log('=== Current User from API ===');
+        console.log('User:', user?.firstName, user?.lastName);
+        console.log('Role:', user?.role);
+        console.log('Led Communities:', JSON.stringify(user?.ledCommunities, null, 2));
         
         if (user) {
           setCurrentUser({
@@ -72,6 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user && data.token) {
         // Store token
         await AsyncStorage.setItem('token', data.token);
+        
+        console.log('=== Login User Data ===');
+        console.log('User role:', data.user.role);
+        console.log('Led Communities:', JSON.stringify(data.user.ledCommunities, null, 2));
         
         const userData: User = {
           id: data.user.id,

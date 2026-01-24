@@ -280,6 +280,10 @@ class ApiClient {
     return this.request(`/colleges/${collegeId}/locations`);
   }
 
+  async getMyCollegeLocations() {
+    return this.request('/colleges/my-locations');
+  }
+
   // Notification endpoints
   async getNotifications() {
     return this.request('/notifications');
