@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, X, ChevronLeft, ChevronRight, Image, Video, Trash2, AlertCircle } from 'lucide-react';
 import styles from './EventMediaGallery.module.scss';
 import api from '../../lib/api';
+import Loader from '../Loader/Loader';
 
 function EventMediaGallery({ eventId, isClubLeader, currentUser }) {
   const [media, setMedia] = useState([]);
@@ -113,7 +114,11 @@ function EventMediaGallery({ eventId, isClubLeader, currentUser }) {
   const videoCount = media.filter(m => m.fileType === 'VIDEO').length;
 
   if (loading) {
-    return <div className={styles.loading}>Loading media...</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <Loader text="Loading media..." />
+      </div>
+    );
   }
 
   return (
@@ -156,11 +161,19 @@ function EventMediaGallery({ eventId, isClubLeader, currentUser }) {
                   disabled={uploading}
                   className={styles.uploadButton}
                 >
-                  {uploading ? 'Uploading...' : 'Upload'}
+                  {uploading ? (
+                    <>
+                      <div className={styles.spinner}></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    'Upload'
+                  )}
                 </button>
                 <button
                   onClick={() => setSelectedFiles([])}
                   className={styles.cancelButton}
+                  disabled={uploading}
                 >
                   Cancel
                 </button>

@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { useChat } from '../../contexts/ChatContext';
+import Loader from '../../Components/Loader/Loader';
 import './Messages.css';
 
 export default function Messages() {
   const { currentAdmin } = useAdminAuth();
+  const { markAsRead } = useChat();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -34,13 +37,16 @@ export default function Messages() {
     fetchConversations();
     fetchUsersByRole();
     setupSocket();
+    
+    // Mark messages as read when component mounts
+    markAsRead();
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
     };
-  }, [currentUser]);
+  }, [currentUser, markAsRead]);
 
   useEffect(() => {
     // Search is disabled in browse mode
@@ -304,7 +310,9 @@ export default function Messages() {
   if (loading) {
     return (
       <div className="messages-page">
-        <div className="loading">Loading...</div>
+        <div className="loading-container">
+          <Loader text="Loading messages..." />
+        </div>
       </div>
     );
   }
@@ -450,8 +458,7 @@ export default function Messages() {
             <div className="messages-container" ref={messagesContainerRef}>
               {messagesLoading ? (
                 <div className="loading-messages">
-                  <div className="spinner"></div>
-                  <p>Loading conversation...</p>
+                  <Loader text="Loading conversation..." />
                 </div>
               ) : messages.length === 0 ? (
                 <div className="empty-messages">

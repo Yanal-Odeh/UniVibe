@@ -36,6 +36,15 @@ export const getAllCommunities = async (req, res) => {
             joinedAt: 'asc'
           }
         },
+        clubLeader: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        },
         creator: {
           select: {
             id: true,
@@ -56,15 +65,22 @@ export const getAllCommunities = async (req, res) => {
       avatar: community.avatar,
       color: community.color,
       collegeId: community.collegeId,
+      clubLeaderId: community.clubLeaderId,
       memberCount: community._count.members,
       isMember: userId ? community.members.some(member => member.user.id === userId) : false,
-      members: community.members.map(member => ({
-        id: member.user.id,
-        name: `${member.user.firstName} ${member.user.lastName}`,
-        email: member.user.email,
-        role: member.user.role.toLowerCase(),
-        joinDate: member.joinedAt
-      })),
+      members: community.members.map(member => {
+        // Check if this member is the club leader
+        const isClubLeader = community.clubLeaderId === member.user.id;
+        const isAdmin = member.user.role === 'ADMIN';
+        
+        return {
+          id: member.user.id,
+          name: `${member.user.firstName} ${member.user.lastName}`,
+          email: member.user.email,
+          role: isClubLeader ? 'club_leader' : (isAdmin ? 'admin' : 'member'),
+          joinDate: member.joinedAt
+        };
+      }),
       createdAt: community.createdAt,
       updatedAt: community.updatedAt
     }));
@@ -94,6 +110,15 @@ export const getCommunityById = async (req, res) => {
                 role: true
               }
             }
+          }
+        },
+        clubLeader: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
           }
         },
         creator: {
@@ -165,6 +190,15 @@ export const createCommunity = async (req, res) => {
             }
           }
         },
+        clubLeader: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        },
         creator: {
           select: {
             id: true,
@@ -183,14 +217,19 @@ export const createCommunity = async (req, res) => {
       description: community.description,
       avatar: community.avatar,
       color: community.color,
+      clubLeaderId: community.clubLeaderId,
       memberCount: community._count.members,
-      members: community.members.map(member => ({
-        id: member.user.id,
-        name: `${member.user.firstName} ${member.user.lastName}`,
-        email: member.user.email,
-        role: member.user.role.toLowerCase(),
-        joinDate: member.joinedAt
-      })),
+      members: community.members.map(member => {
+        const isClubLeader = community.clubLeaderId === member.user.id;
+        const isAdmin = member.user.role === 'ADMIN';
+        return {
+          id: member.user.id,
+          name: `${member.user.firstName} ${member.user.lastName}`,
+          email: member.user.email,
+          role: isClubLeader ? 'club_leader' : (isAdmin ? 'admin' : 'member'),
+          joinDate: member.joinedAt
+        };
+      }),
       createdAt: community.createdAt,
       updatedAt: community.updatedAt
     };
@@ -233,6 +272,15 @@ export const updateCommunity = async (req, res) => {
             }
           }
         },
+        clubLeader: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        },
         creator: {
           select: {
             id: true,
@@ -251,14 +299,19 @@ export const updateCommunity = async (req, res) => {
       description: community.description,
       avatar: community.avatar,
       color: community.color,
+      clubLeaderId: community.clubLeaderId,
       memberCount: community._count.members,
-      members: community.members.map(member => ({
-        id: member.user.id,
-        name: `${member.user.firstName} ${member.user.lastName}`,
-        email: member.user.email,
-        role: member.user.role.toLowerCase(),
-        joinDate: member.joinedAt
-      })),
+      members: community.members.map(member => {
+        const isClubLeader = community.clubLeaderId === member.user.id;
+        const isAdmin = member.user.role === 'ADMIN';
+        return {
+          id: member.user.id,
+          name: `${member.user.firstName} ${member.user.lastName}`,
+          email: member.user.email,
+          role: isClubLeader ? 'club_leader' : (isAdmin ? 'admin' : 'member'),
+          joinDate: member.joinedAt
+        };
+      }),
       createdAt: community.createdAt,
       updatedAt: community.updatedAt
     };

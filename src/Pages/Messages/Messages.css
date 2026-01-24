@@ -390,6 +390,14 @@
   color: #666;
 }
 
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem;
+}
+
 /* Scrollbar styles */
 .conversations-list::-webkit-scrollbar,
 .messages-container::-webkit-scrollbar {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, PlayCircle, CheckCircle, Upload, File, Image, Video, Trash2, FileText } from 'lucide-react';
 import api from '../../lib/api';
+import Loader from '../Loader/Loader';
 import styles from './MyTasks.module.scss';
 
 function MyTasks({ eventId, currentUser }) {
@@ -154,7 +155,11 @@ function MyTasks({ eventId, currentUser }) {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading your tasks...</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <Loader text="Loading your tasks..." />
+      </div>
+    );
   }
 
   if (tasks.length === 0) {

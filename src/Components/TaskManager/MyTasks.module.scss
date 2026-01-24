@@ -6,6 +6,14 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 1rem;
+  min-height: 200px;
+}
+
 .header {
   display: flex;
   justify-content: space-between;

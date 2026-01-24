@@ -4,11 +4,13 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.scss';
 import Notifications from '../Notifications/Notifications';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { useChat } from '../../contexts/ChatContext';
 import { User, MessageCircle } from 'lucide-react';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currentAdmin, isAuthenticated, logout } = useAdminAuth();
+  const { unreadCount } = useChat();
   const navigate = useNavigate();
 
   const formatRole = (role) => {
@@ -196,7 +198,14 @@ function Navbar() {
               aria-label="Messages"
               title="Messages"
             >
-              <MessageCircle size={18} />
+              <div className={styles.iconWrapper}>
+                <MessageCircle size={18} />
+                {unreadCount > 0 && (
+                  <span className={styles.badge}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </div>
             </button>
           )}
           

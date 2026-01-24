@@ -55,6 +55,14 @@
   }
 }
 
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 1rem;
+  min-height: 200px;
+}
+
 .taskList {
   display: flex;
   flex-direction: column;

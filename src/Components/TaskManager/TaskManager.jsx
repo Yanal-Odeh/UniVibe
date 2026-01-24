@@ -14,6 +14,7 @@ import {
   Download
 } from 'lucide-react';
 import api from '../../lib/api';
+import Loader from '../Loader/Loader';
 import styles from './TaskManager.module.scss';
 
 function TaskManager({ eventId, currentUser, event }) {
@@ -195,7 +196,11 @@ function TaskManager({ eventId, currentUser, event }) {
   }
 
   if (loading) {
-    return <div className={styles.loading}>Loading tasks...</div>;
+    return (
+      <div className={styles.loadingContainer}>
+        <Loader text="Loading tasks..." />
+      </div>
+    );
   }
 
   return (
