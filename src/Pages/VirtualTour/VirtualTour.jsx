@@ -79,7 +79,7 @@ function VirtualTour() {
     }
   ];
 
-  const categories = ['All', 'Campus', 'Academic', 'Residential', 'Recreation', 'Dining'];
+  const categories = ['All', 'Campus', 'Academic', 'Recreation', 'Dining'];
   const [activeCategory, setActiveCategory] = useState('All');
 
   const filteredLocations = activeCategory === 'All' 
