@@ -86,6 +86,29 @@ export default function PlanEventsScreen() {
         ? communitiesData 
         : (communitiesData?.communities || []);
       setCommunities(communitiesList);
+
+      // Auto-assign community and college for club leaders
+      const userRole = (currentUser?.role || '').toString().toUpperCase();
+      if (userRole === 'CLUB_LEADER' && currentUser?.ledCommunities && currentUser.ledCommunities.length > 0) {
+        const ledCommunity = currentUser.ledCommunities[0];
+        const collegeId = ledCommunity.collegeId || '';
+        
+        setFormData(prev => ({
+          ...prev,
+          communityId: ledCommunity.id,
+          collegeId: collegeId
+        }));
+        
+        // Immediately fetch locations for the college
+        if (collegeId) {
+          try {
+            const data = await api.getLocations(collegeId);
+            setLocations(data.locations || data || []);
+          } catch (err) {
+            console.error('Failed to fetch locations:', err);
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to fetch data:', err);
       Alert.alert('Error', 'Failed to load data');
@@ -110,6 +133,14 @@ export default function PlanEventsScreen() {
       fetchLocations(value);
       setFormData(prev => ({ ...prev, locationId: '' }));
     }
+  };
+
+  const handleOpenModal = () => {
+    // Ensure locations are loaded for club leaders
+    if (formData.collegeId && locations.length === 0) {
+      fetchLocations(formData.collegeId);
+    }
+    setShowModal(true);
   };
 
   const formatDateTime = (date: Date) => {
@@ -184,14 +215,19 @@ export default function PlanEventsScreen() {
 
       Alert.alert('Success', 'Event submitted for approval!');
       setShowModal(false);
+      
+      // Preserve community and college for club leaders
+      const userRole = (currentUser?.role || '').toString().toUpperCase();
+      const shouldPreserve = userRole === 'CLUB_LEADER';
+      
       setFormData({
         title: '',
         description: '',
-        collegeId: '',
+        collegeId: shouldPreserve ? formData.collegeId : '',
         locationId: '',
         startDate: '',
         endDate: '',
-        communityId: '',
+        communityId: shouldPreserve ? formData.communityId : '',
         capacity: ''
       });
       fetchData();
@@ -338,7 +374,7 @@ export default function PlanEventsScreen() {
 
         <TouchableOpacity 
           style={styles.createButton}
-          onPress={() => setShowModal(true)}
+          onPress={handleOpenModal}
         >
           <Text style={styles.createButtonText}>+ Plan Event</Text>
         </TouchableOpacity>
@@ -466,45 +502,63 @@ export default function PlanEventsScreen() {
                   numberOfLines={4}
                 />
 
-                <View style={styles.pickerContainer}>
-                  <Text style={styles.label}>Community *</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {communities.map((community) => (
-                      <TouchableOpacity
-                        key={community.id}
-                        style={[
-                          styles.optionButton,
-                          formData.communityId === community.id && styles.optionButtonSelected
-                        ]}
-                        onPress={() => handleInputChange('communityId', community.id)}
-                      >
-                        <Text style={styles.optionText}>{community.avatar} {community.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
+                {/* Auto-assign info for club leaders */}
+                {((currentUser?.role || '').toString().toUpperCase() === 'CLUB_LEADER') && (
+                  <View style={styles.infoBox}>
+                    <Text style={styles.infoText}>ℹ️ Events will be automatically assigned to your club and college</Text>
+                  </View>
+                )}
 
-                <View style={styles.pickerContainer}>
-                  <Text style={styles.label}>College *</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {colleges.map((college) => (
-                      <TouchableOpacity
-                        key={college.id}
-                        style={[
-                          styles.optionButton,
-                          formData.collegeId === college.id && styles.optionButtonSelected
-                        ]}
-                        onPress={() => handleInputChange('collegeId', college.id)}
-                      >
-                        <Text style={styles.optionText}>{college.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
-                {formData.collegeId && (
+                {/* Show community selector only for non-club leaders */}
+                {((currentUser?.role || '').toString().toUpperCase() !== 'CLUB_LEADER') && (
                   <View style={styles.pickerContainer}>
-                    <Text style={styles.label}>Location *</Text>
+                    <Text style={styles.label}>Community *</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      {communities.map((community) => (
+                        <TouchableOpacity
+                          key={community.id}
+                          style={[
+                            styles.optionButton,
+                            formData.communityId === community.id && styles.optionButtonSelected
+                          ]}
+                          onPress={() => handleInputChange('communityId', community.id)}
+                        >
+                          <Text style={styles.optionText}>{community.avatar} {community.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Show college selector only for non-club leaders */}
+                {((currentUser?.role || '').toString().toUpperCase() !== 'CLUB_LEADER') && (
+                  <View style={styles.pickerContainer}>
+                    <Text style={styles.label}>College *</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      {colleges.map((college) => (
+                        <TouchableOpacity
+                          key={college.id}
+                          style={[
+                            styles.optionButton,
+                            formData.collegeId === college.id && styles.optionButtonSelected
+                          ]}
+                          onPress={() => handleInputChange('collegeId', college.id)}
+                        >
+                          <Text style={styles.optionText}>{college.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Location selector - always show for club leaders */}
+                <View style={styles.pickerContainer}>
+                  <Text style={styles.label}>Location *</Text>
+                  {!formData.collegeId ? (
+                    <Text style={styles.loadingText}>Please select a college first</Text>
+                  ) : locations.length === 0 ? (
+                    <Text style={styles.loadingText}>Loading locations...</Text>
+                  ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                       {locations.map((location) => (
                         <TouchableOpacity
@@ -519,8 +573,8 @@ export default function PlanEventsScreen() {
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
-                  </View>
-                )}
+                  )}
+                </View>
                 
                 <View style={styles.datePickerContainer}>
                   <Text style={styles.label}>Start Date & Time *</Text>
@@ -848,6 +902,24 @@ const styles = StyleSheet.create({
   textArea: {
     minHeight: 100,
     textAlignVertical: 'top',
+  },
+  infoBox: {
+    backgroundColor: '#dbeafe',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#0064a4',
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#1e40af',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontStyle: 'italic',
+    padding: 12,
   },
   pickerContainer: {
     marginBottom: 16,

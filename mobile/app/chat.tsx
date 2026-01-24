@@ -7,6 +7,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
 type Message = {
   id: string;
   content: string;
@@ -47,7 +49,7 @@ export default function ChatScreen() {
   const initializeChat = async () => {
     try {
       // Get current user ID and token
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem('token');
       const userDataStr = await AsyncStorage.getItem('userData');
       if (userDataStr) {
         const userData = JSON.parse(userDataStr);
@@ -56,14 +58,18 @@ export default function ChatScreen() {
 
       // Get or create conversation
       const response = await fetch(
-        `http://192.168.1.8:5000/api/chat/conversations/${userId}`,
-        { credentials: 'include' }
+        `${API_BASE_URL}/api/chat/conversations/${userId}`,
+        { 
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
       const conversation = await response.json();
       setConversationId(conversation.id);
 
       // Fetch messages
-      await fetchMessages(conversation.id);
+      await fetchMessages(conversation.id, token);
 
       // Setup Socket.IO
       if (token) {
@@ -77,7 +83,7 @@ export default function ChatScreen() {
   };
 
   const setupSocket = (token: string, convId: string) => {
-    const socket = io('http://192.168.1.8:5000', {
+    const socket = io(API_BASE_URL, {
       auth: { token },
     });
 
@@ -103,11 +109,15 @@ export default function ChatScreen() {
     socketRef.current = socket;
   };
 
-  const fetchMessages = async (convId: string) => {
+  const fetchMessages = async (convId: string, token: string | null) => {
     try {
       const response = await fetch(
-        `http://192.168.1.8:5000/api/chat/conversations/${convId}/messages`,
-        { credentials: 'include' }
+        `${API_BASE_URL}/api/chat/conversations/${convId}/messages`,
+        { 
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
       const data = await response.json();
       setMessages(data);

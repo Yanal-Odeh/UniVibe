@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/api';
 import Layout from '@/components/Layout';
 import EventMediaGallery from '@/components/EventMediaGallery';
+import TaskManager from '@/components/TaskManager';
 
 export default function EventDetailsScreen() {
   const router = useRouter();
@@ -190,6 +191,15 @@ export default function EventDetailsScreen() {
           <EventMediaGallery
             eventId={id as string}
             isClubLeader={currentUser && event.community?.clubLeaderId === currentUser.id}
+          />
+        </View>
+
+        {/* Task Management */}
+        <View style={{ margin: 16, marginTop: 0 }}>
+          <TaskManager
+            eventId={id as string}
+            isClubLeader={currentUser && event.community?.clubLeaderId === currentUser.id}
+            currentUserId={currentUser?.id || 0}
           />
         </View>
       </ScrollView>

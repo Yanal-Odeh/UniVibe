@@ -34,6 +34,11 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // If token is invalid, clear it from storage
+        if (response.status === 401 && data.error?.includes('token')) {
+          await AsyncStorage.removeItem('token');
+          console.log('🗑️ Cleared invalid token');
+        }
         throw new Error(data.error || 'Something went wrong');
       }
 

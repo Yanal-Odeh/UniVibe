@@ -82,7 +82,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/saved-events', savedEventRoutes);
 app.use('/api/study-spaces', studySpaceRoutes);
-app.use('/api', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/api/chat', chatRoutes);
 
 // Setup Socket.IO for real-time chat

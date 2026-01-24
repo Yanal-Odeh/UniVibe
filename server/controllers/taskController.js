@@ -404,12 +404,16 @@ export const uploadTaskSubmission = async (req, res) => {
       return res.status(403).json({ error: 'You can only upload files for tasks assigned to you' });
     }
 
+    // Convert absolute path to relative URL path
+    const relativePath = file.path.replace(/\\/g, '/').split('/uploads/')[1];
+    const fileUrl = `/uploads/${relativePath}`;
+
     // Create the submission
     const submission = await prisma.taskSubmission.create({
       data: {
         taskId,
         fileName: file.originalname,
-        fileUrl: file.path,
+        fileUrl: fileUrl,
         fileType: file.mimetype,
         fileSize: file.size,
         uploadedById: userId,
@@ -429,7 +433,12 @@ export const uploadTaskSubmission = async (req, res) => {
     res.status(201).json(submission);
   } catch (error) {
     console.error('Error uploading task submission:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to upload file',
+      details: error.message 
+    });
   }
 };
 

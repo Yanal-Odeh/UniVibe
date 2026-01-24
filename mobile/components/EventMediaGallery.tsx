@@ -12,11 +12,12 @@ import {
   Dimensions,
   Platform
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Video } from 'expo-av';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.8:5000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 interface EventMediaGalleryProps {
   eventId: string;
@@ -45,11 +46,19 @@ export default function EventMediaGallery({ eventId, isClubLeader }: EventMediaG
 
   const fetchMedia = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/events/${eventId}/media`);
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/media`);
+      
+      if (!response.ok) {
+        console.error('Media fetch failed:', response.status);
+        setMedia([]);
+        return;
+      }
+      
       const data = await response.json();
       setMedia(data.media || []);
     } catch (error) {
       console.error('Error fetching media:', error);
+      setMedia([]);
     } finally {
       setLoading(false);
     }
@@ -107,7 +116,7 @@ export default function EventMediaGallery({ eventId, isClubLeader }: EventMediaG
       }
 
       const token = await getToken();
-      const response = await fetch(`${API_URL}/api/events/${eventId}/media`, {
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -146,7 +155,7 @@ export default function EventMediaGallery({ eventId, isClubLeader }: EventMediaG
           onPress: async () => {
             try {
               const token = await getToken();
-              const response = await fetch(`${API_URL}/api/events/${eventId}/media/${mediaId}`, {
+              const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/media/${mediaId}`, {
                 method: 'DELETE',
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -270,7 +279,7 @@ export default function EventMediaGallery({ eventId, isClubLeader }: EventMediaG
             >
               {item.fileType === 'IMAGE' ? (
                 <Image
-                  source={{ uri: `${API_URL}${item.fileUrl}` }}
+                  source={{ uri: `${API_BASE_URL}${item.fileUrl}` }}
                   style={styles.thumbnail}
                   resizeMode="cover"
                 />
@@ -310,13 +319,13 @@ export default function EventMediaGallery({ eventId, isClubLeader }: EventMediaG
             <View style={styles.carouselContent}>
               {media[selectedMediaIndex].fileType === 'IMAGE' ? (
                 <Image
-                  source={{ uri: `${API_URL}${media[selectedMediaIndex].fileUrl}` }}
+                  source={{ uri: `${API_BASE_URL}${media[selectedMediaIndex].fileUrl}` }}
                   style={styles.carouselImage}
                   resizeMode="contain"
                 />
               ) : (
                 <Video
-                  source={{ uri: `${API_URL}${media[selectedMediaIndex].fileUrl}` }}
+                  source={{ uri: `${API_BASE_URL}${media[selectedMediaIndex].fileUrl}` }}
                   style={styles.carouselVideo}
                   useNativeControls
                   resizeMode="contain"
