@@ -103,10 +103,10 @@ class ApiClient {
     });
   }
 
-  async registerForEvent(eventId: number, userId: number) {
-    return this.request(`/events/${eventId}/register`, {
+  async registerForEvent(eventId: number, userId?: number) {
+    return this.request(`/registrations/register`, {
       method: 'POST',
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ eventId }),
     });
   }
 
@@ -159,6 +159,13 @@ class ApiClient {
 
   async respondToRevision(eventId: string, responseData: any) {
     return this.request(`/events/${eventId}/respond-revision`, {
+      method: 'POST',
+      body: JSON.stringify(responseData),
+    });
+  }
+
+  async respondToDeanshipRevision(eventId: string, responseData: any) {
+    return this.request(`/events/${eventId}/respond-deanship-revision`, {
       method: 'POST',
       body: JSON.stringify(responseData),
     });

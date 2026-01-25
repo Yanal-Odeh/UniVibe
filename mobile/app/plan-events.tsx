@@ -69,6 +69,11 @@ export default function PlanEventsScreen() {
     try {
       setLoading(true);
       
+      // Refetch current user to get latest ledCommunities with college object
+      console.log('🔄 Refetching current user data...');
+      const freshUserData = await api.getCurrentUser();
+      console.log('Fresh user data:', JSON.stringify(freshUserData.ledCommunities, null, 2));
+      
       const [eventsData, collegesData, communitiesData] = await Promise.all([
         api.getEvents(),
         api.getColleges(),
@@ -87,10 +92,10 @@ export default function PlanEventsScreen() {
         : (communitiesData?.communities || []);
       setCommunities(communitiesList);
 
-      // Auto-assign community and college for club leaders
-      const userRole = (currentUser?.role || '').toString().toUpperCase();
-      if (userRole === 'CLUB_LEADER' && currentUser?.ledCommunities && currentUser.ledCommunities.length > 0) {
-        const ledCommunity = currentUser.ledCommunities[0];
+      // Auto-assign community and college for club leaders using FRESH data
+      const userRole = (freshUserData?.role || currentUser?.role || '').toString().toUpperCase();
+      if (userRole === 'CLUB_LEADER' && freshUserData?.ledCommunities && freshUserData.ledCommunities.length > 0) {
+        const ledCommunity = freshUserData.ledCommunities[0];
         // Try multiple ways to get collegeId from the community
         const collegeId = ledCommunity.collegeId || ledCommunity.college?.id || '';
         

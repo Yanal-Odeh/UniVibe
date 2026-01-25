@@ -81,6 +81,24 @@ export const createTask = async (req, res) => {
     const { title, description, assignedToId } = req.body;
     const assignedById = req.user.id;
 
+    console.log('=== Create Task Request ===');
+    console.log('Event ID:', eventId);
+    console.log('Request body:', req.body);
+    console.log('Title:', title);
+    console.log('Description:', description);
+    console.log('Assigned To ID (raw):', assignedToId);
+    console.log('Assigned To ID (type):', typeof assignedToId);
+    console.log('Assigned By ID:', assignedById);
+
+    // Validate required fields
+    if (!title || !description || !assignedToId) {
+      console.error('Missing required fields');
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: { title: !!title, description: !!description, assignedToId: !!assignedToId }
+      });
+    }
+
     // Verify the event exists and get its community
     const event = await prisma.event.findUnique({
       where: { id: eventId },
@@ -100,6 +118,10 @@ export const createTask = async (req, res) => {
       return res.status(403).json({ error: 'Only the club leader can assign tasks' });
     }
 
+    console.log('Checking if user is member of community...');
+    console.log('Community ID:', event.communityId);
+    console.log('Looking for member with userId:', assignedToId);
+
     // Verify the assigned user is a member of the community
     const isMember = await prisma.communityMember.findFirst({
       where: {
@@ -107,6 +129,8 @@ export const createTask = async (req, res) => {
         communityId: event.communityId,
       },
     });
+
+    console.log('Member found:', !!isMember);
 
     if (!isMember) {
       return res.status(400).json({ error: 'Can only assign tasks to community members' });

@@ -141,7 +141,21 @@ export default function NotificationsScreen() {
     if (!notification.eventId) return false;
     const role = (currentUser?.role || '').toString().toUpperCase();
     const isRevisionNotification = notification.type === 'EVENT_NEEDS_REVISION';
-    return (role === 'CLUB_LEADER' || role === 'FACULTY_LEADER' || role === 'DEAN_OF_FACULTY') && isRevisionNotification;
+    
+    console.log('🔍 Checking respond button:', {
+      notificationId: notification.id,
+      role,
+      type: notification.type,
+      isRevisionNotification,
+      read: notification.read
+    });
+    
+    // Allow all roles in the approval chain to respond to revisions
+    return (
+      role === 'CLUB_LEADER' || 
+      role === 'FACULTY_LEADER' || 
+      role === 'DEAN_OF_FACULTY'
+    ) && isRevisionNotification;
   };
 
   const extractRevisionReason = (message: string) => {
@@ -214,9 +228,23 @@ export default function NotificationsScreen() {
     try {
       const role = (currentUser?.role || '').toString().toUpperCase();
       
-      // Handle club leader responding to revision
+      // Handle responding to revision
       if (action === 'respond') {
-        await api.respondToRevision(notif.eventId, { response: reason });
+        // Check if this notification has already been responded to by checking if it's read
+        if (notif.read && !notif.message.includes('resubmitted')) {
+          Alert.alert('Already Responded', 'This revision request has already been responded to.');
+          setActionModal({ isOpen: false, notification: null, type: '', reason: '' });
+          fetchNotifications();
+          return;
+        }
+        
+        // Dean of Faculty responding to Deanship revision uses a different endpoint
+        if (role === 'DEAN_OF_FACULTY' && (notif.message.includes('Deanship') || notif.message.includes('deanship'))) {
+          await api.respondToDeanshipRevision(notif.eventId, { response: reason });
+        } else {
+          // Club Leader or Faculty Leader responding to regular revision
+          await api.respondToRevision(notif.eventId, { response: reason });
+        }
         Alert.alert('Success', 'Response submitted successfully!');
       } 
       // Handle approval
@@ -417,8 +445,8 @@ export default function NotificationsScreen() {
                   </View>
                 )}
 
-                {/* Button for club leaders to respond to revision requests - only show for unread notifications */}
-                {!notification.read && canRespondToRevision(notification) && (
+                {/* Button for club leaders, faculty leaders, and deans to respond to revision requests */}
+                {canRespondToRevision(notification) && (
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
                       style={[styles.actionBtn, styles.respondBtn]}

@@ -54,11 +54,20 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
   });
 
   useEffect(() => {
+    console.log('=== TaskManager mounted ===');
+    console.log('Event ID:', eventId);
+    console.log('Is Club Leader:', isClubLeader);
+    console.log('Current User ID:', currentUserId);
     fetchTasks();
     if (isClubLeader) {
       fetchMembers();
     }
   }, [eventId]);
+
+  useEffect(() => {
+    console.log('=== formData changed ===');
+    console.log('formData:', formData);
+  }, [formData]);
 
   const fetchTasks = async () => {
     try {
@@ -70,9 +79,11 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
         ? `${API_BASE_URL}/api/tasks/events/${eventId}/tasks`
         : `${API_BASE_URL}/api/tasks/events/${eventId}/my-tasks`;
       
-      console.log('Fetching tasks from:', endpoint);
+      console.log('=== Fetching Tasks ===');
+      console.log('Endpoint:', endpoint);
       console.log('Is club leader:', isClubLeader);
       console.log('Event ID:', eventId);
+      console.log('Current User ID:', currentUserId);
       
       const response = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
@@ -81,17 +92,19 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
       console.log('Tasks response status:', response.status);
       
       if (!response.ok) {
-        console.error('Tasks fetch failed:', response.status);
+        const errorText = await response.text();
+        console.error('Tasks fetch failed:', response.status, errorText);
         setTasks([]);
         return;
       }
       
       const data = await response.json();
-      console.log('Tasks data:', data);
+      console.log('Raw tasks data:', JSON.stringify(data, null, 2));
       
       // API returns array directly, not wrapped in object
       const tasksList = Array.isArray(data) ? data : (data.tasks || []);
-      console.log('Tasks count:', tasksList.length);
+      console.log('Processed tasks count:', tasksList.length);
+      console.log('Tasks list:', tasksList);
       setTasks(tasksList);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -130,6 +143,11 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
   };
 
   const handleCreateTask = async () => {
+    console.log('=== handleCreateTask called ===');
+    console.log('Form Data before validation:', formData);
+    console.log('assignedToId value:', formData.assignedToId);
+    console.log('assignedToId type:', typeof formData.assignedToId);
+    
     if (!formData.title || !formData.description || !formData.assignedToId) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -137,23 +155,50 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
 
     try {
       const token = await AsyncStorage.getItem('token');
-      await fetch(`${API_BASE_URL}/api/tasks/events/${eventId}/tasks`, {
+      
+      console.log('=== Creating Task ===');
+      console.log('Event ID:', eventId);
+      console.log('Form Data:', formData);
+      console.log('Assigned To ID:', formData.assignedToId);
+      console.log('Assigned To ID type:', typeof formData.assignedToId);
+      
+      const requestBody = {
+        title: formData.title,
+        description: formData.description,
+        assignedToId: formData.assignedToId, // Send as string (CUID)
+      };
+      
+      console.log('Request body:', requestBody);
+      
+      const response = await fetch(`${API_BASE_URL}/api/tasks/events/${eventId}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          assignedToId: parseInt(formData.assignedToId),
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('Task creation response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Task creation failed:', errorData);
+        throw new Error(errorData.error || 'Failed to create task');
+      }
+
+      const result = await response.json();
+      console.log('Task created successfully:', result);
 
       Alert.alert('Success', 'Task created successfully!');
       setShowAddModal(false);
       setFormData({ title: '', description: '', assignedToId: '' });
-      fetchTasks();
+      
+      // Refresh tasks list
+      console.log('Refreshing tasks list...');
+      await fetchTasks();
     } catch (error: any) {
+      console.error('Task creation error:', error);
       Alert.alert('Error', error.message || 'Failed to create task');
     }
   };
@@ -366,14 +411,14 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
               style={styles.input}
               placeholder="Task Title *"
               value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
             />
 
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Description *"
               value={formData.description}
-              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
               multiline
               numberOfLines={4}
             />
@@ -383,20 +428,31 @@ export default function TaskManager({ eventId, isClubLeader, currentUserId }: Ta
               <Text style={styles.noMembersText}>Loading members...</Text>
             ) : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.membersList}>
-                {members.map((member) => (
-                  <TouchableOpacity
-                    key={member.id}
-                    style={[
-                      styles.memberChip,
-                      formData.assignedToId === member.id.toString() && styles.memberChipSelected,
-                    ]}
-                    onPress={() => setFormData({ ...formData, assignedToId: member.id.toString() })}
-                  >
-                    <Text style={styles.memberName}>
-                      {member.firstName} {member.lastName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {members.map((member) => {
+                  console.log('Rendering member:', member.id, member.firstName, member.lastName);
+                  return (
+                    <TouchableOpacity
+                      key={member.id}
+                      style={[
+                        styles.memberChip,
+                        formData.assignedToId === member.id.toString() && styles.memberChipSelected,
+                      ]}
+                      onPress={() => {
+                        console.log('Member selected:', member.id, member.firstName);
+                        console.log('Setting assignedToId to:', member.id.toString());
+                        setFormData(prev => {
+                          const newData = { ...prev, assignedToId: member.id.toString() };
+                          console.log('New formData after member selection:', newData);
+                          return newData;
+                        });
+                      }}
+                    >
+                      <Text style={styles.memberName}>
+                        {member.firstName} {member.lastName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             )}
 

@@ -198,7 +198,7 @@ export default function EventDetailsScreen() {
         <View style={{ margin: 16, marginTop: 0 }}>
           <TaskManager
             eventId={id as string}
-            isClubLeader={currentUser && event.community?.clubLeaderId === currentUser.id}
+            isClubLeader={currentUser && String(event.community?.clubLeaderId) === String(currentUser.id)}
             currentUserId={currentUser?.id || 0}
           />
         </View>
