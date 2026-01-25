@@ -157,9 +157,9 @@ export default function AboutScreen() {
               <Text style={styles.ctaSubtitle}>
                 Join universities already using UniVibe to create vibrant, connected campus communities
               </Text>
-              <View style={styles.ctaButton}>
+              <TouchableOpacity style={styles.ctaButton} onPress={() => router.push('/sign-up')}>
                 <Text style={styles.ctaButtonText}>Get Started Today</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

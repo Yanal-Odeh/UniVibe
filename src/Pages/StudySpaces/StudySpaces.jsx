@@ -3,6 +3,7 @@ import styles from './StudySpaces.module.scss';
 import { BookOpen, Users, Wifi, Coffee, Clock, MapPin, Search, X, Calendar, CheckCircle } from 'lucide-react';
 import api from '../../lib/api';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import Loader from '../../Components/Loader/Loader';
 
 function StudySpaces() {
   const { currentAdmin: user } = useAdminAuth();
@@ -218,7 +219,9 @@ function StudySpaces() {
   if (loading) {
     return (
       <div className={styles.studySpacesPage}>
-        <div className={styles.loading}>Loading study spaces...</div>
+        <div className={styles.container}>
+          <Loader text="Loading study spaces..." />
+        </div>
       </div>
     );
   }

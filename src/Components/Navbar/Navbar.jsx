@@ -49,7 +49,7 @@ function Navbar() {
     },
     {
       title: 'LEARN & ENJOY',
-      path: '/learn',
+      path: '/study',
       dropdown: [
         { name: 'Study Spaces', path: '/study' },
         { name: 'Dine, Play, Shop', path: '/dine' },

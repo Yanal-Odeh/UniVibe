@@ -181,21 +181,6 @@ export default function SignUpScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social Buttons */}
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>🔍</Text>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              </TouchableOpacity>
-            </View>
-
             {/* Sign In Prompt */}
             <View style={styles.signInPrompt}>
               <Text style={styles.promptText}>Already have an account? </Text>

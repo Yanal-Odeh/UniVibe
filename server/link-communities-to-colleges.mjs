@@ -21,7 +21,7 @@ async function linkCommunitiesToColleges() {
 
     // Community to College mapping
     const communityCollegeMap = [
-      { communityName: 'Engineers without borders (EWB)', collegeCode: 'ENG' },
+      { communityName: 'Institute of Electrical and Electronics Engineers (IEEE)', collegeCode: 'ENG' },
       { communityName: 'Theater troupe', collegeCode: 'ART' },
       { communityName: 'Medical Students Union', collegeCode: 'MED' },
       { communityName: 'Entrepreneurs Association', collegeCode: 'IT' },

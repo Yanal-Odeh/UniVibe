@@ -17,7 +17,7 @@ async function assignClubLeaders() {
 
     // Club Leader assignments (based on seed data)
     const assignments = [
-      { email: 'sarah@univibe.edu', communityName: 'Engineers without borders (EWB)' },
+      { email: 'sarah@univibe.edu', communityName: 'Institute of Electrical and Electronics Engineers (IEEE)' },
       { email: 'jessica@univibe.edu', communityName: 'Theater troupe' },
       { email: 'ryan@univibe.edu', communityName: 'Medical Students Union' },
       { email: 'tom@univibe.edu', communityName: 'Entrepreneurs Association' },

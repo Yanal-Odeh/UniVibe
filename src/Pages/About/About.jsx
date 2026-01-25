@@ -1,8 +1,11 @@
 import React from 'react';
 import { Users, Calendar, CheckCircle, Shield, Zap, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import styles from './About.module.scss';
 
 function About() {
+  const navigate = useNavigate();
+
   const features = [
     {
       icon: Calendar,
@@ -157,7 +160,7 @@ function About() {
             <p className={styles.ctaSubtitle}>
               Join universities already using UniVibe to create vibrant, connected campus communities
             </p>
-            <button className={styles.ctaButton}>
+            <button className={styles.ctaButton} onClick={() => navigate('/signup')}>
               Get Started Today
             </button>
           </div>

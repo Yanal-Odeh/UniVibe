@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import Layout from '@/components/Layout';
 
 export default function InformationCenter() {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToFooter = () => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  };
+
   const infoCards = [
     {
       icon: '📚',
@@ -70,7 +76,7 @@ export default function InformationCenter() {
 
   return (
     <Layout>
-      <ScrollView style={styles.container}>
+      <ScrollView ref={scrollViewRef} style={styles.container}>
         {/* Hero Section */}
         <View style={styles.hero}>
           <Text style={styles.heroTitle}>Information Center</Text>
@@ -100,7 +106,7 @@ export default function InformationCenter() {
               <Text style={styles.helpText}>
                 Our support team is here to assist you with any questions.
               </Text>
-              <TouchableOpacity style={styles.helpButton}>
+              <TouchableOpacity style={styles.helpButton} onPress={scrollToFooter}>
                 <Text style={styles.helpButtonText}>Contact Support</Text>
               </TouchableOpacity>
             </View>

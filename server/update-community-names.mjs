@@ -23,9 +23,9 @@ async function updateCommunities() {
     const communityUpdates = [
       {
         oldName: 'Computer Science Club',
-        newName: 'Engineers without borders (EWB)',
+        newName: 'Institute of Electrical and Electronics Engineers (IEEE)',
         collegeCode: 'ENG',
-        description: 'Engineers without borders community focusing on social impact projects',
+        description: 'Institute of Electrical and Electronics Engineers community focusing on engineering excellence',
         avatar: '🌍'
       },
       {

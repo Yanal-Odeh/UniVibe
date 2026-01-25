@@ -49,7 +49,7 @@ Based on the seed data, here are the 6 club leaders:
 
 | Club Leader | Email | Community | Faculty/College |
 |------------|-------|-----------|----------------|
-| Sarah Johnson | sarah@univibe.edu | Engineers without borders (EWB) | Engineering |
+| Sarah Johnson | sarah@univibe.edu | Institute of Electrical and Electronics Engineers (IEEE) | Engineering |
 | Jessica Lee | jessica@univibe.edu | Theater troupe | Arts |
 | Ryan Martinez | ryan@univibe.edu | Medical Students Union | Medicine |
 | Tom Wilson | tom@univibe.edu | Entrepreneurs Association | Business |
@@ -62,7 +62,7 @@ Based on the seed data, here are the 6 club leaders:
 1. Sarah Johnson logs in as club leader
 2. Creates event
 3. Must manually select "Engineering" college
-4. Must manually select "Engineers without borders" community
+4. Must manually select "Institute of Electrical and Electronics Engineers" community
 5. Fills in other details
 6. Submits event
 
@@ -70,7 +70,7 @@ Based on the seed data, here are the 6 club leaders:
 1. Sarah Johnson logs in as club leader
 2. Creates event
 3. ✨ **College automatically set to Engineering**
-4. ✨ **Community automatically set to Engineers without borders**
+4. ✨ **Community automatically set to Institute of Electrical and Electronics Engineers**
 5. Only fills in: Title, Description, Location (from Engineering locations), Date/Time
 6. Submits event
 

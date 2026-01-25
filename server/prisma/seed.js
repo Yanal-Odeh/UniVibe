@@ -93,8 +93,8 @@ async function main() {
   console.log('\n📝 Seeding communities...');
   const communities = [
     {
-      name: 'Engineers without borders (EWB)',
-      description: 'Engineers without borders community focusing on social impact projects',
+      name: 'Institute of Electrical and Electronics Engineers (IEEE)',
+      description: 'Institute of Electrical and Electronics Engineers community focusing on engineering excellence',
       avatar: '🌍',
       color: '#667eea',
       createdBy: createdStudents['sarah@univibe.edu'].id,
@@ -364,7 +364,7 @@ async function main() {
   // Update existing communities to assign them to colleges
   console.log('\n📝 Assigning communities to colleges...');
   const communityCollegeMapping = {
-    'Engineers without borders (EWB)': 'ENG',
+    'Institute of Electrical and Electronics Engineers (IEEE)': 'ENG',
     'Legal Clinic': 'LAW',
     'Theater troupe': 'ART',
     'Medical Students Union': 'MED',

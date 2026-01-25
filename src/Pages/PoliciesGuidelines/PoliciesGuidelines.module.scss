@@ -1,12 +1,12 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
 }
 
 .hero {
   padding: 80px 20px 60px;
   text-align: center;
-  color: #2d3748;
+  color: white;
 
   h1 {
     font-size: 3rem;
@@ -16,7 +16,8 @@
 
   p {
     font-size: 1.25rem;
-    color: #4a5568;
+    color: white;
+    opacity: 0.95;
   }
 }
 

@@ -60,6 +60,13 @@ function InformationCenter() {
     }
   ];
 
+  const scrollToFooter = () => {
+    const footer = document.querySelector('footer');
+    if (footer) {
+      footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
@@ -89,7 +96,7 @@ function InformationCenter() {
             <div className={styles.helpCard}>
               <h3>Need Help?</h3>
               <p>Our support team is here to assist you with any questions.</p>
-              <button className={styles.helpButton}>Contact Support</button>
+              <button className={styles.helpButton} onClick={scrollToFooter}>Contact Support</button>
             </div>
           </section>
         </div>

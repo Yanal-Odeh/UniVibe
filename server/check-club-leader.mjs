@@ -25,20 +25,20 @@ async function checkClubLeader() {
       role: sarah?.role
     });
 
-    // Find EWB community
-    const ewb = await prisma.community.findFirst({
+    // Find IEEE community
+    const ieee = await prisma.community.findFirst({
       where: {
         name: {
-          contains: 'Engineers'
+          contains: 'Institute of Electrical'
         }
       }
     });
 
-    console.log('\nEWB Community:', {
-      id: ewb?.id,
-      name: ewb?.name,
-      clubLeaderId: ewb?.clubLeaderId,
-      createdBy: ewb?.createdBy
+    console.log('\nIEEE Community:', {
+      id: ieee?.id,
+      name: ieee?.name,
+      clubLeaderId: ieee?.clubLeaderId,
+      createdBy: ieee?.createdBy
     });
 
     // Check the specific event
@@ -72,7 +72,7 @@ async function checkClubLeader() {
         where: { id: ewb.id },
         data: { clubLeaderId: sarah.id }
       });
-      console.log('✅ Fixed! Sarah is now the club leader of EWB');
+      console.log('✅ Fixed! Sarah is now the club leader of IEEE');
     }
 
   } catch (error) {

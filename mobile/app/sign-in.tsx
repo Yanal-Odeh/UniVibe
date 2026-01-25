@@ -121,20 +121,7 @@ export default function SignInScreen() {
                 </View>
               </View>
 
-              {/* Form Options */}
-              <View style={styles.formOptions}>
-                <View style={styles.checkboxContainer}>
-                  {/* Checkbox placeholder - can be implemented with a library */}
-                  <Text style={styles.checkboxText}>Remember me</Text>
-                </View>
-                {/* <Link href="/forgot-password" asChild>
-                  <TouchableOpacity>
-                    <Text style={styles.forgotLink}>Forgot Password?</Text>
-                  </TouchableOpacity>
-                </Link> */}
-              </View>
-
-              {/* Submit Button */}
+              {/* Submit Button */
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
@@ -148,22 +135,7 @@ export default function SignInScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Social Buttons */}
-            <View style={styles.socialButtons}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>🔍</Text>
-                <Text style={styles.socialButtonText}>Continue with Google</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Sign Up Prompt */}
+            {/* Sign Up Prompt */
             <View style={styles.signUpPrompt}>
               <Text style={styles.promptText}>Don't have an account? </Text>
               <Link href="/sign-up" asChild>

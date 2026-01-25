@@ -24,7 +24,7 @@ $tablet: 1024px;
 
 // Hero Section
 .hero {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, #0064a4 0%, #764ba2 70%);
   padding: 6rem 2rem 4rem;
   text-align: center;
   color: white;
@@ -68,15 +68,15 @@ $tablet: 1024px;
 }
 
 .highlight {
-  color: #7c3aed;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  color: #ffffff;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .heroSubtitle {
   font-size: 1.25rem;
   opacity: 0.95;
   line-height: 1.6;
-  color: #1f2937;
+  color: #ffffff;
 
   @media (max-width: $mobile) {
     font-size: 1rem;

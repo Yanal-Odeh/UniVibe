@@ -52,7 +52,7 @@ export default function Navbar() {
     },
     {
       title: 'LEARN & ENJOY',
-      path: '/learn',
+      path: '/study-spaces',
       dropdown: [
         { name: 'Study Spaces', path: '/study-spaces' },
         { name: 'Dine, Play, Shop', path: '/dine-play-shop' },
