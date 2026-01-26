@@ -30,7 +30,7 @@ export default function AdminPanel() {
     name: '',
     description: '',
     avatar: '🎯',
-    color: '#667eea'
+    color: '#0064A4'
   });
 
   const [newStudent, setNewStudent] = useState({
@@ -41,7 +41,7 @@ export default function AdminPanel() {
     role: 'student'
   });
 
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
+  const colors = ['#0064A4', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
   const emojis = ['🎯', '🖥️', '🎨', '⚽', '📚', '🎵', '🎮', '🌟', '💡', '🚀'];
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function AdminPanel() {
     if (newCommunity.name && newCommunity.description) {
       try {
         await api.createCommunity(newCommunity);
-        setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#667eea' });
+        setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#0064A4' });
         setIsAddingCommunity(false);
         fetchData();
       } catch (err: any) {
@@ -266,7 +266,7 @@ export default function AdminPanel() {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#667eea" />
+        <ActivityIndicator size="large" color="#0064A4" />
         <Text style={styles.loaderText}>Loading Admin Panel...</Text>
       </View>
     );
@@ -359,7 +359,7 @@ export default function AdminPanel() {
 
           {/* Stats */}
           <View style={styles.stats}>
-            <View style={[styles.statCard, { borderLeftColor: '#667eea' }]}>
+            <View style={[styles.statCard, { borderLeftColor: '#0064A4' }]}>
               <Text style={styles.statValue}>{communities.length}</Text>
               <Text style={styles.statLabel}>Total Communities</Text>
             </View>
@@ -430,7 +430,7 @@ export default function AdminPanel() {
 
           {/* Stats */}
           <View style={styles.stats}>
-            <View style={[styles.statCard, { borderLeftColor: '#667eea' }]}>
+            <View style={[styles.statCard, { borderLeftColor: '#0064A4' }]}>
               <Text style={styles.statValue}>{students.length}</Text>
               <Text style={styles.statLabel}>Total Students</Text>
             </View>
@@ -484,7 +484,7 @@ export default function AdminPanel() {
             {filteredStudents.map(student => (
               <View key={student.id} style={styles.card}>
                 <View style={styles.cardHeader}>
-                  <View style={[styles.communityAvatar, { backgroundColor: '#667eea' }]}>
+                  <View style={[styles.communityAvatar, { backgroundColor: '#0064A4' }]}>
                     <Text style={styles.communityAvatarText}>
                       {student.firstName?.[0]}{student.lastName?.[0]}
                     </Text>
@@ -547,7 +547,7 @@ export default function AdminPanel() {
                 return (
                   <View key={application.id} style={styles.card}>
                     <View style={styles.cardHeader}>
-                      <View style={[styles.communityAvatar, { backgroundColor: '#667eea' }]}>
+                      <View style={[styles.communityAvatar, { backgroundColor: '#0064A4' }]}>
                         <Text style={styles.communityAvatarText}>
                           {application.name.split(' ').map(n => n[0]).join('')}
                         </Text>
@@ -643,7 +643,7 @@ export default function AdminPanel() {
                 const getStatusColor = () => {
                   if (event.status === 'APPROVED') return '#10b981';
                   if (event.status.includes('REJECTED')) return '#ef4444';
-                  if (event.status.includes('REVISION')) return '#8b5cf6';
+                  if (event.status.includes('REVISION')) return '#0064A4';
                   return '#f59e0b';
                 };
 
@@ -658,7 +658,7 @@ export default function AdminPanel() {
                 return (
                   <View key={event.id} style={styles.card}>
                     <View style={styles.cardHeader}>
-                      <View style={[styles.communityAvatar, { backgroundColor: event.community?.color || '#667eea' }]}>
+                      <View style={[styles.communityAvatar, { backgroundColor: event.community?.color || '#0064A4' }]}>
                         <Text style={styles.communityAvatarText}>{event.community?.avatar || '📅'}</Text>
                       </View>
                       <View style={styles.cardInfo}>
@@ -1115,7 +1115,7 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   header: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
     padding: 20,
     paddingTop: 60,
     flexDirection: 'row',
@@ -1176,7 +1176,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   navItemActive: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
   },
   navItemText: {
     fontSize: 14,
@@ -1206,7 +1206,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   addBtn: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -1276,8 +1276,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   roleBtnActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#0064A4',
+    borderColor: '#0064A4',
   },
   roleBtnText: {
     fontSize: 13,
@@ -1378,7 +1378,7 @@ const styles = StyleSheet.create({
     borderColor: '#ede9fe',
   },
   revisionBtnText: {
-    color: '#8b5cf6',
+    color: '#0064A4',
   },
   statusBadge: {
     alignSelf: 'flex-start',
@@ -1469,7 +1469,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   emojiBtnActive: {
-    borderColor: '#667eea',
+    borderColor: '#0064A4',
     backgroundColor: '#e8eaf6',
   },
   emoji: {
@@ -1501,8 +1501,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   roleOptionActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#0064A4',
+    borderColor: '#0064A4',
   },
   roleOptionText: {
     fontSize: 15,
@@ -1534,7 +1534,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

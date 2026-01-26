@@ -353,7 +353,7 @@ export default function PlanEventsScreen() {
       case 'FACULTY_REQUIRES_REVISION':
       case 'DEAN_REQUIRES_REVISION':
       case 'DEANSHIP_REQUIRES_REVISION':
-        return '#8b5cf6';
+        return '#0064A4';
       default:
         return '#6b7280';
     }
@@ -381,7 +381,7 @@ export default function PlanEventsScreen() {
     return (
       <Layout>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color="#0064A4" />
         </View>
       </Layout>
     );
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   submitRevisionButton: {
-    backgroundColor: '#8b5cf6',
+    backgroundColor: '#0064A4',
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
   },
   optionButtonSelected: {
     backgroundColor: '#dbeafe',
-    borderColor: '#667eea',
+    borderColor: '#0064A4',
   },
   optionText: {
     fontSize: 14,
@@ -1019,7 +1019,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
   },
   submitButtonText: {
     color: '#fff',
@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ede9fe',
   },
   revisionBtnText: {
-    color: '#8b5cf6',
+    color: '#0064A4',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   actionModalSubmitBtn: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
   },
   actionModalSubmitText: {
     color: '#fff',

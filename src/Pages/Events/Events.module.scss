@@ -41,8 +41,8 @@ h1 {
 
     &:focus {
       outline: none;
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: #0064A4;
+      box-shadow: 0 0 0 3px rgba(0, 100, 164, 0.1);
     }
 
     &::placeholder {
@@ -103,7 +103,7 @@ h1 {
   white-space: nowrap;
 
   &:hover {
-    color: #4f46e5;
+    color: #0064A4;
     background: #f8f9fa;
   }
 
@@ -114,9 +114,9 @@ h1 {
 }
 
 .activeTab {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
-  background: #f8f9ff;
+  color: #0064A4;
+  border-bottom-color: #0064A4;
+  background: #e6f2ff;
 }
 
 .tabCount {
@@ -126,14 +126,14 @@ h1 {
   min-width: 1.5rem;
   height: 1.5rem;
   padding: 0 0.5rem;
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: #d4e8f7;
+  color: #0064A4;
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 12px;
 
   .activeTab & {
-    background: #4f46e5;
+    background: #0064A4;
     color: white;
   }
 }

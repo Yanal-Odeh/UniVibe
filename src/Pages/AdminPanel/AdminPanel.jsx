@@ -34,7 +34,7 @@ function AdminPanel() {
     name: '',
     description: '',
     avatar: '🎯',
-    color: '#667eea'
+    color: '#0064A4'
   });
 
   const [newStudent, setNewStudent] = useState({
@@ -93,7 +93,7 @@ function AdminPanel() {
     navigate('/signin');
   };
 
-  const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
+  const colors = ['#0064A4', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffd16a'];
   const emojis = ['🎯', '🖥️', '🎨', '⚽', '📚', '🎵', '🎮', '🌟', '💡', '🚀'];
 
   const formatRole = (role) => {
@@ -154,7 +154,7 @@ function AdminPanel() {
     if (newCommunity.name && newCommunity.description) {
       try {
         await addCommunity(newCommunity);
-        setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#667eea' });
+        setNewCommunity({ name: '', description: '', avatar: '🎯', color: '#0064A4' });
         setIsAddingCommunity(false);
       } catch (err) {
         alert('Failed to add community: ' + err.message);
@@ -313,13 +313,13 @@ function AdminPanel() {
   if (userRole !== 'ADMIN') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '2rem', textAlign: 'center' }}>
-        <h2 style={{ color: '#667eea', marginBottom: '1rem' }}>Access Denied</h2>
+        <h2 style={{ color: '#0064A4', marginBottom: '1rem' }}>Access Denied</h2>
         <p style={{ marginBottom: '2rem', color: '#666' }}>You need administrator privileges to access this page.</p>
         <button 
           onClick={() => navigate('/')} 
           style={{ 
             padding: '0.75rem 2rem', 
-            background: '#667eea', 
+            background: '#0064A4', 
             color: 'white', 
             border: 'none', 
             borderRadius: '8px', 
@@ -425,7 +425,7 @@ function AdminPanel() {
 
       <div className={styles.adminStats}>
         <div className={styles.statCard}>
-          <div className={styles.statIcon} style={{ background: '#667eea' }}>
+          <div className={styles.statIcon} style={{ background: '#0064A4' }}>
             <Users size={24} />
           </div>
           <div className={styles.statInfo}>
@@ -638,7 +638,7 @@ function AdminPanel() {
 
             <div className={styles.adminStats}>
               <div className={styles.statCard}>
-                <div className={styles.statIcon} style={{ background: '#667eea' }}>
+                <div className={styles.statIcon} style={{ background: '#0064A4' }}>
                   <Users size={24} />
                 </div>
                 <div className={styles.statInfo}>
@@ -713,7 +713,7 @@ function AdminPanel() {
                     <tr key={student.id} onClick={() => setSelectedStudent(student)} className={styles.clickableRow}>
                       <td>
                         <div className={styles.communityCell}>
-                          <span className={styles.tableAvatar} style={{ background: '#667eea' }}>
+                          <span className={styles.tableAvatar} style={{ background: '#0064A4' }}>
                             {student.firstName[0]}{student.lastName[0]}
                           </span>
                           <div>
@@ -914,7 +914,7 @@ function AdminPanel() {
                             <div className={styles.communityCell}>
                               <div 
                                 className={styles.tableAvatar}
-                                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                                style={{ background: 'linear-gradient(135deg, #0064A4 0%, #0064A4 100%)' }}
                               >
                                 {application.name.split(' ').map(n => n[0]).join('')}
                               </div>

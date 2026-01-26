@@ -31,7 +31,7 @@
 .badge {
   padding: 0.375rem 0.875rem;
   background: #f3e8ff;
-  color: #8b5cf6;
+  color: #0064A4;
   border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -51,7 +51,7 @@
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #8b5cf6;
+    border-color: #0064A4;
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
     transform: translateY(-2px);
   }
@@ -139,7 +139,7 @@
 
   &:focus {
     outline: none;
-    border-color: #8b5cf6;
+    border-color: #0064A4;
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
   }
 }
@@ -239,7 +239,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.125rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #7c3aed 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -296,7 +296,7 @@
 }
 
 .fileIcon {
-  color: #8b5cf6;
+  color: #0064A4;
   flex-shrink: 0;
 }
 
@@ -317,7 +317,7 @@
   text-overflow: ellipsis;
 
   &:hover {
-    color: #8b5cf6;
+    color: #0064A4;
     text-decoration: underline;
   }
 }

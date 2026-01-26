@@ -219,7 +219,7 @@ function StudySpaces() {
   if (loading) {
     return (
       <div className={styles.studySpacesPage}>
-        <div className={styles.container}>
+        <div className={styles.loadingContainer}>
           <Loader text="Loading study spaces..." />
         </div>
       </div>

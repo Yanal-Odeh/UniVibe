@@ -40,7 +40,7 @@ export default function DinePlayShopScreen() {
       location: 'Library Building',
       rating: 4.7,
       image: '☕',
-      color: '#8b5cf6',
+      color: '#0064A4',
       features: ['Free WiFi', 'Study Space', 'Fresh Pastries']
     },
     {

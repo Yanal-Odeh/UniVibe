@@ -1,5 +1,5 @@
 // Colors
-$primary: #4f46e5;
+$primary: #0064A4;
 $primary-light: #eff6ff;
 $text-dark: #111827;
 $text-gray: #6b7280;
@@ -25,20 +25,20 @@ $tablet: 1024px;
 }
 
 .calendarContainer {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 // Header Section
 .calendarHeader {
   background: $white;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 
   @media (max-width: $mobile) {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 }
 
@@ -270,7 +270,7 @@ $tablet: 1024px;
 
 .calendarDay {
   background: $white;
-  min-height: 120px;
+  min-height: 100px;
   padding: 0.5rem;
   position: relative;
   transition: all 0.3s ease;
@@ -290,11 +290,11 @@ $tablet: 1024px;
   }
 
   @media (max-width: $tablet) {
-    min-height: 100px;
+    min-height: 85px;
   }
 
   @media (max-width: $mobile) {
-    min-height: 80px;
+    min-height: 70px;
     padding: 0.25rem;
   }
 }

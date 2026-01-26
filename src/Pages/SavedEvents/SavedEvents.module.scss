@@ -4,6 +4,14 @@
   min-height: calc(100vh - 80px);
 }
 
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  width: 100%;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -20,7 +28,7 @@
     margin-bottom: 0.5rem;
 
     svg {
-      color: #6366f1;
+      color: #0064A4;
     }
 
     h1 {
@@ -157,7 +165,7 @@
 
   svg {
     flex-shrink: 0;
-    color: #6366f1;
+    color: #0064A4;
   }
 }
 

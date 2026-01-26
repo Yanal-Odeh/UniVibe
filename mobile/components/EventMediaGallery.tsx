@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   uploadButtonVideo: {
-    backgroundColor: '#8b5cf6',
+    backgroundColor: '#0064A4',
   },
   uploadButtonDisabled: {
     opacity: 0.6,

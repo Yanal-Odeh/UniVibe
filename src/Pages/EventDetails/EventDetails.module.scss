@@ -1,6 +1,6 @@
 // Colors
-$primary: #4f46e5;
-$primary-dark: #4338ca;
+$primary: #0064A4;
+$primary-dark: #005a93;
 $success: #10b981;
 $success-dark: #059669;
 $warning: #fbbf24;
@@ -20,6 +20,14 @@ $tablet: 1024px;
 .eventDetailsPage {
   min-height: 100vh;
   background: $bg-light;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  width: 100%;
 }
 
 .backButton {
@@ -416,7 +424,7 @@ $tablet: 1024px;
 
 .capacityFill {
   height: 100%;
-  background: linear-gradient(to right, $primary, #7c3aed);
+  background: linear-gradient(to right, $primary, #4facfe);
   transition: all 0.3s ease;
   border-radius: 1rem;
 }

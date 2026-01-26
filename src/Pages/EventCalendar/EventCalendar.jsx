@@ -18,7 +18,9 @@ import {
 import styles from './EventCalendar.module.scss';
 
 function EventCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 2, 1)); // March 2025
+  // Initialize calendar to current month and year
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,14 +71,14 @@ function EventCalendar() {
   // Helper function to get category colors
   const getCategoryColor = (category) => {
     const colors = {
-      'Technology': '#667eea',
+      'Technology': '#0064A4',
       'Cultural': '#f093fb',
       'Educational': '#4facfe',
       'Career': '#43e97b',
       'Sports': '#fa709a',
       'General': '#ffd16a'
     };
-    return colors[category] || '#667eea';
+    return colors[category] || '#0064A4';
   };
 
   const categories = ['All', 'Technology', 'Cultural', 'Educational', 'Career', 'Sports'];

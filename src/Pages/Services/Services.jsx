@@ -92,7 +92,7 @@ function Services() {
       category: 'academic',
       description: 'Access to extensive collections, research assistance, and study resources.',
       icon: <BookOpen className={styles.serviceIcon} />,
-      color: '#8b5cf6',
+      color: '#0064A4',
       contact: 'library@university.edu',
       phone: '(555) 567-8901',
       location: 'Main Library',
@@ -232,7 +232,7 @@ function Services() {
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            Campus <span className={styles.highlight}>Services</span>
+            <span className={styles.highlight}>Campus</span> <span className={styles.highlight}>Services</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Comprehensive support services designed to enhance your university experience

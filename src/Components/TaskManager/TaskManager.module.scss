@@ -25,7 +25,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background: #8b5cf6;
+  background: #0064A4;
   color: white;
   border: none;
   border-radius: 8px;
@@ -179,7 +179,7 @@
 
   &:focus {
     outline: none;
-    border-color: #8b5cf6;
+    border-color: #0064A4;
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
   }
 }
@@ -294,7 +294,7 @@
 
     &:focus {
       outline: none;
-      border-color: #8b5cf6;
+      border-color: #0064A4;
       box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
     }
 
@@ -336,7 +336,7 @@
 
 .submitButton {
   padding: 0.625rem 1.25rem;
-  background: #8b5cf6;
+  background: #0064A4;
   border: none;
   border-radius: 8px;
   font-size: 0.875rem;
@@ -430,7 +430,7 @@
 }
 
 .fileIcon {
-  color: #8b5cf6;
+  color: #0064A4;
   flex-shrink: 0;
 }
 
@@ -451,7 +451,7 @@
   text-overflow: ellipsis;
 
   &:hover {
-    color: #8b5cf6;
+    color: #0064A4;
     text-decoration: underline;
   }
 }
@@ -465,7 +465,7 @@
   padding: 0.5rem;
   background: transparent;
   border: none;
-  color: #8b5cf6;
+  color: #0064A4;
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s;

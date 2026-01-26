@@ -37,7 +37,7 @@ export default function CommunitiesScreen() {
     return (
       <Layout>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color="#0064A4" />
           <Text style={styles.loadingText}>Loading communities...</Text>
         </View>
       </Layout>

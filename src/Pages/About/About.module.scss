@@ -1,6 +1,6 @@
 // Colors
-$primary-color: #4f46e5;
-$secondary-color: #9333ea;
+$primary-color: #0064A4;
+$secondary-color: #0064A4;
 $text-dark: #111827;
 $text-gray: #6b7280;
 $text-light: #9ca3af;
@@ -8,7 +8,7 @@ $bg-light: #f9fafb;
 $white: #ffffff;
 $green: #10b981;
 $blue: #3b82f6;
-$purple: #9333ea;
+$purple: #0064A4;
 
 // Breakpoints
 $mobile: 768px;
@@ -340,7 +340,7 @@ $tablet: 1024px;
 }
 
 .ctaCard {
-  background: linear-gradient(to right, #6366f1, $secondary-color);
+  background: linear-gradient(to right, #0064A4, #4facfe);
   border-radius: 1rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   padding: 3rem;

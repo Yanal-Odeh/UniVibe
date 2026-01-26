@@ -73,7 +73,7 @@ export default function ServicesScreen() {
       category: 'academic',
       description: 'Access to extensive collections, research assistance, and study resources.',
       icon: '📖',
-      color: '#8b5cf6',
+      color: '#0064A4',
       contact: 'library@university.edu',
       phone: '(555) 567-8901',
       location: 'Main Library',

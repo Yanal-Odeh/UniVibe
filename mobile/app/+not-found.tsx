@@ -51,7 +51,7 @@ export default function NotFound() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   homeButtonText: {
-    color: '#667eea',
+    color: '#0064A4',
     fontWeight: '700',
     fontSize: 18,
   },

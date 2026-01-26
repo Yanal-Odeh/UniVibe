@@ -19,7 +19,7 @@ export default function VirtualTour() {
       panorama: 'https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?w=2000&q=80',
       description: 'Explore our historic main campus with beautiful architecture and green spaces.',
       features: ['Library', 'Student Center', 'Administrative Offices'],
-      color: '#667eea'
+      color: '#0064A4'
     },
     {
       id: 2,
@@ -79,7 +79,7 @@ export default function VirtualTour() {
       panorama: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=2000&q=80',
       description: 'Hub for student activities, clubs, and social gatherings.',
       features: ['Meeting Rooms', 'Lounge Areas', 'Cafe'],
-      color: '#764ba2'
+      color: '#0064A4'
     }
   ];
 

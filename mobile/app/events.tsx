@@ -122,7 +122,7 @@ export default function EventsScreen() {
     return (
       <Layout>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color="#0064A4" />
         </View>
       </Layout>
     );
@@ -314,8 +314,8 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   filterTabActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#0064A4',
+    borderColor: '#0064A4',
   },
   filterIcon: {
     fontSize: 16,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   communityText: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#0064A4',
     fontWeight: '500',
   },
 });

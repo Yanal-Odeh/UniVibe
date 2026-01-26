@@ -3,8 +3,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  padding: 1rem;
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
   position: relative;
   overflow: hidden;
 }
@@ -79,7 +79,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 24px;
-  padding: 3rem;
+  padding: 2rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.6s ease-out;
 }
@@ -97,7 +97,7 @@
 
 .cardHeader {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .errorMessage {
@@ -125,11 +125,11 @@
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -144,7 +144,7 @@
 .signUpForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* two-column row for first/last name */
@@ -181,9 +181,9 @@
 
 .input {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   padding-right: 3rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   outline: none;
@@ -196,7 +196,7 @@
   }
 
   &:focus {
-    border-color: #667eea;
+    border-color: #0064A4;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
 }
@@ -225,18 +225,18 @@
   width: 1.125rem;
   height: 1.125rem;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #0064A4;
 }
 
 .forgotLink {
   font-size: 0.875rem;
-  color: #667eea;
+  color: #0064A4;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #764ba2;
+    color: #0064A4;
   }
 }
 
@@ -246,7 +246,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -320,13 +320,13 @@
 }
 
 .signInLink {
-  color: #667eea;
+  color: #0064A4;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 
   &:hover {
-    color: #764ba2;
+    color: #0064A4;
     text-decoration: underline;
   }
 }

@@ -1,17 +1,19 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #eef2ff, #ffffff, #faf5ff);
 }
 
 .hero {
   padding: 80px 20px 60px;
   text-align: center;
   color: white;
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
 
   h1 {
     font-size: 3rem;
     margin-bottom: 16px;
     font-weight: 700;
+    color: white;
   }
 
   p {
@@ -226,7 +228,7 @@
       font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s ease;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
       color: white;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 
@@ -425,7 +427,7 @@
 
     &:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #0064A4;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
   }
@@ -467,7 +469,7 @@
   }
 
   .submitBtn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 

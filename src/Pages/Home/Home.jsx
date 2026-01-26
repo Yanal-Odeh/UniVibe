@@ -133,7 +133,7 @@ const Home = () => {
       title: "Join Communities",
       description: "Connect with like-minded students and join vibrant communities",
       link: "/communities",
-      color: "#667eea"
+      color: "#0064A4"
     },
     {
       icon: <Calendar size={40} />,

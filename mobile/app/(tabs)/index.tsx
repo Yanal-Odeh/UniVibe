@@ -103,7 +103,7 @@ export default function HomeScreen() {
           {/* Stat 1 */}
           <View style={{width: '47%', minWidth: 150}}>
             <View className="bg-gray-50 rounded-xl p-6 items-center shadow-sm border border-gray-100">
-              <Text className="text-4xl font-extrabold mb-2" style={{color: '#667eea'}}>
+              <Text className="text-4xl font-extrabold mb-2" style={{color: '#0064A4'}}>
                 6+
               </Text>
               <Text className="text-gray-600 text-xs text-center font-medium">
@@ -115,7 +115,7 @@ export default function HomeScreen() {
           {/* Stat 2 */}
           <View style={{width: '47%', minWidth: 150}}>
             <View className="bg-gray-50 rounded-xl p-6 items-center shadow-sm border border-gray-100">
-              <Text className="text-4xl font-extrabold mb-2" style={{color: '#667eea'}}>
+              <Text className="text-4xl font-extrabold mb-2" style={{color: '#0064A4'}}>
                 50+
               </Text>
               <Text className="text-gray-600 text-xs text-center font-medium">
@@ -127,7 +127,7 @@ export default function HomeScreen() {
           {/* Stat 3 */}
           <View style={{width: '47%', minWidth: 150}}>
             <View className="bg-gray-50 rounded-xl p-6 items-center shadow-sm border border-gray-100">
-              <Text className="text-4xl font-extrabold mb-2" style={{color: '#667eea'}}>
+              <Text className="text-4xl font-extrabold mb-2" style={{color: '#0064A4'}}>
                 1000+
               </Text>
               <Text className="text-gray-600 text-xs text-center font-medium">
@@ -139,7 +139,7 @@ export default function HomeScreen() {
           {/* Stat 4 */}
           <View style={{width: '47%', minWidth: 150}}>
             <View className="bg-gray-50 rounded-xl p-6 items-center shadow-sm border border-gray-100">
-              <Text className="text-4xl font-extrabold mb-2" style={{color: '#667eea'}}>
+              <Text className="text-4xl font-extrabold mb-2" style={{color: '#0064A4'}}>
                 24/7
               </Text>
               <Text className="text-gray-600 text-xs text-center font-medium">
@@ -221,7 +221,7 @@ export default function HomeScreen() {
 
         {loadingEvents ? (
           <View className="items-center py-8">
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color="#0064A4" />
             <Text className="text-gray-600 mt-4">Loading events...</Text>
           </View>
         ) : upcomingEvents.length === 0 ? (

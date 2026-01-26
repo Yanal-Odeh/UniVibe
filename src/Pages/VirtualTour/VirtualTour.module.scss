@@ -1,17 +1,19 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #eef2ff, #ffffff, #faf5ff);
 }
 
 .hero {
   padding: 80px 20px 60px;
   text-align: center;
   color: white;
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
 
   h1 {
     font-size: 3rem;
     margin-bottom: 16px;
     font-weight: 700;
+    color: white;
   }
 
   p {
@@ -63,23 +65,26 @@
 
     .categoryBtn {
       padding: 12px 24px;
-      border: 2px solid white;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
+      border: 2px solid #e5e7eb;
+      background: white;
       border-radius: 24px;
-      color: white;
+      color: #4a5568;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
       &:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: #f8f9fa;
+        border-color: #0064A4;
+        color: #0064A4;
         transform: translateY(-2px);
       }
 
       &.active {
-        background: white;
-        color: #667eea;
+        background: #0064A4;
+        color: white;
+        border-color: #0064A4;
       }
     }
   }
@@ -248,7 +253,7 @@
       }
 
       .primaryBtn {
-        background: #667eea;
+        background: #0064A4;
         color: white;
 
         &:hover {

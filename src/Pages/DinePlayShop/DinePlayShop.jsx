@@ -40,7 +40,7 @@ function DinePlayShop() {
       location: 'Library Building',
       rating: 4.7,
       image: '☕',
-      color: '#8b5cf6',
+      color: '#0064A4',
       features: ['Free WiFi', 'Study Space', 'Fresh Pastries']
     },
     {
@@ -221,7 +221,7 @@ function DinePlayShop() {
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            <span className={styles.highlight}>Dine</span>, Play & <span className={styles.highlight}>Shop</span>
+            <span className={styles.highlight}>Dine</span>, <span className={styles.highlight}>Play</span> & <span className={styles.highlight}>Shop</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Everything you need for campus life - from delicious meals to entertainment and essentials

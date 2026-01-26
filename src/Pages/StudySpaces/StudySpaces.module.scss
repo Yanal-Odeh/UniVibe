@@ -1,14 +1,14 @@
 // Colors - matching the theme
-$primary-color: #4f46e5;
-$secondary-color: #9333ea;
+$primary-color: #0064A4;
+$secondary-color: #0064A4;
 $text-dark: #111827;
 $text-gray: #6b7280;
 $text-light: #9ca3af;
 $bg-light: #f9fafb;
 $white: #ffffff;
 $green: #10b981;
-$blue: #3b82f6;
-$purple: #9333ea;
+$blue: #0064A4;
+$purple: #0064A4;
 $orange: #f59e0b;
 $pink: #ec4899;
 
@@ -21,9 +21,22 @@ $tablet: 1024px;
   background: linear-gradient(to bottom, #eef2ff, #ffffff, #faf5ff);
 }
 
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 // Hero Section
 .hero {
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
   padding: 6rem 2rem 4rem;
   text-align: center;
   color: white;
@@ -60,6 +73,7 @@ $tablet: 1024px;
   font-weight: 700;
   margin-bottom: 1.5rem;
   line-height: 1.2;
+  color: #ffffff;
 
   @media (max-width: $mobile) {
     font-size: 2rem;
@@ -67,7 +81,7 @@ $tablet: 1024px;
 }
 
 .highlight {
-  color: #fbbf24;
+  color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -406,7 +420,7 @@ $tablet: 1024px;
 .tipCard {
   text-align: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #faf5ff, #f3f4f6);
+  background: linear-gradient(135deg, #dbeafe, #e0f2fe);
   border-radius: 12px;
   transition: all 0.3s ease;
 
@@ -464,7 +478,7 @@ $tablet: 1024px;
   content: '';
   width: 15px;
   height: 15px;
-  background-color: #667eea;
+  background-color: #0064A4;
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out;
 }
@@ -480,7 +494,7 @@ $tablet: 1024px;
 .spinner {
   width: 15px;
   height: 15px;
-  background-color: #667eea;
+  background-color: #0064A4;
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out;
   animation-delay: 0.16s;

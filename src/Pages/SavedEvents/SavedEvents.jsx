@@ -64,7 +64,7 @@ function SavedEvents() {
   if (loading) {
     return (
       <div className={styles.savedEventsPage}>
-        <div className={styles.container}>
+        <div className={styles.loadingContainer}>
           <Loader text="Loading saved events..." />
         </div>
       </div>

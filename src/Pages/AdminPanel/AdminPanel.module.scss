@@ -1,8 +1,8 @@
 @use "sass:color";
 
 // Variables
-$primary-color: #667eea;
-$secondary-color: #764ba2;
+$primary-color: #0064A4;
+$secondary-color: #0064A4;
 $success-color: #43e97b;
 $danger-color: #fa709a;
 $text-dark: #2d3748;
@@ -1059,7 +1059,7 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 .statValue {
   font-size: 2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1113,7 +1113,7 @@ $shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
 .reservedCount {
   font-size: 2rem;
   font-weight: 700;
-  color: #667eea;
+  color: #0064A4;
 }
 
 .capacityTotal {

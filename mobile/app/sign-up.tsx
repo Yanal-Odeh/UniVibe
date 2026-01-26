@@ -58,7 +58,7 @@ export default function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#0064a4','#764ba2']}
+        colors={['#0064a4','#0064A4']}
         style={styles.gradient}
       >
         {/* Background Decorations */}

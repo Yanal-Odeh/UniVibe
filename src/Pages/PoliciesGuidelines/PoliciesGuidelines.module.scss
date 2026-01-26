@@ -1,17 +1,19 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #eef2ff, #ffffff, #faf5ff);
 }
 
 .hero {
   padding: 80px 20px 60px;
   text-align: center;
   color: white;
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
 
   h1 {
     font-size: 3rem;
     margin-bottom: 16px;
     font-weight: 700;
+    color: white;
   }
 
   p {
@@ -161,7 +163,7 @@
   margin-top: 60px;
 
   .footerCard {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
     border-radius: 16px;
     padding: 48px;
     text-align: center;
@@ -183,7 +185,7 @@
 
     .contactBtn {
       background: white;
-      color: #667eea;
+      color: #0064A4;
       border: none;
       padding: 16px 40px;
       border-radius: 8px;

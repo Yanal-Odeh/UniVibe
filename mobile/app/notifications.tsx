@@ -294,7 +294,7 @@ export default function NotificationsScreen() {
     return (
       <Layout>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color="#0064A4" />
         </View>
       </Layout>
     );
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
   },
   markAllText: {
     color: '#fff',
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   notificationCardUnread: {
     backgroundColor: '#eff6ff',
     borderLeftWidth: 3,
-    borderLeftColor: '#667eea',
+    borderLeftColor: '#0064A4',
   },
   notificationMain: {
     flexDirection: 'row',
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
     marginLeft: 8,
   },
   actionButtons: {
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ede9fe',
   },
   revisionBtnText: {
-    color: '#8b5cf6',
+    color: '#0064A4',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitBtn: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#0064A4',
   },
   submitBtnText: {
     color: '#fff',

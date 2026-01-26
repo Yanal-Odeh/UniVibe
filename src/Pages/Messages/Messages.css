@@ -31,7 +31,7 @@
 
 .browse-button {
   padding: 8px 16px;
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #4facfe 100%);
   color: white;
   border: none;
   border-radius: 20px;
@@ -68,7 +68,7 @@
 .search-input:focus {
   outline: none;
   background-color: #fff;
-  border-color: #7C3AED;
+  border-color: #0064A4;
 }
 
 .conversations-list {
@@ -90,15 +90,15 @@
 }
 
 .conversation-item.active {
-  background-color: #f0e7ff;
-  border-left: 3px solid #7C3AED;
+  background-color: #e6f2ff;
+  border-left: 3px solid #0064A4;
 }
 
 .conversation-avatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #4facfe 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +154,7 @@
 }
 
 .unread-badge {
-  background-color: #7C3AED;
+  background-color: #0064A4;
   color: white;
   border-radius: 12px;
   padding: 2px 8px;
@@ -205,7 +205,7 @@
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #7C3AED;
+  color: #0064A4;
   background-color: #f9f9f9;
   letter-spacing: 0.5px;
   position: sticky;
@@ -237,7 +237,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #4facfe 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,7 +280,7 @@
 }
 
 .message.own .message-bubble {
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #4facfe 100%);
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -326,7 +326,7 @@
 
 .message-input:focus {
   outline: none;
-  border-color: #7C3AED;
+  border-color: #0064A4;
 }
 
 .send-button {
@@ -334,7 +334,7 @@
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #0064A4 0%, #4facfe 100%);
   color: white;
   cursor: pointer;
   display: flex;
@@ -394,6 +394,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   padding: 3rem;
 }
@@ -429,7 +430,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #7C3AED;
+  border-top: 3px solid #0064A4;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;

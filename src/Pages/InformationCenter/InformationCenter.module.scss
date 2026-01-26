@@ -1,17 +1,19 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+  background: linear-gradient(to bottom, #eef2ff, #ffffff, #faf5ff);
 }
 
 .hero {
   padding: 80px 20px 60px;
   text-align: center;
   color: white;
+  background: linear-gradient(135deg, #0064A4 0%, #0064A4 100%);
 
   h1 {
     font-size: 3rem;
     margin-bottom: 16px;
     font-weight: 700;
+    color: white;
   }
 
   p {
@@ -41,7 +43,7 @@
 
 .cardsSection {
   h2 {
-    color: white;
+    color: #2d3748;
     font-size: 2rem;
     margin-bottom: 30px;
   }
@@ -83,7 +85,7 @@
   }
 
   .cardLink {
-    color: #667eea;
+    color: #0064A4;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -91,14 +93,14 @@
     transition: color 0.3s ease;
 
     &:hover {
-      color: #764ba2;
+      color: #0064A4;
     }
   }
 }
 
 .helpSection {
   .helpCard {
-    background: linear-gradient(135deg, #0064a4 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0064a4 0%, #0064A4 100%);
     border-radius: 16px;
     padding: 40px;
     text-align: center;
@@ -165,12 +167,12 @@
     padding: 16px;
     background: #f7fafc;
     border-radius: 12px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #0064A4;
 
     .announcementBadge {
       display: inline-block;
       padding: 4px 12px;
-      background: #667eea;
+      background: #0064A4;
       color: white;
       border-radius: 12px;
       font-size: 0.75rem;
@@ -214,13 +216,13 @@
 
           &:hover {
             background: #f7fafc;
-            color: #667eea;
+            color: #0064A4;
           }
 
           &::before {
             content: '→';
             margin-right: 12px;
-            color: #667eea;
+            color: #0064A4;
           }
         }
       }

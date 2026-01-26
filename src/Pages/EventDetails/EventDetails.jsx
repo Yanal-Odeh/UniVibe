@@ -106,7 +106,7 @@ function EventDetails() {
   if (loading) {
     return (
       <div className={styles.eventDetailsPage}>
-        <div className={styles.container}>
+        <div className={styles.loadingContainer}>
           <Loader />
         </div>
       </div>
