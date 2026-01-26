@@ -1068,7 +1068,7 @@ function AdminPanel() {
                                 <div className={styles.communityCell}>
                                   <div 
                                     className={styles.tableAvatar}
-                                    style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #9333ea 100%)' }}
+                                    style={{ background: 'linear-gradient(135deg, #0064A4 0%, #0064A4 100%)' }}
                                   >
                                     {reservation.student.firstName[0]}{reservation.student.lastName[0]}
                                   </div>

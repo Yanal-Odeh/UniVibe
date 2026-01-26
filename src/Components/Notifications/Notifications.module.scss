@@ -46,10 +46,42 @@
   border-bottom: 1px solid #f3f3f3;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.markAllBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #0064A4;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(0, 100, 164, 0.1);
+  }
+}
+
 .closeBtn {
   background: transparent;
   border: none;
   cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
 }
 
 .panelBody {

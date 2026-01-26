@@ -63,6 +63,11 @@ export function ChatProvider({ children }) {
       }
     });
 
+    socket.on('messages_read', () => {
+      // Refresh count when messages are read
+      fetchUnreadCount();
+    });
+
     socket.on('message_read', () => {
       // Refresh count when messages are read
       fetchUnreadCount();

@@ -133,6 +133,19 @@ function Notifications() {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await api.markAllNotificationsAsRead();
+      // Update local state
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      // Update unread count
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      alert('Failed to mark all as read');
+    }
+  };
+
   const handleReject = async (notification) => {
     if (!notification.eventId) return;
     
@@ -320,9 +333,20 @@ function Notifications() {
         <div ref={panelRef} className={styles.panel} role="dialog" aria-label="Notifications panel">
           <div className={styles.panelHeader}>
             <strong>Notifications</strong>
-            <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="Close">
-              <X size={14} />
-            </button>
+            <div className={styles.headerActions}>
+              {unreadCount > 0 && (
+                <button 
+                  className={styles.markAllBtn} 
+                  onClick={handleMarkAllAsRead}
+                  title="Mark all as read"
+                >
+                  Mark all as read
+                </button>
+              )}
+              <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="Close">
+                <X size={14} />
+              </button>
+            </div>
           </div>
 
           <div className={styles.panelBody}>
@@ -399,44 +423,25 @@ function Notifications() {
                               Approve
                             </button>
                             
-                            {(canRejectPermanently(currentAdmin?.role)) && (
-                              <>
-                                <button
-                                  onClick={() => toggleReasonInput(n.id)}
-                                  disabled={processingId === n.id}
-                                  className={styles.revisionBtn}
-                                  title="Request revision"
-                                >
-                                  <MessageSquare size={16} />
-                                  Request Revision
-                                </button>
-                                
-                                <button
-                                  onClick={() => setShowRejectInput(prev => ({
-                                    ...prev,
-                                    [n.id]: !prev[n.id]
-                                  }))}
-                                  disabled={processingId === n.id}
-                                  className={styles.rejectBtn}
-                                  title="Permanently reject event"
-                                >
-                                  <XCircle size={16} />
-                                  Reject Event
-                                </button>
-                              </>
-                            )}
+                            <button
+                              onClick={() => toggleReasonInput(n.id)}
+                              disabled={processingId === n.id}
+                              className={styles.denyBtn}
+                              title="Deny event"
+                            >
+                              <XCircle size={16} />
+                              Deny
+                            </button>
                             
-                            {currentAdmin?.role?.toUpperCase() === UserRole.FACULTY_LEADER && (
-                              <button
-                                onClick={() => toggleReasonInput(n.id)}
-                                disabled={processingId === n.id}
-                                className={styles.denyBtn}
-                                title="Deny event"
-                              >
-                                <XCircle size={16} />
-                                Deny
-                              </button>
-                            )}
+                            <button
+                              onClick={() => toggleReasonInput(n.id)}
+                              disabled={processingId === n.id}
+                              className={styles.revisionBtn}
+                              title="Request revision"
+                            >
+                              <MessageSquare size={16} />
+                              Request Revision
+                            </button>
                           </>
                         ) : (
                           <div className={styles.processing}>Processing...</div>
