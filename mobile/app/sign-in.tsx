@@ -48,7 +48,7 @@ export default function SignInScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#0064a4', '#0064A4']}
+        colors={['#0064a4', '#764ba2']}
         style={styles.gradient}
       >
         {/* Background Decorations */}
@@ -121,7 +121,20 @@ export default function SignInScreen() {
                 </View>
               </View>
 
-              {/* Submit Button */
+              {/* Form Options */}
+              <View style={styles.formOptions}>
+                <View style={styles.checkboxContainer}>
+                  {/* Checkbox placeholder - can be implemented with a library */}
+                  <Text style={styles.checkboxText}>Remember me</Text>
+                </View>
+                {/* <Link href="/forgot-password" asChild>
+                  <TouchableOpacity>
+                    <Text style={styles.forgotLink}>Forgot Password?</Text>
+                  </TouchableOpacity>
+                </Link> */}
+              </View>
+
+              {/* Submit Button */}
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
@@ -135,7 +148,22 @@ export default function SignInScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Sign Up Prompt */
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Buttons */}
+            <View style={styles.socialButtons}>
+              <TouchableOpacity style={styles.socialButton}>
+                <Text style={styles.socialIcon}>🔍</Text>
+                <Text style={styles.socialButtonText}>Continue with Google</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Sign Up Prompt */}
             <View style={styles.signUpPrompt}>
               <Text style={styles.promptText}>Don't have an account? </Text>
               <Link href="/sign-up" asChild>

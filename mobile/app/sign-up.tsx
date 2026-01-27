@@ -58,7 +58,7 @@ export default function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#0064a4','#0064A4']}
+        colors={['#0064a4', '#764ba2']}
         style={styles.gradient}
       >
         {/* Background Decorations */}
@@ -178,6 +178,21 @@ export default function SignUpScreen() {
                 ) : (
                   <Text style={styles.submitButtonText}>Create Account</Text>
                 )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Social Buttons */}
+            <View style={styles.socialButtons}>
+              <TouchableOpacity style={styles.socialButton}>
+                <Text style={styles.socialIcon}>🔍</Text>
+                <Text style={styles.socialButtonText}>Continue with Google</Text>
               </TouchableOpacity>
             </View>
 
