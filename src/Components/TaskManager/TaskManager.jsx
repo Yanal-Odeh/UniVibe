@@ -69,10 +69,17 @@ function TaskManager({ eventId, currentUser, event }) {
 
   const fetchMembers = async () => {
     try {
+      console.log('Fetching members for event:', eventId);
       const members = await api.getCommunityMembers(eventId);
+      console.log('Members received:', members);
       setMembers(members);
+      
+      if (members.length === 0) {
+        console.warn('⚠️ No members found for this community');
+      }
     } catch (error) {
       console.error('Error fetching members:', error);
+      alert(error.message || 'Failed to fetch community members. Please check console for details.');
     }
   };
 
@@ -374,19 +381,28 @@ function TaskManager({ eventId, currentUser, event }) {
 
               <div className={styles.formGroup}>
                 <label htmlFor="assignedToId">Assign to *</label>
-                <select
-                  id="assignedToId"
-                  value={formData.assignedToId}
-                  onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
-                  required
-                >
-                  <option value="">Select a member...</option>
-                  {members.map(member => (
-                    <option key={member.id} value={member.id}>
-                      {member.firstName} {member.lastName}
-                    </option>
-                  ))}
-                </select>
+                {members.length === 0 ? (
+                  <div className={styles.noMembers}>
+                    <p>⚠️ No community members available</p>
+                    <p className={styles.noMembersHint}>
+                      Please add members to your community before creating tasks.
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    id="assignedToId"
+                    value={formData.assignedToId}
+                    onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select a member...</option>
+                    {members.map(member => (
+                      <option key={member.id} value={member.id}>
+                        {member.firstName} {member.lastName}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className={styles.modalActions}>

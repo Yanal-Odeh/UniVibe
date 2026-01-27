@@ -490,19 +490,19 @@ class ApiClient {
 
   // Task Management API
   async getEventTasks(eventId) {
-    return this.request(`/events/${eventId}/tasks`);
+    return this.request(`/tasks/events/${eventId}/tasks`);
   }
 
   async getMyTasks(eventId) {
-    return this.request(`/events/${eventId}/my-tasks`);
+    return this.request(`/tasks/events/${eventId}/my-tasks`);
   }
 
   async getCommunityMembers(eventId) {
-    return this.request(`/events/${eventId}/members`);
+    return this.request(`/tasks/events/${eventId}/members`);
   }
 
   async createTask(eventId, data) {
-    return this.request(`/events/${eventId}/tasks`, {
+    return this.request(`/tasks/events/${eventId}/tasks`, {
       method: 'POST',
       body: JSON.stringify(data),
     });

@@ -309,6 +309,26 @@
   }
 }
 
+.noMembers {
+  padding: 1.5rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  text-align: center;
+
+  p {
+    margin: 0 0 0.5rem 0;
+    color: #92400e;
+    font-weight: 500;
+  }
+
+  .noMembersHint {
+    font-size: 0.875rem;
+    color: #b45309;
+    font-weight: normal;
+  }
+}
+
 .modalActions {
   display: flex;
   gap: 0.75rem;

@@ -350,23 +350,55 @@ export const getCommunityMembers = async (req, res) => {
     const { eventId } = req.params;
     const userId = req.user.id;
 
+    console.log('=== Fetching Community Members ===');
+    console.log('Event ID:', eventId);
+    console.log('User ID:', userId);
+
     // Get the event and verify club leader
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-      include: { community: true },
+      include: { 
+        community: {
+          include: {
+            clubLeader: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        } 
+      },
     });
+
+    console.log('Event found:', !!event);
+    console.log('Event communityId:', event?.communityId);
+    console.log('Community:', event?.community?.name);
+    console.log('Club Leader:', event?.community?.clubLeader);
 
     if (!event) {
       return res.status(404).json({ error: 'Event not found' });
     }
 
+    if (!event.communityId) {
+      console.log('❌ Event has no communityId');
+      return res.status(400).json({ error: 'Event is not associated with a community' });
+    }
+
     if (!event.community) {
-      return res.status(400).json({ error: 'Event must be associated with a community' });
+      console.log('❌ Community not found');
+      return res.status(400).json({ error: 'Community not found for this event' });
     }
 
     if (event.community.clubLeaderId !== userId) {
+      console.log('❌ User is not club leader');
+      console.log('Expected club leader ID:', event.community.clubLeaderId);
+      console.log('Actual user ID:', userId);
       return res.status(403).json({ error: 'Only the club leader can view community members' });
     }
+
+    console.log('✅ User is verified club leader');
 
     // Get all community members
     const members = await prisma.communityMember.findMany({
@@ -388,7 +420,10 @@ export const getCommunityMembers = async (req, res) => {
       },
     });
 
+    console.log('Members found:', members.length);
     const membersList = members.map(m => m.user);
+    console.log('Returning members list:', membersList);
+    
     res.json(membersList);
   } catch (error) {
     console.error('Error fetching community members:', error);
